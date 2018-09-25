@@ -1,0 +1,43 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+
+    repositories {
+        google()
+        jcenter()
+        mavenLocal()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.0.1'
+
+        // Green DAO
+        classpath 'org.greenrobot:greendao-gradle-plugin:3.2.2'
+
+        // twitter lib use
+        classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.0.1'
+
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+        mavenLocal()
+        mavenCentral()
+        flatDir {
+            dirs 'libs'
+        }
+        maven { url "https://jitpack.io" }
+        maven { url 'https://maven.google.com' }
+//                maven { url 'https://maven.fabric.io/public' } // twitter
+//        maven {
+//            url 'https://download.01.org/crosswalk/releases/crosswalk/android/maven2'
+//        }
+        maven { url 'https://dl.bintray.com/swain169/maven/' }
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

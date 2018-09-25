@@ -1,0 +1,4 @@
+include ':app', ':blesocket', ':myapplication', ':blesocket', ':wifisocket', ':smartplug'
+
+//include ':commonLibary'
+//project(":commonLibary").projectDir = new File('../CommonLibary/support')

@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">插座</string>
+    <string name="app_name_ble">TriggleHome</string>
+    <string name="app_name_wifi">TriggleHome</string>
+    <string name="app_name_smartplug">WiFi插座2</string>
+
+    <string name="goBack_again">请再按一次退出</string>
+    <string name="ble_forbid_enable_skip_setting">蓝牙激活失败，请跳转到设置界面手动打开</string>
+    <string name="jump_product_detection_near_step">请再按$step下进入产测</string>
+    <string name="wifi_state_allow_permission">您必须允许这个权限，否则无法获取WiFi信息</string>
+
+    <string name="skip_product_detection">进入产测模式</string>
+    <string name="sign_out_product_detection">退出产测模式</string>
+    <string name="detection_rec_area">接受区:</string>
+    <string name="detection_send_area">发送区:</string>
+    <string name="clear_data">清空数据</string>
+    <string name="generating_verification_report">生成验证报告</string>
+    <string name="generating_verification_success">生成报告成功</string>
+    <string name="generating_verification_fail">生成报告失败</string>
+    <string name="out_of_memory_need_clear">内存即将溢出,请及时生成验证报告</string>
+
+
+    <string name="facebook_app_id">395768114167191</string>
+    <string name="fb_login_protocol_scheme">fb395768114167191</string>
+    <string name="server_client_id">854356002721-8tquk5901sq9uf40vctka3fsk09630jm.apps.googleusercontent.com</string>
+
+    <string name="twitter_api_key">lIMEObknf7gHEsOj9mutp3guq</string>
+    <string name="twitter_secret_key">4bPsFNeRm2EoYenuZi1hxoTRtHlOo91eQaK8w5o8weOQPMiYBU</string>
+
+</resources>

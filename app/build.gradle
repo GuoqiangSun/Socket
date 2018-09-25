@@ -1,0 +1,207 @@
+//buildscript {
+//    repositories {
+//        maven { url 'https://maven.fabric.io/public' }
+//    }
+//
+//    dependencies {
+//        classpath 'io.fabric.tools:gradle:1.21.6'
+//    }
+//}
+
+//apply plugin: 'io.fabric'
+apply plugin: 'com.android.library'
+apply plugin: 'org.greenrobot.greendao'
+apply plugin: 'com.github.kt3k.coveralls'
+
+
+
+android {
+    compileSdkVersion 27
+
+//    aaptOptions.cruncherEnabled = false
+//    aaptOptions.useNewCruncher = false
+
+    defaultConfig {
+//        applicationId "cn.com.startai.socket"
+        minSdkVersion 19
+        targetSdkVersion 27
+        versionCode 10000
+        versionName "1.0.000"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        flavorDimensions "versionCode"
+        multiDexEnabled true
+
+    }
+
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+        // Or, if you prefer, you can continue to check for errors in release builds,
+        // but continue the build even when errors are found:
+        abortOnError false
+    }
+
+    dexOptions {
+        jumboMode true
+    }
+
+    buildTypes {
+        debug {
+            testCoverageEnabled true
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    // 多渠道/多环境 的不同配置
+//    productFlavors {
+//
+//        blesocket {
+//            applicationId "cn.com.startai.bluetoothsocket"
+//            versionName "1.6.176"
+//            versionCode 16176
+//            // 动态修改 常量 字段
+//            buildConfigField "String", "ENVIRONMENT", '"BleSocket"'
+//            // 修改 AndroidManifest.xml 里渠道变量
+//            manifestPlaceholders = [APP_NAME: "@string/app_name_ble", app_icon: "@mipmap/logoble"
+//            ]
+//        }
+//
+//
+//        wifisocket {
+//            applicationId "cn.com.startai.wifisocket"
+//            versionName "1.6.080"
+//            versionCode 16080
+//            // 动态修改 常量 字段
+//            buildConfigField "String", "ENVIRONMENT", '"WiFiSocket"'
+//            // 修改 AndroidManifest.xml 里渠道变量
+//            manifestPlaceholders = [APP_NAME: "@string/app_name_wifi", app_icon: "@mipmap/logowifi"
+//            ]
+//
+//        }
+//
+//        smartplug {
+//            applicationId "cn.com.startai.smartplug"
+//            versionName "1.6.001"
+//            versionCode 16001
+//            // 动态修改 常量 字段
+//            buildConfigField "String", "ENVIRONMENT", '"SmartPlug"'
+//            // 修改 AndroidManifest.xml 里渠道变量
+//            manifestPlaceholders = [APP_NAME: "@string/app_name_smartplug", app_icon: "@mipmap/logowifi"
+//            ]
+//
+//        }
+//
+//
+//    }
+
+//    android.applicationVariants.all { variant ->
+//        variant.outputs.all {
+//            outputFileName = "${variant.productFlavors[0].name}-${variant.versionName}-${variant.buildType.name}.apk"
+//        }
+//    }
+
+    greendao {
+
+        //数据库版本
+        schemaVersion 28
+        //设置DaoMaster、DaoSession、Dao包名
+        daoPackage "cn.com.startai.socket.db.gen"
+        //设置DaoMaster、DaoSession、Dao目录
+        targetGenDir "src/main/java"
+    }
+
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
+}
+
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        def requested = details.requested
+        if (requested.group == 'com.android.support') {
+            if (!requested.name.startsWith("multidex")) {
+                details.useVersion '27.1.1'
+//                details.useVersion '28.0.0-rc01'
+            }
+        }
+    }
+}
+
+allprojects {
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+    jcenter()
+//        mavenCentral()
+//        maven { url 'https://maven.fabric.io/public' }
+
+}
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    //        testImplementation 'junit:junit:4.12'
+    //        androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    //        androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    //
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+    implementation 'com.android.support:recyclerview-v7:27.1.1'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:animated-vector-drawable:27.1.1'
+    implementation 'com.android.support:cardview-v7:27.1.1'
+    implementation 'com.android.support:design:27.1.1'
+    // libs
+//    api project(':commonLibary')
+    api(name: 'xwalk_core_library-23.53.589.4-arm', ext: 'aar')
+    //    implementation 'org.xwalk:xwalk_core_library:23.53.589.4'
+    implementation files('libs/startai-airkiss-sender-1.0.jar')
+    // dao
+    implementation 'org.greenrobot:greendao:3.2.2'
+    implementation 'com.github.yuweiguocn:GreenDaoUpgradeHelper:v2.0.0'
+    //    implementation 'net.zetetic:android-database-sqlcipher:3.5.9'
+    // facebook
+    implementation 'com.facebook.android:facebook-login:4.33.0'
+    //    implementation 'com.facebook.android:facebook-android-sdk:4.33.0'
+    // google
+    implementation 'com.google.android.gms:play-services-auth:15.0.1'
+    //    compile 'com.google.android.gms:play-services:12.0.1'
+    //twitter
+    //    compile('com.twitter.sdk.android:twitter:3.3.0@aar') {
+    //        transitive = true
+    //    }
+    implementation('com.twitter.sdk.android:twitter:3.0.0@aar') {
+        transitive = true
+    }
+    // mqtt
+    /* implementation files('libs/org.eclipse.paho.client.mqttv3-1.2.0.jar')*/
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0'
+    implementation files('libs/startai-esptouch-sender-1.0.jar')
+    implementation files('libs/startai-udp-1.0.jar')
+    //    implementation files('libs/startai-mqtt-3.0.5.jar')
+    implementation 'cn.com.startai:mqsdk:3.1.14'
+    implementation 'com.blankj:utilcode:1.19.3'
+
+    implementation 'org.xutils:xutils:3.5.0'
+    implementation 'cn.com.startai:fastdfssdk:1.0.2'
+
+    api 'com.android.support:multidex:1.0.3'
+    api 'cn.com.swain169:baselib:3.0.12'
+    api 'cn.com.swain169:Tlog:3.0.15'
+    implementation 'cn.com.swain169:fastble:3.0.09'
+    implementation 'cn.com.swain169:protocolEngine:3.0.13'
+
+}
+
