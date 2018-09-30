@@ -35,7 +35,7 @@ public class ControlReceiveTask extends SocketResponseTask {
 
         boolean result = SocketSecureKey.Util.resultIsOk(protocolParams[0]);
 
-        Tlog.e(TAG, " ControlReceiveTask result:" + result + " params:" + result);
+        Tlog.e(TAG, " ControlReceiveTask result:" + result + " params:" + protocolParams[0]);
 
         if (mTaskCallBack != null) {
             mTaskCallBack.onConnectResult(result, mSocketDataArray.getID());

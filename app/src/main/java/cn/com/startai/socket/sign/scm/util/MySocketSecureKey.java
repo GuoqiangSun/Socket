@@ -15,6 +15,13 @@ public class MySocketSecureKey extends SocketSecureKey {
 
     public static class MCmd {
 
+        /******0x01system*/
+        /**
+         * 升级
+         */
+        public static final byte CMD_UPDATE = 0x09;
+        public static final byte CMD_UPDATE_RESPONSE = 0x0A;
+
         /******0x02control*/
 
         /**
@@ -68,6 +75,19 @@ public class MySocketSecureKey extends SocketSecureKey {
          * 背光开关
          */
         public static final byte MODEL_BACKLIGHT = 0x02;
+
+        /**
+         * 升级
+         */
+        public static final byte MODEL_UPDATE = 0x01;
+        /**
+         * 查询版本
+         */
+        public static final byte MODEL_QUERY_VERSION = 0x02;
+        /**
+         * 强制升级
+         */
+        public static final byte MODEL_FORCE_UPDATE = 0x03;
     }
 
     public static class MUtil {
@@ -80,6 +100,13 @@ public class MySocketSecureKey extends SocketSecureKey {
             return (MModel.MODEL_BACKLIGHT == model);
         }
 
+        public static boolean isQueryVersionAction(byte action) {
+            return (MModel.MODEL_QUERY_VERSION == action);
+        }
+
+        public static boolean isUpdateModel(byte action) {
+            return (MModel.MODEL_UPDATE == action) || (MModel.MODEL_FORCE_UPDATE == action);
+        }
     }
 
 

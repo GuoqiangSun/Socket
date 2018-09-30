@@ -44,6 +44,7 @@ import cn.com.startai.socket.sign.scm.receivetask.impl.system.RequestTokenReceiv
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.SleepReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.TemperatureUnitQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.TemperatureUnitSettingReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.system.UpdateReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.VoltageQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.VoltageSettingReceiveTask;
 import cn.com.startai.socket.sign.scm.util.MySocketSecureKey;
@@ -168,6 +169,9 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                         break;
                     case SocketSecureKey.Cmd.CMD_BIND_DEVICE_RESPONSE:
                         new DeviceBindTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case MySocketSecureKey.MCmd.CMD_UPDATE_RESPONSE:
+                        new UpdateReceiveTask(mTaskCallBack).execute(mParam);
                         break;
                     case SocketSecureKey.Cmd.CMD_SET_VOLTAGE_ALARM_VALUE_RESPONSE:
                         new VoltageSettingReceiveTask(mTaskCallBack).execute(mParam);

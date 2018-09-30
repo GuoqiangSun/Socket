@@ -154,6 +154,11 @@ public class DeviceManager implements IService {
         }
 
         LanDeviceInfo displayLanDevice = mDisplayDeviceLst.getDisplayDeviceByMac(mDevice.mac);
+        if (!mDevice.isLanBind && displayLanDevice != null && displayLanDevice.isLanBind) {
+            if(mResultCallBack!=null){
+                mResultCallBack.onResultNeedReBind(mDevice.mac);
+            }
+        }
 
         String mLastName = null;
         int mLastRSSI = 0;
@@ -237,6 +242,7 @@ public class DeviceManager implements IService {
             Tlog.e(TAG, " wanDeviceBind msg send failed");
 
             if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
                 mResultCallBack.onResultBindDevice(false);
             }
 
@@ -262,11 +268,15 @@ public class DeviceManager implements IService {
             return;
         }
 
+        LanDeviceInfo mDiscoveryDeviceInfo = mDiscoveryDeviceLst.getLanDeviceByMac(mLanBindingDevice.getOmac());
+
         Tlog.e(TAG, " onDeviceResponseLanBind() success " + mLanBindingDevice.getOmac());
         WanBindingDeviceDao bindingDeviceDao = DBManager.getInstance().getDaoSession().getWanBindingDeviceDao();
         List<WanBindingDevice> listBind = bindingDeviceDao.queryBuilder()
                 .where(WanBindingDeviceDao.Properties.Mid.eq(mLanBindingDevice.getMid()),
                         WanBindingDeviceDao.Properties.Oid.eq(mLanBindingDevice.getOid())).list();
+
+
         WanBindingDevice mWanBindingDevice = null;
 
         if (listBind != null && listBind.size() > 0) {
@@ -301,7 +311,6 @@ public class DeviceManager implements IService {
             mDaoLanDeviceInfo = listInfo.get(0);
         }
 
-        LanDeviceInfo mDiscoveryDeviceInfo = mDiscoveryDeviceLst.getLanDeviceByMac(mLanBindingDevice.getOmac());
 
         if (mDaoLanDeviceInfo == null) {
 
@@ -333,7 +342,11 @@ public class DeviceManager implements IService {
 
         }
 
-        StartAI.getInstance().getBaseBusiManager().bind(mLanBindingDevice.getOid(), mBindLsn);
+        if (!mWanBindingDevice.getHasBindingByWan()) {
+            StartAI.getInstance().getBaseBusiManager().bind(mLanBindingDevice.getOid(), mBindLsn);
+        } else {
+            Tlog.d(TAG, " bind getHasBindingByWan:");
+        }
 
     }
 
@@ -348,6 +361,7 @@ public class DeviceManager implements IService {
         public void onFailed(MqttPublishRequest mqttPublishRequest, StartaiError startaiError) {
             Tlog.e(TAG, " unbindingDevice msg send fail " + startaiError.getErrorCode());
             if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
                 mResultCallBack.onResultUnbind(false, tmpUnbindMac);
             }
         }
@@ -522,6 +536,7 @@ public class DeviceManager implements IService {
         if (resp.getResult() != 1) {
             Tlog.e(TAG, "onUnBindResult fail ; errorMsg:" + resp.getContent().getErrmsg());
             if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError(String.valueOf(resp.getContent().getErrcode()));
                 mResultCallBack.onResultUnbind(false, tmpUnbindMac);
             }
         } else {
@@ -537,11 +552,13 @@ public class DeviceManager implements IService {
     synchronized void onBindResult(C_0x8002.Resp resp, String mid, C_0x8002.Resp.ContentBean.BebindingBean bebinding) {
 
         if (Debuger.isLogDebug) {
-            Tlog.d(TAG, "onBindResult  " + mid + String.valueOf(resp) + "\n" + String.valueOf(bebinding));
+            Tlog.d(TAG, "onBindResult  " + String.valueOf(resp) + "\r" + String.valueOf(bebinding));
         }
 
         if (resp.getResult() != 1) {
+
             if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError(resp.getContent().getErrcode());
                 mResultCallBack.onResultBindDevice(false);
             }
             return;
@@ -838,9 +855,8 @@ public class DeviceManager implements IService {
 
 
             LanDeviceInfoDao lanDeviceInfoDao = DBManager.getInstance().getDaoSession().getLanDeviceInfoDao();
-            QueryBuilder<LanDeviceInfo> where = lanDeviceInfoDao.queryBuilder().where(
-                    LanDeviceInfoDao.Properties.Mac.eq(mac));
-            List<LanDeviceInfo> list = where.list();
+            List<LanDeviceInfo> list = lanDeviceInfoDao.queryBuilder().where(
+                    LanDeviceInfoDao.Properties.Mac.eq(mac)).list();
 
             if (list != null && list.size() > 0) {
                 for (LanDeviceInfo mDaoLanDeviceInfo : list) {

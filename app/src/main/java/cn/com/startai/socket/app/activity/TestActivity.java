@@ -13,6 +13,7 @@ import com.tencent.mm.plugin.exdevice.jni.Java2CExDevice;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 import cn.com.startai.socket.app.SocketApplication;
@@ -43,6 +44,12 @@ import cn.com.swain169.log.Tlog;
 public class TestActivity extends AppCompatActivity {
 
     private static String TAG = SocketApplication.TAG;
+
+    public static void main(String[] args) {
+        long t = 1537954715260L;
+        Date d = new Date(t);
+        System.out.print(d.toString());
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

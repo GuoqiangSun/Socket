@@ -37,7 +37,7 @@ public class MyErrorTask extends SocketResponseTask {
         if (protocolParams.length >= 3) {
             byte paramType = protocolParams[1];
             byte paramCmd = protocolParams[2];
-            Tlog.e(TAG, Integer.toHexString(paramType) + " " + Integer.toHexString(paramCmd));
+            Tlog.e(TAG, " myType:" + Integer.toHexString(paramType) + " myCmd:" + Integer.toHexString(paramCmd));
         }
 
         switch (protocolParam) {
@@ -59,7 +59,7 @@ public class MyErrorTask extends SocketResponseTask {
                 Tlog.e(TAG, " length error ");
                 break;
             case 0x06:
-                Tlog.e(TAG, " heartbeat lose ");
+                Tlog.e(TAG, " token invalid ");
 
                 if (mTaskCallBack != null) {
                     mTaskCallBack.onTokenInvalid(mSocketDataArray.getID());

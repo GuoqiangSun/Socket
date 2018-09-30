@@ -102,6 +102,8 @@ public interface IControlWiFi {
 
     void emailForgot(String email);
 
+    String getNameByMac(String mac);
+
 
     interface IWiFiResultCallBack {
 
@@ -170,6 +172,8 @@ public interface IControlWiFi {
         void onResultModifyHeadLogo(boolean result);
 
         void onResultEmailForgot(boolean result);
+
+        void onResultNeedReBind(String mac);
     }
 
 }

@@ -17,6 +17,18 @@ import cn.com.startai.socket.db.manager.DBManager;
  */
 public class CountdownData {
 
+    @Override
+    public String toString() {
+        return "CountdownData{" +
+                "mac='" + mac + '\'' +
+                ", hour=" + hour +
+                ", minute=" + minute +
+                ", allTime=" + allTime +
+                ", Switchgear=" + Switchgear +
+                ", countdownSwitch=" + countdownSwitch +
+                '}';
+    }
+
     /**
      * '{
      * "hour": 1,

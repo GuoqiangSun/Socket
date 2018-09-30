@@ -129,7 +129,7 @@ public class Controller implements IService {
 
         AbsHardware hw = getHw();
 
-        if (hw != null && hw instanceof BleManager) {
+        if (hw instanceof BleManager) {
             return (BleManager) hw;
         }
         return null;
@@ -140,7 +140,7 @@ public class Controller implements IService {
 
         AbsHardware hw = getHw();
 
-        if (hw != null && hw instanceof NetworkManager) {
+        if (hw instanceof NetworkManager) {
             return (NetworkManager) hw;
         }
         return null;
@@ -166,8 +166,15 @@ public class Controller implements IService {
     private static final int INDEX_SCM_MANAGER = 3;
     private static final int INDEX_JS_MANAGER = 4;
 
+    private volatile boolean create = false;
+
     @Override
     public void onSCreate() {
+        if (create) {
+            Tlog.e(" Controller.onSCreate(); is already create");
+            return;
+        }
+        create = true;
         Debuger.getInstance().onSCreate();
         if (mServices.size() > 0) {
             for (IService mIService : mServices) {
@@ -209,6 +216,7 @@ public class Controller implements IService {
 
         mServices.clear();
         this.isInit = false;
+        this.create = false;
         Debuger.getInstance().onSDestroy();
         Tlog.v(" Controller onSDestroy");
     }
@@ -221,6 +229,7 @@ public class Controller implements IService {
             }
         }
         this.isInit = false;
+        this.create = false;
         Debuger.getInstance().onSFinish();
         Tlog.v(" Controller onSFinish");
     }

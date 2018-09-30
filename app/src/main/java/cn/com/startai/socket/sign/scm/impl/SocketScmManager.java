@@ -30,6 +30,7 @@ import cn.com.startai.socket.sign.scm.bean.TempHumidityAlarmData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingCommonData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingListData;
+import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.startai.socket.sign.scm.bean.sensor.SensorData;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.Humidity;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.TempHumidityData;
@@ -54,7 +55,8 @@ import cn.com.swain169.log.Tlog;
  * desc :
  */
 
-public class SocketScmManager extends AbsSocketScm implements IService, IDataProtocolOutput, OnTaskCallBack, IRegDebugerProtocolStream, ScmDevice.OnHeartbeatCallBack {
+public class SocketScmManager extends AbsSocketScm
+        implements IService, IDataProtocolOutput, OnTaskCallBack, IRegDebugerProtocolStream, ScmDevice.OnHeartbeatCallBack {
 
     public static final String TAG = "SocketScmManager";
 
@@ -224,7 +226,9 @@ public class SocketScmManager extends AbsSocketScm implements IService, IDataPro
         Tlog.v(TAG, " onConnected : " + address);
 
         mScmDeviceUtils.getScmDevice(address).connected();
-        mScmDeviceUtils.showConnectDevice();
+        if (Debuger.isDebug) {
+            mScmDeviceUtils.showConnectDevice();
+        }
 
         queryScmTime(address);
 
@@ -326,6 +330,24 @@ public class SocketScmManager extends AbsSocketScm implements IService, IDataPro
         ResponseData mResponseData = MySocketDataCache.getQueryCumuParam(mac);
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryCumuParam " + mResponseData.toString());
+        }
+        onOutputDataToServer(mResponseData);
+    }
+
+    @Override
+    public void queryVersion(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getQueryVersion(mac);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryVersion " + mResponseData.toString());
+        }
+        onOutputDataToServer(mResponseData);
+    }
+
+    @Override
+    public void update(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getUpdate(mac);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " update " + mResponseData.toString());
         }
         onOutputDataToServer(mResponseData);
     }
@@ -843,6 +865,13 @@ public class SocketScmManager extends AbsSocketScm implements IService, IDataPro
     public void onQueryCumuParamsResult(boolean result, CumuParams cumuParams) {
         if (mScmResultCallBack != null) {
             mScmResultCallBack.onResultQueryCumuParams(result, cumuParams);
+        }
+    }
+
+    @Override
+    public void onUpdateVersionResult(boolean result, UpdateVersion mVersion) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onResultUpdateVersion(result, mVersion);
         }
     }
 

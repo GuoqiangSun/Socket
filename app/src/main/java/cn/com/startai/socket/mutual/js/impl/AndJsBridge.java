@@ -48,6 +48,7 @@ import cn.com.startai.socket.sign.js.jsInterface.State;
 import cn.com.startai.socket.sign.js.jsInterface.TemperatureAndHumidity;
 import cn.com.startai.socket.sign.js.jsInterface.Timing;
 import cn.com.startai.socket.sign.js.jsInterface.User;
+import cn.com.startai.socket.sign.js.jsInterface.Version;
 import cn.com.startai.socket.sign.scm.bean.CostRate;
 import cn.com.startai.socket.sign.scm.bean.CountdownData;
 import cn.com.startai.socket.sign.scm.bean.CumuParams;
@@ -61,6 +62,7 @@ import cn.com.startai.socket.sign.scm.bean.TempHumidityAlarmData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingCommonData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingListData;
+import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.startai.socket.sign.scm.bean.sensor.SensorData;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.TempHumidityData;
 import cn.com.swain.baselib.app.IApp.IService;
@@ -604,6 +606,14 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
+    public void onResultNeedReBind(String mac) {
+        Tlog.v(TAG, " onResultNeedReBind() ");
+        LanBindInfo mLanBindInfo = new LanBindInfo();
+        mLanBindInfo.mac = mac;
+        onJSBindLanDevice(mLanBindInfo);
+    }
+
+    @Override
     public void onJSIsLogin() {
         Tlog.v(TAG, " onJSIsLogin() ");
 
@@ -732,6 +742,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         String method = Login.Method.callJsEmailForgot(result);
         loadJs(method);
     }
+
 
     @Override
     public void onJSDisControlWiFiDevice(String mac) {
@@ -917,6 +928,20 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
+    public void onJSQueryScmVersion(String mac) {
+        if (mScmVirtual != null) {
+            mScmVirtual.queryVersion(mac);
+        }
+    }
+
+    @Override
+    public void onJSUpdateScm(String mac) {
+        if (mScmVirtual != null) {
+            mScmVirtual.update(mac);
+        }
+    }
+
+    @Override
     public void onJSDisableGoBack(boolean status) {
         if (mCallBack != null) {
             mCallBack.ajDisableGoBack(status);
@@ -975,6 +1000,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onJSTurnOnDevice() {
         Tlog.v(TAG, " onJSTurnOnDevice()");
         if (mBleManager != null) {
+
+
             mBleManager.enableHW();
         }
     }
@@ -1639,6 +1666,29 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onResultHeartbeatReceive(String mac, boolean result) {
         if (mNetworkManager != null) {
             mNetworkManager.receiveHeartbeat(mac, result);
+        }
+    }
+
+    @Override
+    public void onResultUpdateVersion(boolean result, UpdateVersion mVersion) {
+        if (mVersion.isQueryVersionAction()) {
+            String method = Version.Method.callJsScmVersion(mVersion.mac,
+                    mVersion.newVersion > mVersion.curVersion, mVersion.newVersion);
+            loadJs(method);
+        } else if (mVersion.isUpdateVersionAction()) {
+
+            String nameByMac;
+            if (mNetworkManager != null) {
+                nameByMac = mNetworkManager.getNameByMac(mVersion.mac);
+
+            } else {
+                nameByMac = mVersion.mac + "-" + String.valueOf(mVersion.curVersion);
+            }
+
+            String method = Version.Method.callJsScmUpdate(mVersion.mac, nameByMac
+                    , result);
+            loadJs(method);
+            
         }
     }
 

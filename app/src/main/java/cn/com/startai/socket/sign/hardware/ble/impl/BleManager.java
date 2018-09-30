@@ -1,5 +1,6 @@
 package cn.com.startai.socket.sign.hardware.ble.impl;
 
+import android.Manifest;
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothGatt;
@@ -8,6 +9,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Looper;
+
+import com.blankj.utilcode.util.PermissionUtils;
 
 import java.util.ArrayList;
 import java.util.List;

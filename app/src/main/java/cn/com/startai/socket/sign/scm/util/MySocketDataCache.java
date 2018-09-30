@@ -89,4 +89,26 @@ public class MySocketDataCache extends ProtocolDataCache {
         mSecureDataPack.setCmd(MySocketSecureKey.MCmd.CMD_QUERY_MAX_OUTPUT);
         return newResponseDataRecord(mac, mSecureDataPack);
     }
+
+    /**
+     * 查询版本号
+     */
+    public static ResponseData getQueryVersion(String mac) {
+        SocketDataArray mSecureDataPack = getMInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
+        mSecureDataPack.setCmd(MySocketSecureKey.MCmd.CMD_UPDATE);
+        mSecureDataPack.setParams(new byte[]{MySocketSecureKey.MModel.MODEL_QUERY_VERSION});
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    /**
+     * 升级
+     */
+    public static ResponseData getUpdate(String mac) {
+        SocketDataArray mSecureDataPack = getMInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
+        mSecureDataPack.setCmd(MySocketSecureKey.MCmd.CMD_UPDATE);
+        mSecureDataPack.setParams(new byte[]{MySocketSecureKey.MModel.MODEL_UPDATE});
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
 }

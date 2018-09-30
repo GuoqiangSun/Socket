@@ -605,6 +605,14 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
 
     /****** 以上是用户的****/
 
+    @Override
+    public String getNameByMac(String mac) {
+        LanDeviceInfo displayDeviceByMac = mDeviceManager.getDisplayDeviceByMac(mac);
+        if (displayDeviceByMac != null) {
+            return displayDeviceByMac.getName();
+        }
+        return "socket";
+    }
 
     @Override
     public void queryBindDeviceList() {
@@ -658,7 +666,7 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
         }
 
         // 显示
-        if (mResultCallBack != null && lanDiscoveryDisplay && getLoginUserID() != null) {
+        if (mResultCallBack != null && lanDiscoveryDisplay && mDevice.hasActivate && getLoginUserID() != null) {
 
             WanBindingDeviceDao wanBindingDeviceDao = DBManager.getInstance().getDaoSession().getWanBindingDeviceDao();
             List<WanBindingDevice> listWan = wanBindingDeviceDao.queryBuilder().where(WanBindingDeviceDao.Properties.Mac.eq(mDevice.mac),

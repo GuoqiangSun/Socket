@@ -64,13 +64,12 @@ public class ScmDeviceUtils {
     }
 
     final void showConnectDevice() {
-        if (Tlog.isDebug()) {
-            for (Map.Entry<String, ScmDevice> tmpEntries : mConnectDeviceMap.entrySet()) {
-                String key = tmpEntries.getKey();
-                ScmDevice value = tmpEntries.getValue();
-                Tlog.e(SocketScmManager.TAG, "showConnectDevice() mac:" + key + ";  " + value.toString());
-            }
+        for (Map.Entry<String, ScmDevice> tmpEntries : mConnectDeviceMap.entrySet()) {
+            String key = tmpEntries.getKey();
+            ScmDevice value = tmpEntries.getValue();
+            Tlog.e(SocketScmManager.TAG, "showConnectDevice() mac:" + key + ";  " + value.toString());
         }
+
     }
 
     public synchronized void onNetworkChange() {

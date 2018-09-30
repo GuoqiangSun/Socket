@@ -1,37 +1,33 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
 
+    compileSdkVersion 27
     compileOptions {
         sourceCompatibility 1.8
         targetCompatibility 1.8
     }
-
     defaultConfig {
         applicationId "cn.com.startai.wifisocket"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 16212
-        versionName "1.6.212"
+        versionCode 16216
+        versionName "1.6.216"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }
-
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
     android.applicationVariants.all { variant ->
         variant.outputs.all {
             outputFileName = "wifisocket-${variant.versionName}-${variant.buildType.name}.apk"
         }
     }
-
 }
 
 

@@ -31,6 +31,7 @@ import cn.com.startai.socket.app.fragment.BaseFragment;
 import cn.com.startai.socket.app.fragment.GuideFragment;
 import cn.com.startai.socket.app.fragment.WebFragment;
 import cn.com.startai.socket.debuger.Debuger;
+import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.FileManager;
 import cn.com.startai.socket.global.LoginHelp;
 import cn.com.startai.socket.mutual.Controller;
@@ -54,19 +55,20 @@ import cn.com.swain169.log.Tlog;
  * View.SYSTEM_UI_FLAG_VISIBLE：显示状态栏，Activity不全屏显示(恢复到有状态的正常情况)。
  * View.INVISIBLE：隐藏状态栏，同时Activity会伸展全屏显示。
  * View.SYSTEM_UI_FLAG_FULLSCREEN：Activity全屏显示，且状态栏被隐藏覆盖掉。
- * View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN：Activity全屏显示，但状态栏不会被隐藏覆盖，状态栏依然可见，Activity顶端布局部分会被状态遮住。
+ * View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN：Activity全屏显示，但状态栏不会被隐藏覆盖，
+ * 状态栏依然可见，Activity顶端布局部分会被状态遮住。
  * View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION：效果同View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
  * View.SYSTEM_UI_LAYOUT_FLAGS：效果同View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
  * View.SYSTEM_UI_FLAG_HIDE_NAVIGATION：隐藏虚拟按键(导航栏)。有些手机会用虚拟按键来代替物理按键。
- * View.SYSTEM_UI_FLAG_LOW_PROFILE：状态栏显示处于低能显示状态(low profile模式)，状态栏上一些图标显示会被隐藏。
+ * View.SYSTEM_UI_FLAG_LOW_PROFILE：状态栏显示处于低能显示状态(low profile模式)，
+ * 状态栏上一些图标显示会被隐藏。
  */
 public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
-        WebFragment.IWebFragmentCallBack, PermissionRequest.OnPermissionFinish {
+        WebFragment.IWebFragmentCallBack, PermissionRequest.OnPermissionResult {
 
     private static final String TAG = SocketApplication.TAG;
 
     private UiHandler mUiHandler;
-
 
     // activity onPause
     private volatile boolean mActPause = false;
@@ -83,22 +85,28 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
 
     private int mCurFrame = ID_GUIDE;
 
+    private boolean hide = false;
+
     private void hideStatsBar() {
+
         Window window = getWindow();
         View decorView = window.getDecorView();
         int model;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN //隐藏状态栏
-            );
-
             model =
                     View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN
-//                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                             | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
 //                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // 隐藏导航图标
             ;
+
+            if (hide) { // 有流海屏的手机会有问题
+                model |= View.SYSTEM_UI_FLAG_FULLSCREEN;
+                getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN //隐藏状态栏
+                );
+            } else { // 有流海屏的手机,用上面的方法有问题
+                model |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+            }
 
 //            model |= decorView.getSystemUiVisibility();
 
@@ -111,15 +119,15 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         } else {
 
             model = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
-//                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN;
+//                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
 
         }
 
         decorView.setSystemUiVisibility(model);
     }
+
 
     private void showStatusBar() {
 
@@ -130,7 +138,8 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
             window.clearFlags(
 //                    WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS |
 //                    WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION |
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN//显示状态栏
+            );
 
             window.getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
@@ -158,7 +167,9 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (mUiHandler != null) {
-            mUiHandler.obtainMessage(MSG_WHAT_CHANGE_STATUS_BAR, showStatusBar).sendToTarget();
+            if (!CustomManager.getInstance().isBleSocket()) {
+                mUiHandler.obtainMessage(MSG_WHAT_CHANGE_STATUS_BAR, showStatusBar).sendToTarget();
+            }
         }
         Tlog.v(TAG, "HomeActivity  onWindowFocusChanged() ");
     }
@@ -169,27 +180,17 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
 
         setContentView(R.layout.activity_home);
 
-
         Tlog.v(TAG, "HomeActivity  onCreate() ");
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//            BleScanPermissionUtil.initPermission(this);
-//            FilePermissionUtil.initPermission(this);
+        if (mPermissionRequest == null) {
+            Tlog.v(TAG, "HomeActivity new PermissionRequest() ");
+            mPermissionRequest = new PermissionRequest(this, this);
+        }
 
-            String[] permissionArray = new String[]{
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-            };
-
-            int[] res = new int[]{
-                    R.string.file_allow_permission,
-                    R.string.scan_ble_allow_permission,
-            };
-
-            Tlog.v(TAG, "HomeActivity  requestPermission() ");
-            mPermissionRequest = new PermissionRequest(this, this, permissionArray, res);
-            mPermissionRequest.requestPermission();
-
+        mPermissionRequest.requestAllPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (CustomManager.getInstance().isBleSocket()) {
+            //开蓝牙需要位置权限
+            mPermissionRequest.requestAllPermission(Manifest.permission.ACCESS_COARSE_LOCATION);
         }
 
 
@@ -333,9 +334,11 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         Tlog.v(TAG, "HomeActivity onDestroy() ");
         if (mPermissionRequest != null) {
             mPermissionRequest.release();
+            mPermissionRequest = null;
         }
 
         Controller.getInstance().onSDestroy();
+
         if (mUiHandler != null) {
             mUiHandler.removeCallbacksAndMessages(null);
             mUiHandler.release();
@@ -348,16 +351,17 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
 
     }
 
+
     @Override
-    public void onPermissionRequestFinish() {
-
+    public void onAllPermissionRequestFinish() {
         Tlog.v(TAG, "HomeActivity onPermissionRequestFinish() ");
-
         FileManager.getInstance().recreate(getApplication());
         Debuger.getInstance().reCheckLogRecord(this);
-        if (mPermissionRequest != null) {
-            mPermissionRequest.release();
-        }
+    }
+
+    @Override
+    public void onPermissionRequestResult(String permission, boolean granted) {
+
     }
 
     @Override
@@ -639,6 +643,7 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         }
 
     }
+
 
     private static class UiHandler extends Handler {
 

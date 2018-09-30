@@ -44,8 +44,6 @@ public class CountdownReportReceiveTask extends SocketResponseTask {
         int hour = (protocolParams[2] & 0xFF);
         int minute = (protocolParams[3] & 0xFF);
 
-        Tlog.v(TAG, " CountdownReportReceiveTask  startup:" + startup + " on:" + on + " hour: " + hour + " minute: " + minute);
-
         CountdownData mCountdownData = new CountdownData();
         mCountdownData.mac = mSocketDataArray.getID();
         mCountdownData.Switchgear = on;
@@ -57,6 +55,8 @@ public class CountdownReportReceiveTask extends SocketResponseTask {
             mCountdownData.allTime = (protocolParams[4] & 0xFF) * 60;
             mCountdownData.allTime += protocolParams[5] & 0xFF;
         }
+
+        Tlog.v(TAG, " CountdownReportReceiveTask  :" + mCountdownData.toString());
 //        mCountdownData.checkAllTime();
 
 //         protocolParams[0]  == 1 启动    ==2 结束

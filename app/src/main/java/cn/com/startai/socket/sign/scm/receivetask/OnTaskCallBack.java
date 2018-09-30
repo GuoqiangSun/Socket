@@ -11,6 +11,7 @@ import cn.com.startai.socket.sign.scm.bean.SpendingElectricityData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingCommonData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingListData;
+import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.Humidity;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.Temperature;
 import cn.com.swain.support.protocolEngine.task.FailTaskResult;
@@ -181,4 +182,6 @@ public interface OnTaskCallBack {
     void onQueryCostRateResult(boolean result, CostRate mCostRate);
 
     void onQueryCumuParamsResult(boolean result, CumuParams cumuParams);
+
+    void onUpdateVersionResult(boolean result, UpdateVersion mVersion);
 }

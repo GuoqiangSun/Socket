@@ -30,7 +30,7 @@ public class HeartbeatReceiveTask extends SocketResponseTask {
             return;
         }
 
-        Tlog.v(TAG, "Heartbeat result : " + SocketSecureKey.Util.resultIsOk(protocolParams[0]) + "-value:" + protocolParams[0]);
+        Tlog.v(TAG, "Heartbeat result:" + SocketSecureKey.Util.resultIsOk(protocolParams[0]) + " -value:" + protocolParams[0]);
 
         if (mCallBack != null) {
             mCallBack.onHeartbeatResult(mSocketDataArray.getID(), SocketSecureKey.Util.resultIsOk(protocolParams[0]));

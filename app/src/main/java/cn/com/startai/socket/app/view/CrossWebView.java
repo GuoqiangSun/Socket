@@ -44,6 +44,7 @@ public class CrossWebView extends XWalkView {
 
     private void init() {
 
+        // crossWalk 在浏览器调试
         if (Debuger.isDebug) {
             XWalkPreferences.setValue(XWalkPreferences.REMOTE_DEBUGGING, true);
         }

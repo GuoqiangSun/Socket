@@ -35,6 +35,7 @@ import cn.com.startai.socket.sign.js.jsInterface.Store;
 import cn.com.startai.socket.sign.js.jsInterface.TemperatureAndHumidity;
 import cn.com.startai.socket.sign.js.jsInterface.Timing;
 import cn.com.startai.socket.sign.js.jsInterface.User;
+import cn.com.startai.socket.sign.js.jsInterface.Version;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.bean.LanBindInfo;
 import cn.com.startai.socket.sign.scm.bean.PowerCountdown;
@@ -102,6 +103,7 @@ public class JsManager extends AbsJsManager implements IService {
         mJSInterfaces.add(16, new Store(workLooper, this));
         mJSInterfaces.add(17, new State(workLooper, this));
         mJSInterfaces.add(18, new StatusBar(workLooper, this));
+        mJSInterfaces.add(19, new Version(workLooper, this));
 
     }
 
@@ -747,6 +749,20 @@ public class JsManager extends AbsJsManager implements IService {
     public void onJSSetStatusBar(StatusBarBean mStatusBar) {
         if (mJSManagerCallBack != null) {
             mJSManagerCallBack.onJSSetStatusBar(mStatusBar);
+        }
+    }
+
+    @Override
+    public void onJSQueryScmVersion(String mac) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSQueryScmVersion(mac);
+        }
+    }
+
+    @Override
+    public void onJSUpdateScm(String mac) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSUpdateScm(mac);
         }
     }
 

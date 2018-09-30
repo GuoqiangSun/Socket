@@ -14,6 +14,7 @@ import cn.com.startai.socket.sign.scm.bean.TempHumidityAlarmData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingCommonData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingListData;
+import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.startai.socket.sign.scm.bean.sensor.SensorData;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.TempHumidityData;
 
@@ -182,6 +183,10 @@ public interface IVirtualSocketScm {
 
     void queryCumuParam(String mac);
 
+    void queryVersion(String mac);
+
+    void update(String mac);
+
 
     /**
      * author: Guoqiang_Sun
@@ -268,6 +273,8 @@ public interface IVirtualSocketScm {
         void onResultQueryCumuParams(boolean result, CumuParams cumuParams);
 
         void onResultHeartbeatReceive(String mac, boolean result);
+
+        void onResultUpdateVersion(boolean result, UpdateVersion mVersion);
     }
 
 

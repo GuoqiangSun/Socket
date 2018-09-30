@@ -24,6 +24,7 @@ import cn.com.startai.socket.sign.js.jsInterface.Store;
 import cn.com.startai.socket.sign.js.jsInterface.TemperatureAndHumidity;
 import cn.com.startai.socket.sign.js.jsInterface.Timing;
 import cn.com.startai.socket.sign.js.jsInterface.User;
+import cn.com.startai.socket.sign.js.jsInterface.Version;
 import cn.com.startai.socket.sign.scm.bean.LanBindInfo;
 import cn.com.startai.socket.sign.scm.bean.PowerCountdown;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
@@ -45,7 +46,7 @@ public abstract class AbsJsManager implements Device.IJSDeviceCallBack,//
         DeviceList.IJSDeviceListCallBack, Login.IJSLoginCallBack,//
         ReName.IJSRenameCallBack, SpendingCountdown.IJSSpendingCallBack, Error.IJSErrorCallBack,//
         User.IJSUserCallBack, Store.IJSStoreCallBack, State.IJSStateCallBack,//
-        StatusBar.IJSStatusBarCallBack {
+        StatusBar.IJSStatusBarCallBack, Version.IJSVersionCallBack {
 
     public abstract void regJsManagerCallBack(IJSManagerCallback mJSManagerCallBack);
 
@@ -219,5 +220,9 @@ public abstract class AbsJsManager implements Device.IJSDeviceCallBack,//
         void onJSQueryCostRate(String mac);
 
         void onJSQueryCumuParam(String mac);
+
+        void onJSQueryScmVersion(String mac);
+
+        void onJSUpdateScm(String mac);
     }
 }

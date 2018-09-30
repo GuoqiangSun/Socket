@@ -47,22 +47,26 @@ public class Heartbeat {
 
     private static final int MSG_WHAT_HEARTBEAT = 0x01;
     private static final int MSG_WHAT_CHECK = 0x02;
+    private boolean start = false;
 
     public void start() {
 
         if (mHeartbeatHandler.hasMessages(MSG_WHAT_HEARTBEAT)) {
-            Tlog.e(TAG, " mHeartbeatHandler has heartbeat remove last heartbeat... ");
             mHeartbeatHandler.removeMessages(MSG_WHAT_HEARTBEAT);
         } else {
             mSeq.resetSeq();
         }
+        start = true;
         mHeartbeatHandler.sendEmptyMessageDelayed(MSG_WHAT_HEARTBEAT, FIRST_DELAY);
+        Tlog.e(TAG, mResponseData.toID + " heartbeat start ");
     }
 
     public void stop() {
+        start = false;
         if (mHeartbeatHandler.hasMessages(MSG_WHAT_HEARTBEAT)) {
             mHeartbeatHandler.removeMessages(MSG_WHAT_HEARTBEAT);
         }
+        Tlog.e(TAG, mResponseData.toID + " heartbeat stop ");
     }
 
     public void check(int diff, long delay) {
@@ -97,7 +101,11 @@ public class Heartbeat {
                 Tlog.w(TAG, " heartbeat handle msg ; can not send heartbeat");
             }
 
-            mHeartbeatHandler.sendEmptyMessageDelayed(MSG_WHAT_HEARTBEAT, CYCLE);
+            if (start) {
+                mHeartbeatHandler.sendEmptyMessageDelayed(MSG_WHAT_HEARTBEAT, CYCLE);
+            } else {
+                Tlog.w(TAG, " re send cycle heartbeat, but not start ");
+            }
 
         } else if (msg.what == MSG_WHAT_CHECK) {
 

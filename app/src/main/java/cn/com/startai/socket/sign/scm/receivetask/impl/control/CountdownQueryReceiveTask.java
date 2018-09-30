@@ -39,7 +39,6 @@ public class CountdownQueryReceiveTask extends SocketResponseTask {
         int hour = (protocolParams[3] & 0xFF);
         int minute = (protocolParams[4] & 0xFF);
 
-        Tlog.v(TAG, " CountdownQueryReceiveTask result: " + result + " startup:" + startup + " on:" + on + " hour: " + hour + " minute: " + minute);
 
 //         protocolParams[0]  == 0 success  ==1 params fail
 //         protocolParams[1]  == 1 启动    ==2 结束
@@ -57,6 +56,7 @@ public class CountdownQueryReceiveTask extends SocketResponseTask {
             mCountdownData.allTime += protocolParams[6] & 0xFF;
         }
 
+        Tlog.v(TAG, " CountdownQueryReceiveTask :" + mCountdownData.toString());
 //        mCountdownData.checkAllTime();
 
         if (mCallBack != null) {

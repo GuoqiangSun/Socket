@@ -44,7 +44,8 @@ public class RequestTokenReceiveTask extends SocketResponseTask {
 
         String id = mSocketDataArray.getID();
 
-        Tlog.e(TAG, " result :" + result + " id:" + id + " random : " + random + " token:" + token);
+        Tlog.e(TAG, " result :" + result + " id:" + id + " random : " + random + " token: 0x" + Integer.toHexString(token));
+
 
         if (mTaskCallBack != null) {
             mTaskCallBack.onRequestTokenResult(result, id, random, token);

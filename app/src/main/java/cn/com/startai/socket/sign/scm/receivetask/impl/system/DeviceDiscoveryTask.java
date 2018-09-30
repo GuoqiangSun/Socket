@@ -49,8 +49,12 @@ public class DeviceDiscoveryTask extends SocketResponseTask {
         String name = new String(protocolParams, 8, 32);
         mWiFiDevice.name = name.trim().replaceAll("\\s*", "");
         if (StrUtil.isSpecialName(mWiFiDevice.name)) {
-            int random = (int) ((Math.random() * 9 + 1) * 100000);
-            mWiFiDevice.name = "UNKNOWN" + random;
+            mWiFiDevice.name = null;
+            mWiFiDevice.checkName();
+
+//            int random = (int) ((Math.random() * 9 + 1) * 100000);
+//            mWiFiDevice.name = "UNKNOWN" + random;
+
         }
 
         int pointMainVersion = 8 + 32;
@@ -83,8 +87,7 @@ public class DeviceDiscoveryTask extends SocketResponseTask {
         }
         mWiFiDevice.rssi = rssi;
 
-
-        Tlog.v(TAG, String.valueOf(mWiFiDevice));
+        Tlog.v(TAG, "discovery:" + String.valueOf(mWiFiDevice));
 
         if (mOnTaskCallBack != null) {
             mOnTaskCallBack.onDeviceDiscoveryResult(mSocketDataArray.getID(), result, mWiFiDevice);
