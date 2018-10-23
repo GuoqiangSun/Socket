@@ -1,23 +1,23 @@
 <resources>
-    <string name="app_name">插座</string>
-    <string name="app_name_ble">TriggleHome</string>
-    <string name="app_name_wifi">TriggleHome</string>
-    <string name="app_name_smartplug">WiFi插座2</string>
+    <string name="app_name">Socket</string>
+    <string name="app_name_ble">TriggerHome</string>
+    <string name="app_name_wifi">TriggerHome</string>
+    <string name="app_name_smartplug">SmartPlug</string>
 
-    <string name="goBack_again">请再按一次退出</string>
-    <string name="ble_forbid_enable_skip_setting">蓝牙激活失败，请跳转到设置界面手动打开</string>
-    <string name="jump_product_detection_near_step">请再按$step下进入产测</string>
-    <string name="wifi_state_allow_permission">您必须允许这个权限，否则无法获取WiFi信息</string>
+    <string name="goBack_again">Please drop out one more time</string>
+    <string name="ble_forbid_enable_skip_setting">Bluetooth activation failed. Please jump to setup and manually open.</string>
+    <string name="jump_product_detection_near_step">Please press $step to enter the test</string>
+    <string name="wifi_state_allow_permission">You must allow this permission, otherwise you can not get WiFi information.</string>
 
-    <string name="skip_product_detection">进入产测模式</string>
-    <string name="sign_out_product_detection">退出产测模式</string>
-    <string name="detection_rec_area">接受区:</string>
-    <string name="detection_send_area">发送区:</string>
-    <string name="clear_data">清空数据</string>
-    <string name="generating_verification_report">生成验证报告</string>
-    <string name="generating_verification_success">生成报告成功</string>
-    <string name="generating_verification_fail">生成报告失败</string>
-    <string name="out_of_memory_need_clear">内存即将溢出,请及时生成验证报告</string>
+    <string name="skip_product_detection">Entry The Product Detection</string>
+    <string name="sign_out_product_detection">Exit The Product Detection</string>
+    <string name="detection_rec_area">Receiving area:</string>
+    <string name="detection_send_area">Sending area:</string>
+    <string name="clear_data">wipe data</string>
+    <string name="generating_verification_report">Genera report</string>
+    <string name="generating_verification_success">Generating verification report successful</string>
+    <string name="generating_verification_fail">Generating verification report fail</string>
+    <string name="out_of_memory_need_clear">The memory is about to overflow, please generate the verification report in time</string>
 
 
     <string name="facebook_app_id">395768114167191</string>

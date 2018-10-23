@@ -1205,6 +1205,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
             PowerCountdownDao powerCountdownDao = daoSession.getPowerCountdownDao();
             QueryBuilder<PowerCountdown> where = powerCountdownDao.queryBuilder().where(PowerCountdownDao.Properties.Mac.eq(mCountdownData.mac));
 
+            int time = mCountdownData.hour * 60 + mCountdownData.minute;
+
             List<PowerCountdown> list;
             if (where != null && (list = where.list()) != null && list.size() > 0) {
                 PowerCountdown powerCountdown = list.get(0);
@@ -1213,7 +1215,6 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
                 int minute = powerCountdown.getMinute();
                 int tAllTime = hour * 60 + minute;
 
-                int time = mCountdownData.hour * 60 + mCountdownData.minute;
                 if (tAllTime >= time) {
                     mCountdownData.allTime = tAllTime;
                 } else {
@@ -1231,7 +1232,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
                 mPowerCountdown.setStatus(mCountdownData.countdownSwitch);
                 mPowerCountdown.setSwitchGear(mCountdownData.Switchgear);
                 powerCountdownDao.insert(mPowerCountdown);
-                mCountdownData.allTime = mCountdownData.hour * 60 + mCountdownData.minute;
+                mCountdownData.allTime = time;
             }
         }
     }
@@ -1688,7 +1689,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
             String method = Version.Method.callJsScmUpdate(mVersion.mac, nameByMac
                     , result);
             loadJs(method);
-            
+
         }
     }
 

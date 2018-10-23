@@ -47,6 +47,7 @@ import cn.com.startai.mqttsdk.mqtt.request.MqttPublishRequest;
 import cn.com.startai.socket.db.gen.WanBindingDeviceDao;
 import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.debuger.Debuger;
+import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.DeveloperBuilder;
 import cn.com.startai.socket.global.LooperManager;
 import cn.com.startai.socket.mutual.js.bean.MobileLogin;
@@ -60,17 +61,19 @@ import cn.com.startai.socket.sign.hardware.WiFi.bean.WanBindingDevice;
 import cn.com.startai.socket.sign.hardware.WiFi.util.BroadcastDiscoveryUtil;
 import cn.com.startai.socket.sign.hardware.WiFi.util.ControlDevice;
 import cn.com.startai.socket.sign.hardware.WiFi.util.ControlDeviceUtil;
-import cn.com.startai.socket.sign.hardware.WiFi.util.udp.ISocketResult;
-import cn.com.startai.socket.sign.hardware.WiFi.util.udp.UdpLanCom;
 import cn.com.startai.socket.sign.js.jsInterface.Add;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.bean.LanBindInfo;
 import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
+import cn.com.startai.socket.sign.scm.util.MySocketSecureKey;
 import cn.com.swain.baselib.util.IpUtil;
 import cn.com.swain.baselib.util.MacUtil;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolInput;
 import cn.com.swain.support.protocolEngine.pack.ReceivesData;
 import cn.com.swain.support.protocolEngine.pack.ResponseData;
+import cn.com.swain.support.udp.ISocketResult;
+import cn.com.swain.support.udp.UdpLanCom;
+import cn.com.swain.support.udp.UdpResponseMsg;
 import cn.com.swain169.log.Tlog;
 
 
@@ -191,7 +194,19 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
         // mqtt
         PersistentEventDispatcher.getInstance().registerOnTunnelStateListener(mConnectionStateListener);
         PersistentEventDispatcher.getInstance().registerOnPushListener(mComMessageListener);
-        MqttInitParam mqttInitParam = DeveloperBuilder.buildMqttInitParam(new DeveloperBuilder.WiFiSocketDeveloper());
+
+        MqttInitParam mqttInitParam = null;
+
+        if (CustomManager.getInstance().getCustom() == MySocketSecureKey.Custom.CUSTOM_WAN) {
+            mqttInitParam = DeveloperBuilder.buildMqttInitParam(new DeveloperBuilder.WiFiSocketDeveloper());
+        } else if (CustomManager.getInstance().getCustom() == MySocketSecureKey.Custom.CUSTOM_STARTAI) {
+            mqttInitParam = DeveloperBuilder.buildMqttInitParam(new DeveloperBuilder.SuperSocketDeveloper());
+        }
+
+        if (mqttInitParam == null) {
+            throw new NullPointerException(" no custom ");
+        }
+
         StartAI.getInstance().initialization(app, mqttInitParam);
 
         mUserManager.onSCreate();
@@ -968,9 +983,15 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
 
         if (mDiscoveryDeviceByMac != null) {
 
-            mResponseData.obj = mDiscoveryDeviceByMac.ip;
-            mResponseData.arg = mDiscoveryDeviceByMac.port;
-            mUdpCom.write(mResponseData);
+//            mResponseData.obj = mDiscoveryDeviceByMac.ip;
+//            mResponseData.arg = mDiscoveryDeviceByMac.port;
+//            mUdpCom.write(mResponseData);
+
+            UdpResponseMsg udpMsg = new UdpResponseMsg();
+            udpMsg.ip = mDiscoveryDeviceByMac.ip;
+            udpMsg.port = mDiscoveryDeviceByMac.port;
+            udpMsg.data = mResponseData.data;
+            mUdpCom.write(udpMsg);
 
             if (Debuger.isLogDebug) {
                 Tlog.w(TAG, "onOutputDataToServerByLan() :" + mResponseData.toString());
@@ -1060,13 +1081,23 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
         if (mUdpCom != null) {
             if (mResponseData.data != null) {
 
-                mResponseData.obj = getBroadcastAddress();
-                mResponseData.arg = 9222;
+//                mResponseData.obj = getBroadcastAddress();
+//                mResponseData.arg = 9222;
+//                mUdpCom.broadcast(mResponseData);
+
+                InetAddress broadcastAddress = getBroadcastAddress();
+                if (broadcastAddress != null) {
+                    UdpResponseMsg udpMsg = new UdpResponseMsg();
+                    udpMsg.ip = broadcastAddress.getHostAddress();
+                    udpMsg.port = 9222;
+                    udpMsg.data = mResponseData.data;
+                    mUdpCom.broadcast(udpMsg);
+                }
 
                 if (Debuger.isLogDebug) {
                     Tlog.w(TAG, "onBroadcastDataToServer() :" + mResponseData.toString());
                 }
-                mUdpCom.broadcast(mResponseData);
+
             }
         }
     }

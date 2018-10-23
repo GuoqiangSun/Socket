@@ -65,12 +65,70 @@ public class DeveloperBuilder {
 
     /**
      * WIFI插座android开发者信息
+     * <p>
+     * 万总的
      */
     public static final class WiFiSocketDeveloper extends DeveloperInfo {
 
         public static final String domain = "okaylight"; //开发者平台获取
         public static final String m_ver = "Json_1.2.4_9.2.1";//文档约定
         public static final String appid = "f818c2704026de3c35c5aee06120ff98";//开发者平台获取
+        public static final String apptype = "smartOlWifi/controll/android";//开发者平台获取
+
+
+        @Override
+        public String setDomain(String s) {
+            throw new RuntimeException(" not impl ");
+        }
+
+        @Override
+        public String setVersion(String s) {
+            throw new RuntimeException(" not impl ");
+        }
+
+        @Override
+        public String setAppid(String s) {
+            throw new RuntimeException(" not impl ");
+        }
+
+        @Override
+        public String setApptype(String s) {
+            throw new RuntimeException(" not impl ");
+        }
+
+        @Override
+        public String getDomain() {
+            return domain;
+        }
+
+        @Override
+        public String getVersion() {
+            return m_ver;
+        }
+
+        @Override
+        public String getAppid() {
+            return appid;
+        }
+
+        @Override
+        public String getApptype() {
+            return apptype;
+        }
+    }
+
+
+
+    /**
+     * WIFI插座android开发者信息
+     * <p>
+     * 万总的
+     */
+    public static final class SuperSocketDeveloper extends DeveloperInfo {
+
+        public static final String domain = "startai"; //开发者平台获取
+        public static final String m_ver = "Json_1.2.4_9.2.1";//文档约定
+        public static final String appid = "6e3788eedb60442c88b647bfaa1d285b";//开发者平台获取
         public static final String apptype = "smartOlWifi/controll/android";//开发者平台获取
 
 

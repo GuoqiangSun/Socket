@@ -11,6 +11,7 @@ public class UpdateVersion {
 
     public String mac;
     public byte action;
+    public int progress;
 
     public boolean isQueryVersionAction() {
         return MySocketSecureKey.MUtil.isQueryVersionAction(action);
@@ -30,6 +31,7 @@ public class UpdateVersion {
                 ", action=" + action +
                 ", curVersion=" + curVersion +
                 ", newVersion=" + newVersion +
+                ", progress=" + progress +
                 '}';
     }
 }

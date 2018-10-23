@@ -17,6 +17,7 @@ import cn.com.startai.socket.app.adapter.DetectionRecyclerAdapter;
 import cn.com.startai.socket.app.adapter.FragmentPagerAdapter;
 import cn.com.startai.socket.app.fragment.DetectionFragment;
 import cn.com.startai.socket.app.fragment.DetectionReportFragment;
+import cn.com.startai.socket.app.fragment.TmpFunctionFragment;
 import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.debuger.impl.DetectInfo;
 import cn.com.startai.socket.debuger.impl.IProductDetectionCallBack;
@@ -37,8 +38,10 @@ public class ProductDetectionActivity extends AppCompatActivity implements IProd
 
 
     private ProductDetectionManager productDetectionManager;
+
     private DetectionReportFragment mDetectionReportFragment;
     private DetectionFragment mDetectionFragment;
+    private TmpFunctionFragment mTmpFunctionFragment;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -59,8 +62,12 @@ public class ProductDetectionActivity extends AppCompatActivity implements IProd
 
         mDetectionFragment = new DetectionFragment();
         mDetectionReportFragment = new DetectionReportFragment();
+        mTmpFunctionFragment = new TmpFunctionFragment();
+
         mFragments.add(mDetectionFragment);
         mFragments.add(mDetectionReportFragment);
+        mFragments.add(mTmpFunctionFragment);
+
         FragmentPagerAdapter mAdapter = new FragmentPagerAdapter(getSupportFragmentManager(), mFragments);
         mFrameVp.setAdapter(mAdapter);
         mFrameVp.setCurrentItem(0);
@@ -146,6 +153,11 @@ public class ProductDetectionActivity extends AppCompatActivity implements IProd
     @Override
     public void setVerificationPath(String path) {
         mDetectionReportFragment.setVerificationPath(path);
+    }
+
+    @Override
+    public void flashModel(boolean on) {
+        mTmpFunctionFragment.flashModel(on);
     }
 
     @Override

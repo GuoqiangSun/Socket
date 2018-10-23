@@ -172,8 +172,15 @@ class ScmDevice implements Heartbeat.OnHeartbeatCallBack {
         return hasUpdateTime;
     }
 
+    private int updateTimes = 0;
+
     public final void setIsUpdateTime(boolean flag) {
-        hasUpdateTime = flag;
+        if (flag) {
+            if (++updateTimes >= 3) {
+                hasUpdateTime = true;
+
+            }
+        }
     }
 
     public final boolean isPublish() {

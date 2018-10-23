@@ -65,4 +65,8 @@ public interface IDebugerProtocolStream {
     void connected(String address);
 
     void disconnected(String address);
+
+    void receiveControlFlashState(Object obj, String id, boolean on);
+
+    void receiveQueryFlashState(Object obj, String id, boolean on);
 }

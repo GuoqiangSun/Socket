@@ -49,11 +49,11 @@ import cn.com.startai.socket.sign.scm.receivetask.impl.system.VoltageQueryReceiv
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.VoltageSettingReceiveTask;
 import cn.com.startai.socket.sign.scm.util.MySocketSecureKey;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolOutput;
+import cn.com.swain.support.protocolEngine.ProtocolCode;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.result.SimpleProtocolResult;
 import cn.com.swain.support.protocolEngine.task.FailTaskResult;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.support.protocolEngine.utils.ProtocolCode;
 import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 

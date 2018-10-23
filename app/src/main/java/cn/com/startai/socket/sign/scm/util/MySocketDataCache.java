@@ -111,4 +111,48 @@ public class MySocketDataCache extends ProtocolDataCache {
         mSecureDataPack.setParams(new byte[]{MySocketSecureKey.MModel.MODEL_UPDATE});
         return newResponseDataRecord(mac, mSecureDataPack);
     }
+
+    public static ResponseData getLightColor(String mac, int seq, int r, int g, int b) {
+        SocketDataArray mSecureDataPack = getMInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(MySocketSecureKey.MCmd.CMD_SET_LIGHT_COLOR);
+        byte[] params = new byte[4];
+        params[0] = (byte) seq;
+        params[1] = (byte) r;
+        params[2] = (byte) g;
+        params[3] = (byte) b;
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getSwitchFlash(String mac, boolean status) {
+        SocketDataArray mSecureDataPack = getMInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_RELAY_SWITCH);
+        final byte[] params = new byte[2];
+        params[0] = MySocketSecureKey.MModel.MODEL_FLASHLIGHT;
+        params[1] = SocketSecureKey.Util.on(status);
+        mSecureDataPack.setParams(params);
+        return newResponseData(mac, mSecureDataPack, true);
+    }
+
+    public static ResponseData getSwitchBackLight(String mac, boolean status) {
+        SocketDataArray mSecureDataPack = getMInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_RELAY_SWITCH);
+        final byte[] params = new byte[2];
+        params[0] = MySocketSecureKey.MModel.MODEL_BACKLIGHT;
+        params[1] = SocketSecureKey.Util.on(status);
+        mSecureDataPack.setParams(params);
+        return newResponseData(mac, mSecureDataPack, true);
+    }
+
+    public static ResponseData getQueryFlashState(String mac) {
+        SocketDataArray mSecureDataPack = getMInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_RELAY_STATUS);
+        mSecureDataPack.setParams(new byte[]{MySocketSecureKey.MModel.MODEL_FLASHLIGHT});
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
 }

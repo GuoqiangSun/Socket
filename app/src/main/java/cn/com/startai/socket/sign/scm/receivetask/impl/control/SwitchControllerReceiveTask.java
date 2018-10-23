@@ -62,6 +62,18 @@ public class SwitchControllerReceiveTask extends SocketResponseTask {
 
         } else if (MySocketSecureKey.MUtil.isBackLightModel(model)) {
             Tlog.e(TAG, "control switch is BackLight ");
+
+
+        } else if (MySocketSecureKey.MUtil.isFlashLightModel(model)) {
+            Tlog.e(TAG, "control switch is FlashLight ");
+
+
+            IDebugerProtocolStream IDebugerStream = mCallBack.getIDebugerStream();
+            if (IDebugerStream != null) {
+                IDebugerStream.receiveControlFlashState(mSocketDataArray.getObj(), mSocketDataArray.getID(), on);
+            }
+
+
         }
 
     }

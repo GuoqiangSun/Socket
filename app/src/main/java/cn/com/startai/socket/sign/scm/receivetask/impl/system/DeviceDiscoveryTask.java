@@ -1,5 +1,6 @@
 package cn.com.startai.socket.sign.scm.receivetask.impl.system;
 
+import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.swain.baselib.util.MacUtil;
@@ -88,6 +89,8 @@ public class DeviceDiscoveryTask extends SocketResponseTask {
         mWiFiDevice.rssi = rssi;
 
         Tlog.v(TAG, "discovery:" + String.valueOf(mWiFiDevice));
+
+//        if(CustomManager.getInstance().getProduct() == mSocketDataArray.getProtocol){}
 
         if (mOnTaskCallBack != null) {
             mOnTaskCallBack.onDeviceDiscoveryResult(mSocketDataArray.getID(), result, mWiFiDevice);

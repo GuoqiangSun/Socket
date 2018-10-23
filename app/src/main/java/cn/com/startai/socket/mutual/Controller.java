@@ -70,6 +70,10 @@ public class Controller implements IService {
 
         } else if (CustomManager.getInstance().isSmartPlug()) {
             mHardware = new NetworkManager(app);
+
+        } else if (CustomManager.getInstance().isSuperPlug()) {
+            mHardware = new NetworkManager(app);
+
         }
 
         if (mHardware == null) {

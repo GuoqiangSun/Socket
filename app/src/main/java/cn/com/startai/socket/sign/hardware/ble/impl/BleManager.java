@@ -1,6 +1,5 @@
 package cn.com.startai.socket.sign.hardware.ble.impl;
 
-import android.Manifest;
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothGatt;
@@ -10,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Looper;
 
+import com.blankj.utilcode.constant.PermissionConstants;
 import com.blankj.utilcode.util.PermissionUtils;
 
 import java.util.ArrayList;
@@ -406,6 +406,24 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
     @Override
     public void scanningHW() {
         Tlog.v(TAG, " scanningBle() ");
+
+        PermissionUtils permission = PermissionUtils.permission(PermissionConstants.LOCATION);
+        permission.callback(new PermissionUtils.SimpleCallback() {
+            @Override
+            public void onGranted() {
+                scanBle();
+            }
+
+            @Override
+            public void onDenied() {
+
+            }
+        });
+        permission.request();
+
+    }
+
+    private void scanBle() {
 
         if (mScanning) {
             stopScanningHW();

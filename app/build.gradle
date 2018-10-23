@@ -186,9 +186,10 @@ dependencies {
     implementation 'cn.com.startai:fastdfssdk:1.0.2'
 
     api 'com.android.support:multidex:1.0.3'
-    api 'cn.com.swain169:baselib:3.0.16'
-    api 'cn.com.swain169:Tlog:3.0.15'
+    api 'cn.com.swain169:baselib:3.0.18'
+    api 'cn.com.swain169:Tlog:3.0.19'
     implementation 'cn.com.swain169:fastble:3.0.09'
-    implementation 'cn.com.swain169:protocolEngine:3.0.13'
+    implementation 'cn.com.swain169:protocolEngine:3.0.18'
+    implementation 'cn.com.swain169:fastudp:3.0.18'
 }
 

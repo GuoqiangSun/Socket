@@ -62,6 +62,16 @@ public class SwitchQueryResponseTask extends SocketResponseTask {
 
         } else if (MySocketSecureKey.MUtil.isBackLightModel(model)) {
             Tlog.e(TAG, "query switch model is backLight ");
+
+        } else if (MySocketSecureKey.MUtil.isFlashLightModel(model)) {
+            Tlog.e(TAG, "control switch is FlashLight ");
+
+            IDebugerProtocolStream IDebugerStream = mCallBack.getIDebugerStream();
+            if (IDebugerStream != null) {
+                IDebugerStream.receiveQueryFlashState(mSocketDataArray.getObj(), mSocketDataArray.getID(), on);
+            }
+
+
         }
 
 

@@ -41,12 +41,21 @@ public interface IVirtualSocketScm {
      */
     void switchRelay(String mac, boolean status);
 
+    void switchFlash(String mac, boolean status);
+
     /**
      * 查询继电器的状态
      *
      * @param mac
      */
     void queryRelayState(String mac);
+
+    /**
+     * 查询闪光灯的状态
+     *
+     * @param mac
+     */
+    void queryFlashState(String mac);
 
 
     /**
@@ -186,6 +195,9 @@ public interface IVirtualSocketScm {
     void queryVersion(String mac);
 
     void update(String mac);
+
+    void setLightRGB(String mac, int i, int r, int g, int b);
+
 
 
     /**

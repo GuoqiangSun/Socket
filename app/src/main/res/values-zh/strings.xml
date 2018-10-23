@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">插座</string>
-    <string name="app_name_ble">TriggleHome</string>
-    <string name="app_name_wifi">TriggleHome</string>
+    <string name="app_name_ble">TriggerHome</string>
+    <string name="app_name_wifi">TriggerHome</string>
     <string name="app_name_smartplug">超级插座</string>
 
     <string name="goBack_again">请再按一次退出</string>

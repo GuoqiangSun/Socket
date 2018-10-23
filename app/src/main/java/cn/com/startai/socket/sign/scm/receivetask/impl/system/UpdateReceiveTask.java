@@ -41,6 +41,10 @@ public class UpdateReceiveTask extends SocketResponseTask {
         mVersion.curVersion = ((protocolParams[2] & 0xFF) << 8 | (protocolParams[3] & 0xFF));
         mVersion.newVersion = ((protocolParams[4] & 0xFF) << 8 | (protocolParams[5] & 0xFF));
 
+        if (protocolParams.length > 6) {
+            mVersion.progress = protocolParams[6];
+        }
+
         Tlog.e(TAG, " UpdateReceiveTask result:" + result + " params:" + mVersion.toString());
 
         if (mTaskCallBack != null) {

@@ -2,10 +2,9 @@ package cn.com.startai.socket.global;
 
 import android.app.Application;
 
-import cn.com.startai.socket.sign.scm.util.MySocketSecureKey;
+import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
 import cn.com.swain.baselib.app.IApp.IApp;
 import cn.com.swain.support.protocolEngine.ProtocolBuild;
-import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -26,9 +25,14 @@ public class CustomManager implements IApp {
         return ClassHolder.FLAVORS;
     }
 
+    private boolean isSuperPlugProject = false;
     private boolean isSmartPlugProject = false;
     private boolean isWiFiSocketProject = false;
     private boolean isBleSocketProject = false;
+
+    public boolean isSuperPlug() {
+        return isSuperPlugProject;
+    }
 
     public boolean isSmartPlug() {
         return isSmartPlugProject;
@@ -73,6 +77,12 @@ public class CustomManager implements IApp {
         this.isSmartPlugProject = true;
     }
 
+    public void initStartAISuperPlugProject() {
+        Tlog.i(" is startAI super plug project ");
+        this.isSuperPlugProject = true;
+    }
+
+
     @Override
     public void init(Application app) {
         Tlog.i("CustomManager init : ");
@@ -82,11 +92,19 @@ public class CustomManager implements IApp {
 
 
         if (isBleSocket()) {
+            CUSTOM = SocketSecureKey.Custom.CUSTOM_WAN;
             PRODUCT = SocketSecureKey.Custom.PRODUCT_BLE_SOCKET;
         } else if (isWiFiSocket()) {
+            CUSTOM = SocketSecureKey.Custom.CUSTOM_WAN;
             PRODUCT = SocketSecureKey.Custom.PRODUCT_WIFI_SOCKET;
         } else if (isSmartPlug()) {
-            PRODUCT = MySocketSecureKey.MCustom.PRODUCT_SMART_SOCKET;
+
+            PRODUCT = SocketSecureKey.Custom.PRODUCT_SMART_SOCKET;
+        } else if (isSuperPlug()) {
+
+            CUSTOM = SocketSecureKey.Custom.CUSTOM_STARTAI;
+            PRODUCT = SocketSecureKey.Custom.PRODUCT_STARTAI_SUPER_SOCKET;
+
         } else {
             PRODUCT = SocketSecureKey.Custom.PRODUCT_BLE_SOCKET;
         }

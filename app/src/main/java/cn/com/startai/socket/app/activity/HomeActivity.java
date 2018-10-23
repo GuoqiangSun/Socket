@@ -64,7 +64,7 @@ import cn.com.swain169.log.Tlog;
  * 状态栏上一些图标显示会被隐藏。
  */
 public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
-        WebFragment.IWebFragmentCallBack, PermissionRequest.OnPermissionResult {
+        WebFragment.IWebFragmentCallBack {
 
     private static final String TAG = SocketApplication.TAG;
 
@@ -167,9 +167,7 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (mUiHandler != null) {
-            if (!CustomManager.getInstance().isBleSocket()) {
-                mUiHandler.obtainMessage(MSG_WHAT_CHANGE_STATUS_BAR, showStatusBar).sendToTarget();
-            }
+            mUiHandler.obtainMessage(MSG_WHAT_CHANGE_STATUS_BAR, showStatusBar).sendToTarget();
         }
         Tlog.v(TAG, "HomeActivity  onWindowFocusChanged() ");
     }
@@ -184,14 +182,28 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
 
         if (mPermissionRequest == null) {
             Tlog.v(TAG, "HomeActivity new PermissionRequest() ");
-            mPermissionRequest = new PermissionRequest(this, this);
+            mPermissionRequest = new PermissionRequest(this);
         }
 
-        mPermissionRequest.requestAllPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        String[] per;
+
         if (CustomManager.getInstance().isBleSocket()) {
             //开蓝牙需要位置权限
-            mPermissionRequest.requestAllPermission(Manifest.permission.ACCESS_COARSE_LOCATION);
+            per = new String[2];
+            per[0] = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+            per[1] = Manifest.permission.ACCESS_COARSE_LOCATION;
+        } else {
+            per = new String[1];
+            per[0] = Manifest.permission.WRITE_EXTERNAL_STORAGE;
         }
+        mPermissionRequest.requestAllPermission(new PermissionRequest.OnPermissionResult() {
+            @Override
+            public void onPermissionRequestResult(String permission, boolean granted) {
+                Tlog.v(TAG, "HomeActivity onPermissionRequestFinish() ");
+                FileManager.getInstance().recreate(getApplication());
+                Debuger.getInstance().reCheckLogRecord(HomeActivity.this);
+            }
+        }, per);
 
 
         if (mUiHandler == null) {
@@ -351,18 +363,6 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
 
     }
 
-
-    @Override
-    public void onAllPermissionRequestFinish() {
-        Tlog.v(TAG, "HomeActivity onPermissionRequestFinish() ");
-        FileManager.getInstance().recreate(getApplication());
-        Debuger.getInstance().reCheckLogRecord(this);
-    }
-
-    @Override
-    public void onPermissionRequestResult(String permission, boolean granted) {
-
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,

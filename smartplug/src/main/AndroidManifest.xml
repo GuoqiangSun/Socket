@@ -4,9 +4,12 @@
     <application
         android:name=".SmartPlugApplication"
         android:allowBackup="true"
-        android:icon="@mipmap/logosmartplug"
-        android:label="@string/app_name_smartplug"
-        android:roundIcon="@mipmap/logosmartplug"
-        android:supportsRtl="true"
-        />
+        android:hardwareAccelerated="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name_ble"
+        android:largeHeap="true"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true">
+
+    </application>
 </manifest>

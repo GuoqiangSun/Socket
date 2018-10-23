@@ -20,7 +20,7 @@ import cn.com.swain.baselib.app.IApp.IService;
 import cn.com.swain.baselib.util.SSL;
 import cn.com.swain169.log.TFlog;
 import cn.com.swain169.log.Tlog;
-import cn.com.swain169.log.logRecord.LogRecordManager;
+import cn.com.swain169.log.logRecord.impl.LogRecordManager;
 
 /**
  * author: Guoqiang_Sun
@@ -34,10 +34,7 @@ public class Debuger implements IApp, IService {
 
     @Override
     public void onSCreate() {
-        LogRecordManager logRecordManager = getLogRecordManager();
-        if (logRecordManager != null) {
-            logRecordManager.checkIsRecord();
-        }
+        Tlog.startRecord();
     }
 
     @Override
@@ -52,19 +49,13 @@ public class Debuger implements IApp, IService {
 
     @Override
     public void onSDestroy() {
-        LogRecordManager logRecordManager = getLogRecordManager();
-        if (logRecordManager != null) {
-            logRecordManager.syncRecordData();
-            logRecordManager.stopRecord();
-        }
+        Tlog.syncRecordData();
+        Tlog.stopRecord();
     }
 
     @Override
     public void onSFinish() {
-        LogRecordManager logRecordManager = getLogRecordManager();
-        if (logRecordManager != null) {
-            logRecordManager.syncRecordData();
-        }
+        Tlog.syncRecordData();
     }
 
 
@@ -107,20 +98,13 @@ public class Debuger implements IApp, IService {
     public static boolean isLoadLocalH5 = false;
 
 
-    private LogRecordManager mLogRecord;
-
-    private LogRecordManager getLogRecordManager() {
-        return mLogRecord;
-    }
-
-
     /**
      * 权限申请后再判断录制文件是否创建
      *
      * @param activity
      */
     public void reCheckLogRecord(Activity activity) {
-        if (mLogRecord == null && isRecordLogDebug) {
+        if (!TFlog.hasILogRecordImpl() && isRecordLogDebug) {
 
             boolean has = (ContextCompat.checkSelfPermission(activity,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);
@@ -195,10 +179,9 @@ public class Debuger implements IApp, IService {
         if (logPath.exists()) {
             final String prefix = String.valueOf(CustomManager.getInstance().getCustom())
                     + String.valueOf(CustomManager.getInstance().getProduct());
-            if (mLogRecord == null) {
-                mLogRecord = new LogRecordManager(logPath, prefix, 1024 * 1024 * 8);
-                mLogRecord.init();
-                TFlog.regIRecordMsgFile(mLogRecord);
+            if (!TFlog.hasILogRecordImpl()) {
+                LogRecordManager mLogRecord = new LogRecordManager(logPath, prefix, 1024 * 1024 * 8);
+                Tlog.regIRecordMsgFile(mLogRecord);
             }
         } else {
             Tlog.e(" recordLog logPath not exit");

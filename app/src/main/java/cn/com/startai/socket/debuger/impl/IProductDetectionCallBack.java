@@ -21,5 +21,7 @@ public interface IProductDetectionCallBack {
 
     void setVerificationPath(String path);
 
+    void flashModel(boolean on);
+
     Context getApp();
 }

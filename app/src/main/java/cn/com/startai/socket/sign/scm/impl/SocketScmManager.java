@@ -353,6 +353,16 @@ public class SocketScmManager extends AbsSocketScm
     }
 
     @Override
+    public void setLightRGB(String mac, int i, int r, int g, int b) {
+
+        ResponseData mResponseData = MySocketDataCache.getLightColor(mac, i, r, g, b);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " setLightRGB " + mResponseData.toString());
+        }
+        onOutputDataToServer(mResponseData);
+    }
+
+    @Override
     public void lanComModel(boolean result, String mac) {
         Tlog.v(TAG, " lanComModel()  : " + result + " mac:" + mac);
 
@@ -390,11 +400,21 @@ public class SocketScmManager extends AbsSocketScm
 
     @Override
     public void switchRelay(String mac, boolean status) {
-        Tlog.v(TAG, " SwitchRelay status : " + status);
 
         ResponseData mResponseData = MySocketDataCache.getSetRelaySwitch(mac, status);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " SwitchRelay " + mResponseData.toString());
+            Tlog.v(TAG, " SwitchRelay " + status + mResponseData.toString());
+        }
+        onOutputDataToServer(mResponseData);
+
+    }
+
+    @Override
+    public void switchFlash(String mac, boolean status) {
+
+        ResponseData mResponseData = MySocketDataCache.getSwitchFlash(mac, status);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " switchFlash " + status + mResponseData.toString());
         }
         onOutputDataToServer(mResponseData);
 
@@ -408,8 +428,15 @@ public class SocketScmManager extends AbsSocketScm
     }
 
     @Override
+    public void queryFlashState(String mac) {
+        Tlog.v(TAG, " queryFlashState  ");
+
+        ResponseData mResponseData = MySocketDataCache.getQueryFlashState(mac);
+        onOutputDataToServer(mResponseData);
+    }
+
+    @Override
     public void setPowerCountdown(PowerCountdown powerCountdown) {
-        Tlog.v(TAG, " setPowerCountdown  ");
         ResponseData mResponseData;
         synchronized (syncObj) {
             mResponseData = MySocketDataCache.getSetCountdown(powerCountdown.getMac(), powerCountdown.getStatus(),
@@ -417,7 +444,7 @@ public class SocketScmManager extends AbsSocketScm
         }
 
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " PowerCountdown data:" + mResponseData.toString());
+            Tlog.v(TAG, " setPowerCountdown data:" + mResponseData.toString());
         }
 
         onOutputDataToServer(mResponseData);
@@ -426,7 +453,6 @@ public class SocketScmManager extends AbsSocketScm
 
     @Override
     public void setCommonTiming(TimingCommonData mTimingCommonData) {
-        Tlog.v(TAG, " setCommonTiming  ");
         ResponseData mResponseData;
         synchronized (syncObj) {
             mResponseData = MySocketDataCache.getSetCommonTiming(mTimingCommonData.getMac(),
@@ -435,7 +461,7 @@ public class SocketScmManager extends AbsSocketScm
                     mTimingCommonData.getStartup());
         }
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " Timing Common data: " + mResponseData.toString());
+            Tlog.v(TAG, "setCommonTiming data: " + mResponseData.toString());
         }
         onOutputDataToServer(mResponseData);
 
@@ -443,7 +469,6 @@ public class SocketScmManager extends AbsSocketScm
 
     @Override
     public void setAdvanceTiming(TimingAdvanceData mTimingAdvanceData) {
-        Tlog.v(TAG, " setAdvanceTiming  ");
         ResponseData mResponseData;
         synchronized (syncObj) {
 //            (byte id, byte startHour, byte startMinute, byte stopHour, byte stopMinute, boolean on, byte onIntervalHour,
@@ -456,7 +481,7 @@ public class SocketScmManager extends AbsSocketScm
                     mTimingAdvanceData.startup);
         }
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " Timing Advance data: " + mResponseData.toString());
+            Tlog.v(TAG, " setAdvanceTiming data: " + mResponseData.toString());
         }
         onOutputDataToServer(mResponseData);
     }
@@ -618,7 +643,6 @@ public class SocketScmManager extends AbsSocketScm
 
     @Override
     public void setScmTime(String mac) {
-        Tlog.v(TAG, " setScmTime  ");
         ResponseData mResponseData;
         synchronized (syncObj) {
             Calendar instance = Calendar.getInstance();
@@ -634,7 +658,7 @@ public class SocketScmManager extends AbsSocketScm
             mResponseData = MySocketDataCache.getSetTime(mac, year, month, day, hours, minutes, seconds, week);
         }
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " setScmTime data:" + mResponseData.toString());
+            Tlog.v(TAG, " setScmTime data[" + mResponseData.toString());
         }
         onOutputDataToServer(mResponseData);
 
@@ -901,7 +925,8 @@ public class SocketScmManager extends AbsSocketScm
 
     }
 
-    private static final int DIFF = 1000 * 32;
+    private static final long DIFF = 1000 * 32; //32s
+    private static final long HOUR = 1000 * 60 * 60;//1hour
 
     @Override
     public void onScmTimeResult(String mac, boolean result, long millis) {
@@ -911,11 +936,15 @@ public class SocketScmManager extends AbsSocketScm
 
         if (result) {
             //  单片机时间不对，自动帮他校准时间
-            if (Math.abs(System.currentTimeMillis() - millis) > DIFF) {
+            long diff = Math.abs(System.currentTimeMillis() - millis);
+            if (diff > DIFF) {
                 // update scm time
                 ScmDevice scmData = mScmDeviceUtils.containScmDevice(mac);
 
-                if (scmData != null && !scmData.isUpdateScmTime()) {
+                if (scmData != null &&
+                        (!scmData.isUpdateScmTime()
+                                || diff >= HOUR)
+                        ) {
                     scmData.setIsUpdateTime(true);
                     setScmTime(mac);
                 }

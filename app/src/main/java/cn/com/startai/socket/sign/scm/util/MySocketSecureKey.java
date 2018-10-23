@@ -9,9 +9,6 @@ import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
  */
 public class MySocketSecureKey extends SocketSecureKey {
 
-    public static class MCustom {
-        public static final byte PRODUCT_SMART_SOCKET = 0x06;
-    }
 
     public static class MCmd {
 
@@ -54,6 +51,12 @@ public class MySocketSecureKey extends SocketSecureKey {
         public static final byte CMD_QUERY_MAX_OUTPUT = 0x23;
         public static final byte CMD_QUERY_MAX_OUTPUT_RESPONSE = 0x24;
 
+        /**
+         * 设置灯的颜色
+         */
+        public static final byte CMD_SET_LIGHT_COLOR = 0x25;
+        public static final byte CMD_SET_LIGHT_COLOR_RESPONSE = 0x26;
+
 
         /******0x03report*/
         /**
@@ -77,6 +80,11 @@ public class MySocketSecureKey extends SocketSecureKey {
         public static final byte MODEL_BACKLIGHT = 0x02;
 
         /**
+         * 闪光开关
+         */
+        public static final byte MODEL_FLASHLIGHT = 0x03;
+
+        /**
          * 升级
          */
         public static final byte MODEL_UPDATE = 0x01;
@@ -98,6 +106,10 @@ public class MySocketSecureKey extends SocketSecureKey {
 
         public static boolean isBackLightModel(byte model) {
             return (MModel.MODEL_BACKLIGHT == model);
+        }
+
+        public static boolean isFlashLightModel(byte model) {
+            return (MModel.MODEL_FLASHLIGHT == model);
         }
 
         public static boolean isQueryVersionAction(byte action) {
