@@ -9,7 +9,7 @@ import java.lang.ref.WeakReference;
 import cn.com.startai.socket.sign.hardware.AbsWiFi;
 import cn.com.startai.socket.sign.hardware.WiFi.impl.NetworkManager;
 import cn.com.swain.support.protocolEngine.pack.ResponseData;
-import cn.com.swain.support.protocolEngine.utils.ProtocolDataCache;
+import cn.com.startai.socket.sign.scm.util.ProtocolDataCache;
 import cn.com.swain169.log.Tlog;
 
 /**

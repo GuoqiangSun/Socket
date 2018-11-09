@@ -7,20 +7,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
-import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 
 import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.Utils;
+import com.tencent.mm.opensdk.modelbase.BaseResp;
+import com.tencent.mm.opensdk.modelmsg.SendAuth;
+import com.tencent.mm.opensdk.openapi.IWXAPI;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -49,6 +48,7 @@ import cn.com.startai.socket.db.gen.UserInfoDao;
 import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.global.FileManager;
+import cn.com.startai.socket.global.WXLoginHelper;
 import cn.com.startai.socket.mutual.js.bean.MobileLogin;
 import cn.com.startai.socket.mutual.js.bean.UpdateProgress;
 import cn.com.startai.socket.mutual.js.bean.UserRegister;
@@ -58,6 +58,7 @@ import cn.com.startai.socket.sign.hardware.WiFi.bean.UserInfo;
 import cn.com.startai.socket.sign.hardware.WiFi.util.NetworkData;
 import cn.com.startai.socket.sign.js.JsUserInfo;
 import cn.com.swain.baselib.app.IApp.IService;
+import cn.com.swain.baselib.util.PhotoUtils;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -219,6 +220,109 @@ public class UserManager implements IService {
 
     }
 
+
+    void wxLogin() {
+
+        if (cn.com.swain.baselib.util.AppUtils.isAppInstalled(app, "com.tencent.mm")) {
+
+            SendAuth.Req req = new SendAuth.Req();
+            req.scope = "snsapi_userinfo";
+            req.state = "diandi_wx_login";
+            //向微信发送请求
+
+            IWXAPI wxApi = WXLoginHelper.getInstance().getWXApi(app);
+
+            if (wxApi == null) {
+                if (mResultCallBack != null) {
+                    mResultCallBack.onResultMsgSendError(ERROR_CODE_WX_LOGIN_UNKNOWN);
+                }
+            }else {
+                Tlog.v(TAG, " wxApi  sendReq ");
+                wxApi.sendReq(req);
+            }
+
+        } else {
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError(ERROR_CODE_WX_LOGIN_NO_CLIENT);
+            }
+        }
+
+    }
+
+
+    public void onWxLoginResult(BaseResp baseResp) {
+
+        if (baseResp.errCode == BaseResp.ErrCode.ERR_OK) {
+
+            String code = ((SendAuth.Resp) baseResp).code;
+            Tlog.e(TAG, "onWxLoginSuccess code: " + code);
+
+            StartAI.getInstance().getBaseBusiManager().loginWithThirdAccount(10, code, new IOnCallListener() {
+                @Override
+                public void onSuccess(MqttPublishRequest request) {
+
+                }
+
+                @Override
+                public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
+                    Tlog.e(TAG, " wxLogin msg send fail " + startaiError.getErrorCode());
+                    if (mResultCallBack != null) {
+                        mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                    }
+                }
+
+                @Override
+                public boolean needUISafety() {
+                    return false;
+                }
+            });
+
+        } else {
+
+            switch (baseResp.errCode) {
+                case BaseResp.ErrCode.ERR_AUTH_DENIED:
+                    Tlog.e(TAG, " user rejection wx login");
+                    if (mResultCallBack != null) {
+                        mResultCallBack.onResultMsgSendError(ERROR_CODE_WX_LOGIN_USER_REJECTION);
+                    }
+                    break;
+                case BaseResp.ErrCode.ERR_USER_CANCEL:
+                    Tlog.e(TAG, " user cancel wx login ");
+                    if (mResultCallBack != null) {
+                        mResultCallBack.onResultMsgSendError(ERROR_CODE_WX_LOGIN_USER_CANCEL);
+                    }
+                    break;
+                default:
+                    Tlog.e(TAG, " wx login fail errorCode: " + baseResp.errCode);
+                    if (mResultCallBack != null) {
+                        mResultCallBack.onResultMsgSendError(ERROR_CODE_WX_LOGIN_UNKNOWN);
+                    }
+                    break;
+            }
+
+
+        }
+
+    }
+
+    /**
+     * wx登录错误 unknown
+     */
+    public static final String ERROR_CODE_WX_LOGIN_UNKNOWN = "0x830399";
+    /**
+     * wx登录没有客户端
+     */
+    public static final String ERROR_CODE_WX_LOGIN_NO_CLIENT = "0x830398";
+
+    /**
+     * wx登录用户取消
+     */
+    public static final String ERROR_CODE_WX_LOGIN_USER_CANCEL = "0x830397";
+
+    /**
+     * wx登录用户拒接
+     */
+    public static final String ERROR_CODE_WX_LOGIN_USER_REJECTION = "0x830396";
 
     private final IOnCallListener mGetLoginCodeLsn = new IOnCallListener() {
         @Override
@@ -491,8 +595,8 @@ public class UserManager implements IService {
             return;
         }
 
+
         Tlog.v(TAG, "takePhoto() " + savePhotoFile.getAbsolutePath());
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
         Uri imageUri;
         if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
@@ -501,11 +605,11 @@ public class UserManager implements IService {
         } else {
             String authority = Utils.getApp().getPackageName() + ".utilcode.provider";
             imageUri = FileProvider.getUriForFile(Utils.getApp(), authority, savePhotoFile);
-            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         }
 
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+        Intent intent = PhotoUtils.requestTakePhoto(imageUri);
         takePhotoUri = imageUri;
+
 
         if (mResultCallBack != null) {
             mResultCallBack.onResultStartActivityForResult(intent, TAKE_PHOTO_CODE);
@@ -538,14 +642,7 @@ public class UserManager implements IService {
     void localPhoto() {
         Tlog.v(TAG, "localPhoto() ");
 
-        Intent intent;
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
-            intent = new Intent(Intent.ACTION_GET_CONTENT);
-        } else {
-            intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-            intent.addCategory(Intent.CATEGORY_OPENABLE);
-        }
-        intent.setType("image/*");
+        Intent intent = PhotoUtils.requestLocalPhoto();
 
         if (mResultCallBack != null) {
             mResultCallBack.onResultStartActivityForResult(intent, LOCAL_PHOTO_CODE);
@@ -691,7 +788,11 @@ public class UserManager implements IService {
 
         if (path != null && path.exists()) {
             filePath = path.getAbsolutePath();
-            compressImage(filePath);
+            try {
+                PhotoUtils.compressImage(filePath);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         Tlog.d(TAG, " onActivityResult CROP_PHOTO_SUCCESS:" + filePath);
@@ -716,57 +817,10 @@ public class UserManager implements IService {
 
     }
 
-    private void compressImage(String srcPath) {
-        BitmapFactory.Options newOpts = new BitmapFactory.Options();
-        //开始读入图片，此时把options.inJustDecodeBounds 设回true了
-        newOpts.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(srcPath, newOpts);//此时返回bm为空
-        int w = newOpts.outWidth;
-        int h = newOpts.outHeight;
-        //现在主流手机比较多是800*480分辨率，所以高和宽我们设置为
-        float hh = 800f;//这里设置高度为800f
-        float ww = 480f;//这里设置宽度为480f
-        //缩放比。由于是固定比例缩放，只用高或者宽其中一个数据进行计算即可
-        int be = 1;//be=1表示不缩放
-        if (w > h && w > ww) {//如果宽度大的话根据宽度固定大小缩放
-            be = (int) (newOpts.outWidth / ww);
-        } else if (w < h && h > hh) {//如果高度高的话根据宽度固定大小缩放
-            be = (int) (newOpts.outHeight / hh);
-        }
-        if (be <= 0)
-            be = 1;
-        newOpts.inSampleSize = be;//设置缩放比例
-        newOpts.inJustDecodeBounds = false;
-        //重新读入图片，注意此时已经把options.inJustDecodeBounds 设回false了
-        Bitmap bitmap = BitmapFactory.decodeFile(srcPath, newOpts);
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        int options = 100;
-        bitmap.compress(Bitmap.CompressFormat.JPEG, options, baos);//质量压缩方法，这里100表示不压缩，把压缩后的数据存放到baos中
-        while (baos.toByteArray().length > 100 * 1024) { //循环判断如果压缩后图片是否大于100kb,大于继续压缩
-            baos.reset();//重置baos即清空baos
-            bitmap.compress(Bitmap.CompressFormat.JPEG, options, baos);//这里压缩options%，把压缩后的数据存放到baos中
-            options -= 10;//每次都减少10
-            if (options < 0) {
-                break;
-            }
-        }
-        try {
-            FileOutputStream fileOutputStream = new FileOutputStream(srcPath);
-            //不断把stream的数据写文件输出流中去
-            fileOutputStream.write(baos.toByteArray());
-            fileOutputStream.flush();
-            fileOutputStream.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
 
     // 裁剪
     private File crop(Uri imageUri, int code) {
 
-        Intent intent = new Intent("com.android.camera.action.CROP");
         File path = getPhotoFile();
 
         if (path == null) {
@@ -778,28 +832,7 @@ public class UserManager implements IService {
 
         Uri outUri = Uri.fromFile(path);
 
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        }
-
-        Tlog.d(TAG, " crop. output:" + (outUri != null ? outUri.getPath() : " null ")
-                + " input:" + (imageUri != null ? imageUri.toString() : "null"));
-
-        intent.setDataAndType(imageUri, "image/*");
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, outUri);
-
-        intent.putExtra("crop", "true");
-
-//        intent.putExtra("aspectX", aspectX);
-//        intent.putExtra("aspectY", aspectX);
-//        intent.putExtra("outputX", outputX);
-//        intent.putExtra("outputY", outputY);
-
-        intent.putExtra("return-data", false);
-        //黑边
-        intent.putExtra("scale", true);
-        intent.putExtra("scaleUpIfNeeded", true);
-
+        Intent intent = PhotoUtils.cropImg(imageUri, outUri);
 
         // 启动裁剪程序
         if (mResultCallBack != null) {
@@ -934,7 +967,7 @@ public class UserManager implements IService {
             getStartaiDownloaderManager().startDownload(downloadBean, mDownloadAppListener);
 
 
-            if (Debuger.isDebug) {
+            if (Debuger.isLogDebug) {
 //                new DownloadTask(downloadUrl).execute();
             }
 
@@ -1028,15 +1061,18 @@ public class UserManager implements IService {
 
             switch (loginInfo.getType()) {
 
-                case 0x01: // email
+                case 1: // email
                     userInfo.setEmail(loginInfo.getuName());
                     break;
-                case 0x02://mobile + code
-                case 0x03://mobile + pwd
-                case 0x05:// mobile + code + pwd
+                case 2://mobile + code
+                case 3://mobile + pwd
+                case 5:// mobile + code + pwd
                     userInfo.setMobile(loginInfo.getuName());
                     break;
-                case 0x04:// user + pwd
+                case 4:// user + pwd
+                    userInfo.setUserName(loginInfo.getuName());
+                    break;
+                case 10:
                     userInfo.setUserName(loginInfo.getuName());
                     break;
 
@@ -1061,23 +1097,27 @@ public class UserManager implements IService {
 
         switch (loginInfo.getType()) {
 
-            case 0x01: // email
+            case 1: // email
                 if (mResultCallBack != null) {
                     mResultCallBack.onResultEmailLogin(resp.getResult() == 1, resp.getContent().getErrcode());
                 }
 
                 break;
-            case 0x02://mobile + code
-            case 0x03://mobile + pwd
-            case 0x05:// mobile + code + pwd
+            case 2://mobile + code
+            case 3://mobile + pwd
+            case 5:// mobile + code + pwd
                 if (mResultCallBack != null) {
                     mResultCallBack.onResultMobileLogin(resp.getResult() == 1, resp.getContent().getErrcode());
                 }
 
+                break;
+            case 4:// user + pwd
 
                 break;
-            case 0x04:// user + pwd
-
+            case 10:
+                if (mResultCallBack != null) {
+                    mResultCallBack.onResultWxLogin(resp.getResult() == 1, resp.getContent().getErrcode());
+                }
                 break;
 
         }
@@ -1269,4 +1309,5 @@ public class UserManager implements IService {
             mResultCallBack.onResultMsgSendError(resp.getContent().getErrcode());
         }
     }
+
 }

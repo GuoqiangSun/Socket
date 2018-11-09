@@ -9,6 +9,7 @@ import org.xwalk.core.XWalkUIClient;
 import cn.com.startai.socket.R;
 import cn.com.startai.socket.app.SocketApplication;
 import cn.com.startai.socket.app.view.CrossWebView;
+import cn.com.swain.baselib.util.StatusBarUtil;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -25,6 +26,8 @@ public class WebActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        StatusBarUtil.fullScreenHideStatusBar(getWindow(), false);
 
         setContentView(R.layout.framgment_web);
 

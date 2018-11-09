@@ -165,6 +165,11 @@ public class ProductDetectionActivity extends AppCompatActivity implements IProd
         return getApplicationContext();
     }
 
+    @Override
+    public void receiveProtocolAnalysisResult(byte[] protocolParams) {
+        mTmpFunctionFragment.receiveProtocolAnalysisResult(protocolParams);
+    }
+
 
     public void onFragmentInitFinish(DetectionRecyclerAdapter mRecyclerAdapter) {
         if (productDetectionManager != null) {

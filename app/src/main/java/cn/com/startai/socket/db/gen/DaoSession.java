@@ -8,12 +8,14 @@ import org.greenrobot.greendao.database.Database;
 import org.greenrobot.greendao.identityscope.IdentityScopeType;
 import org.greenrobot.greendao.internal.DaoConfig;
 
+import cn.com.startai.socket.mutual.js.bean.CountElectricity;
 import cn.com.startai.socket.mutual.js.bean.DisplayBleDevice;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
 import cn.com.startai.socket.sign.hardware.WiFi.bean.UserInfo;
 import cn.com.startai.socket.sign.hardware.WiFi.bean.WanBindingDevice;
 import cn.com.startai.socket.sign.scm.bean.PowerCountdown;
 
+import cn.com.startai.socket.db.gen.CountElectricityDao;
 import cn.com.startai.socket.db.gen.DisplayBleDeviceDao;
 import cn.com.startai.socket.db.gen.LanDeviceInfoDao;
 import cn.com.startai.socket.db.gen.UserInfoDao;
@@ -29,12 +31,14 @@ import cn.com.startai.socket.db.gen.PowerCountdownDao;
  */
 public class DaoSession extends AbstractDaoSession {
 
+    private final DaoConfig countElectricityDaoConfig;
     private final DaoConfig displayBleDeviceDaoConfig;
     private final DaoConfig lanDeviceInfoDaoConfig;
     private final DaoConfig userInfoDaoConfig;
     private final DaoConfig wanBindingDeviceDaoConfig;
     private final DaoConfig powerCountdownDaoConfig;
 
+    private final CountElectricityDao countElectricityDao;
     private final DisplayBleDeviceDao displayBleDeviceDao;
     private final LanDeviceInfoDao lanDeviceInfoDao;
     private final UserInfoDao userInfoDao;
@@ -44,6 +48,9 @@ public class DaoSession extends AbstractDaoSession {
     public DaoSession(Database db, IdentityScopeType type, Map<Class<? extends AbstractDao<?, ?>>, DaoConfig>
             daoConfigMap) {
         super(db);
+
+        countElectricityDaoConfig = daoConfigMap.get(CountElectricityDao.class).clone();
+        countElectricityDaoConfig.initIdentityScope(type);
 
         displayBleDeviceDaoConfig = daoConfigMap.get(DisplayBleDeviceDao.class).clone();
         displayBleDeviceDaoConfig.initIdentityScope(type);
@@ -60,12 +67,14 @@ public class DaoSession extends AbstractDaoSession {
         powerCountdownDaoConfig = daoConfigMap.get(PowerCountdownDao.class).clone();
         powerCountdownDaoConfig.initIdentityScope(type);
 
+        countElectricityDao = new CountElectricityDao(countElectricityDaoConfig, this);
         displayBleDeviceDao = new DisplayBleDeviceDao(displayBleDeviceDaoConfig, this);
         lanDeviceInfoDao = new LanDeviceInfoDao(lanDeviceInfoDaoConfig, this);
         userInfoDao = new UserInfoDao(userInfoDaoConfig, this);
         wanBindingDeviceDao = new WanBindingDeviceDao(wanBindingDeviceDaoConfig, this);
         powerCountdownDao = new PowerCountdownDao(powerCountdownDaoConfig, this);
 
+        registerDao(CountElectricity.class, countElectricityDao);
         registerDao(DisplayBleDevice.class, displayBleDeviceDao);
         registerDao(LanDeviceInfo.class, lanDeviceInfoDao);
         registerDao(UserInfo.class, userInfoDao);
@@ -74,11 +83,16 @@ public class DaoSession extends AbstractDaoSession {
     }
     
     public void clear() {
+        countElectricityDaoConfig.clearIdentityScope();
         displayBleDeviceDaoConfig.clearIdentityScope();
         lanDeviceInfoDaoConfig.clearIdentityScope();
         userInfoDaoConfig.clearIdentityScope();
         wanBindingDeviceDaoConfig.clearIdentityScope();
         powerCountdownDaoConfig.clearIdentityScope();
+    }
+
+    public CountElectricityDao getCountElectricityDao() {
+        return countElectricityDao;
     }
 
     public DisplayBleDeviceDao getDisplayBleDeviceDao() {

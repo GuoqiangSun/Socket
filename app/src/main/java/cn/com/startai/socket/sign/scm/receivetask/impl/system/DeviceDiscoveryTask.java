@@ -1,13 +1,14 @@
 package cn.com.startai.socket.sign.scm.receivetask.impl.system;
 
+import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.baselib.util.MacUtil;
 import cn.com.swain.baselib.util.StrUtil;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -88,15 +89,25 @@ public class DeviceDiscoveryTask extends SocketResponseTask {
         }
         mWiFiDevice.rssi = rssi;
 
-        Tlog.v(TAG, "discovery:" + String.valueOf(mWiFiDevice));
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, "discovery:" + String.valueOf(mWiFiDevice));
 
-//        if(CustomManager.getInstance().getProduct() == mSocketDataArray.getProtocol){}
+            Tlog.e(TAG, " my product:" + CustomManager.getInstance().getProduct()
+                    + " device product:" + mSocketDataArray.getProtocolProduct()
+                    + " my custom:" + CustomManager.getInstance().getCustom()
+                    + " device custom:" + mSocketDataArray.getProtocolCustom());
 
-        if (mOnTaskCallBack != null) {
-            mOnTaskCallBack.onDeviceDiscoveryResult(mSocketDataArray.getID(), result, mWiFiDevice);
         }
 
-    }
+        if (CustomManager.getInstance().getCustom() == mSocketDataArray.getProtocolCustom() &&
+                CustomManager.getInstance().getProduct() == mSocketDataArray.getProtocolProduct()) {
+            if (mOnTaskCallBack != null) {
+                mOnTaskCallBack.onDeviceDiscoveryResult(mSocketDataArray.getID(), result, mWiFiDevice);
+            }
 
+        }
+
+
+    }
 
 }

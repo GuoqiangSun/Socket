@@ -12,7 +12,7 @@ public class SuperPlugApplication extends SocketApplication {
 
     @Override
     public void onCreate() {
-        CustomManager.getInstance().initStartAISuperPlugProject();
+        CustomManager.getInstance().initMUSIKProject();
         super.onCreate();
     }
 }

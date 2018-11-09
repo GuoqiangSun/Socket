@@ -5,7 +5,7 @@ import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.startai.socket.sign.scm.util.MySocketSecureKey;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -74,6 +74,11 @@ public class SwitchControllerReceiveTask extends SocketResponseTask {
             }
 
 
+        }else if(MySocketSecureKey.MUtil.isUSBModel(model)){
+            Tlog.e(TAG, "control switch is USB ");
+            if (mCallBack != null) {
+                mCallBack.onUSBResult(mSocketDataArray.getID(), on);
+            }
         }
 
     }

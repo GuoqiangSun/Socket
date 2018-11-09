@@ -104,7 +104,7 @@ public class Debuger implements IApp, IService {
      * @param activity
      */
     public void reCheckLogRecord(Activity activity) {
-        if (!TFlog.hasILogRecordImpl() && isRecordLogDebug) {
+        if (!Tlog.hasILogRecordImpl() && isRecordLogDebug) {
 
             boolean has = (ContextCompat.checkSelfPermission(activity,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);

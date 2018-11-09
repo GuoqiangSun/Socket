@@ -1,6 +1,9 @@
 package cn.com.startai.socket.global;
 
 import android.app.Application;
+import android.content.Intent;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 
 import java.io.File;
 
@@ -28,12 +31,28 @@ public class FileManager extends FileTemplate {
     @Override
     public void init(Application app) {
         super.init(app);
+
+        String absolutePath =initMyProjectPath().getAbsolutePath();
+
+        notifySystemToScan(app, absolutePath);
+
+//        MediaScannerConnection.scanFile(app, new String[]{absolutePath}, null, null);
+
         Tlog.i(" FileManager init finish ; success:" + exit);
     }
 
     public void recreate(Application app) {
         super.init(app);
         Tlog.i(" FileManager recreate finish ; success:" + exit);
+    }
+
+    public static void notifySystemToScan(Application app, String filePath) {
+        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        File file = new File(filePath);
+
+        Uri uri = Uri.fromFile(file);
+        intent.setData(uri);
+        app.sendBroadcast(intent);
     }
 
     private static final String MY_PROJECT_PATH_NAME = "socket";
@@ -44,6 +63,15 @@ public class FileManager extends FileTemplate {
      * @return
      */
     protected File initMyProjectPath() {
+        if (CustomManager.getInstance().isTriggerBle()) {
+            return new File(getAppRootPath(), "TriggerHomeBle");
+        } else if (CustomManager.getInstance().isTriggerWiFi()) {
+            return new File(getAppRootPath(), "TriggerHomeWiFi");
+        } else if (CustomManager.getInstance().isGrowroomate()) {
+            return new File(getAppRootPath(), "Growrootmate");
+        } else if (CustomManager.getInstance().isMUSIK()) {
+            return new File(getAppRootPath(), "MUSIK");
+        }
         return new File(getAppRootPath(), MY_PROJECT_PATH_NAME);
     }
 

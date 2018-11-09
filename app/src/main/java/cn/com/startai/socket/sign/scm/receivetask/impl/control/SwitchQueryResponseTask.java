@@ -5,7 +5,7 @@ import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.startai.socket.sign.scm.util.MySocketSecureKey;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -46,9 +46,11 @@ public class SwitchQueryResponseTask extends SocketResponseTask {
         }
 
 
-        Tlog.v(TAG, "query switch result: " + SocketSecureKey.Util.resultIsOk(protocolParams[0]) + " on:" + on + " model:" + model);
+        Tlog.v(TAG, "query switch result: "+ SocketSecureKey.Util.resultIsOk(protocolParams[0])
+                + " on:" + on + " model:" + model);
 
         if (MySocketSecureKey.MUtil.isRelayModel(model)) {
+            Tlog.e(TAG, "query switch model is relay ");
 
             if (mCallBack != null) {
                 mCallBack.onRelayResult(mSocketDataArray.getID(), on);
@@ -71,8 +73,13 @@ public class SwitchQueryResponseTask extends SocketResponseTask {
                 IDebugerStream.receiveQueryFlashState(mSocketDataArray.getObj(), mSocketDataArray.getID(), on);
             }
 
-
+        }else if(MySocketSecureKey.MUtil.isUSBModel(model)){
+            Tlog.e(TAG, "control switch is USB ");
+            if (mCallBack != null) {
+                mCallBack.onUSBResult(mSocketDataArray.getID(), on);
+            }
         }
+
 
 
     }

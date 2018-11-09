@@ -8,8 +8,8 @@ import org.xwalk.core.JavascriptInterface;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingCommonData;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.baselib.jsInterface.AbsHandlerJsInterface;
-import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -31,7 +31,8 @@ public class Timing extends AbsHandlerJsInterface {
 
     public static class Method {
 
-        private static final String METHOD_TIMING_LIST_DATA = "javascript:commonPatternListDataResponse('$mac','$commonData','$advancedData')";
+        private static final String METHOD_TIMING_LIST_DATA
+                = "javascript:commonPatternListDataResponse('$mac','$commonData','$advancedData')";
 
         /**
          * 请求列表数据
@@ -43,10 +44,13 @@ public class Timing extends AbsHandlerJsInterface {
          */
         public static String callJsTimingListData(String mac, String commonData, String advancedData) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return METHOD_TIMING_LIST_DATA.replace("$mac", mac).replace("$commonData", commonData).replace("$advancedData", advancedData);
+            return METHOD_TIMING_LIST_DATA.replace("$mac", mac)
+                    .replace("$commonData", commonData)
+                    .replace("$advancedData", advancedData);
         }
 
-        private static final String METHOD_TIMING_COMMON_SET_RESPONSE = "javascript:commonPatternTimingResponse('$mac',$result)";
+        private static final String METHOD_TIMING_COMMON_SET_RESPONSE
+                = "javascript:commonPatternTimingResponse('$mac',$result,$on,$id,$model)";
 
         /**
          * 新建定时列表回复
@@ -55,9 +59,13 @@ public class Timing extends AbsHandlerJsInterface {
          * @param result
          * @return
          */
-        public static String callJsTimingCommonSet(String mac, boolean result) {
+        public static String callJsTimingCommonSet(String mac, boolean result,boolean on,int id,int model) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return METHOD_TIMING_COMMON_SET_RESPONSE.replace("$mac", mac).replace("$result", String.valueOf(result));
+            return METHOD_TIMING_COMMON_SET_RESPONSE.replace("$mac", mac)
+                    .replace("$result", String.valueOf(result))
+                    .replace("$on", String.valueOf(on))
+                    .replace("$id", String.valueOf(id))
+                    .replace("$model", String.valueOf(model));
         }
 
     }
@@ -83,19 +91,23 @@ public class Timing extends AbsHandlerJsInterface {
 
     }
 
+    @Deprecated
     @JavascriptInterface
     public void commonPatternNewTimingRequest(String mac, int id, boolean on, String time, int week, boolean startup) {
-        Tlog.v(TAG, " commonPatternNewTimingRequest id:" + id + " on:" + on + " time:" + time + " week:" + week + " startup:" + startup);
+        Tlog.v(TAG, " commonPatternNewTimingRequest id:" + id + " on:" + on
+                + " time:" + time + " week:" + week + " startup:" + startup);
     }
 
     /**
      * 普通模式新建定时
      */
     @JavascriptInterface
-    public void commonPatternNewTimingRequest(String mac, int id, boolean on, String time, int week, boolean startup, int model, String onTimeInterval, String offTimeInterval, String offTime) {
+    public void commonPatternNewTimingRequest(String mac, int id, boolean on,
+                                              String time, int week, boolean startup, int model,
+                                              String onTimeInterval, String offTimeInterval, String offTime) {
         Tlog.v(TAG, " commonPatternNewTimingRequest");
         if ((id & 0xFF) != 0xFF) {
-            id = 0xFF;
+            id = -1;
         }
 
 //        TimingCommonData mTimingData = new TimingCommonData();
@@ -109,7 +121,8 @@ public class Timing extends AbsHandlerJsInterface {
 //        mTimingData.setStartup(startup);
 //        getHandler().obtainMessage(MSG_SET_TIMING, mTimingData).sendToTarget();
 
-        commonPatternEditTimingRequest(mac, id, on, time, week, startup, model, onTimeInterval, offTimeInterval, offTime);
+        commonPatternEditTimingRequest(mac, id, on, time, week,
+                startup, model, onTimeInterval, offTimeInterval, offTime);
 
     }
 
@@ -117,9 +130,13 @@ public class Timing extends AbsHandlerJsInterface {
      * 普通模式编辑定时
      */
     @JavascriptInterface
-    public void commonPatternEditTimingRequest(String mac, int id, boolean on, String time, int week, boolean startup, int model, String onTimeInterval, String offTimeInterval, String offTime) {
-        Tlog.v(TAG, " commonPatternEditTimingRequest id:" + id + " on:" + on + " time:" + time + " week:" + week + " startup:" + startup);
-        Tlog.v(TAG, " model:" + model + " offTimeInterval:" + offTimeInterval + " onTimeInterval:" + onTimeInterval + " offTime:" + offTime);
+    public void commonPatternEditTimingRequest(String mac, int id, boolean on,
+                                               String time, int week, boolean startup, int model,
+                                               String onTimeInterval, String offTimeInterval, String offTime) {
+        Tlog.v(TAG, " commonPatternEditTimingRequest id:" + id + " on:" + on
+                + " time:" + time + " week:" + week + " startup:" + startup);
+        Tlog.v(TAG, " model:" + model + " offTimeInterval:"
+                + offTimeInterval + " onTimeInterval:" + onTimeInterval + " offTime:" + offTime);
 
         if (SocketSecureKey.Util.isCommonTiming((byte) model)) {
 
@@ -140,13 +157,14 @@ public class Timing extends AbsHandlerJsInterface {
             mTimingAdvanceData.setModelIsAdvance();
             mTimingAdvanceData.mac = mac;
             mTimingAdvanceData.id = (byte) id;
+            mTimingAdvanceData.setStateIsConfirm();
             mTimingAdvanceData.on = on;
-            mTimingAdvanceData.setOnTime(time);
+            mTimingAdvanceData.setOnTimeSplit(time);
             mTimingAdvanceData.week = week;
             mTimingAdvanceData.startup = startup;
             mTimingAdvanceData.setOnIntervalTime(onTimeInterval);
             mTimingAdvanceData.setOffIntervalTime(offTimeInterval);
-            mTimingAdvanceData.setOffTime(offTime);
+            mTimingAdvanceData.setOffTimeSplit(offTime);
             getHandler().obtainMessage(MSG_SET_ADVANCE_TIMING, mTimingAdvanceData).sendToTarget();
         }
 
@@ -157,7 +175,7 @@ public class Timing extends AbsHandlerJsInterface {
      */
     @JavascriptInterface
     public void commonPatternDeleteTimingRequest(String mac, String id, int model) {
-        Tlog.v(TAG, " commonPatternDeleteTimingRequest id:" + id);
+        Tlog.v(TAG, " commonPatternDeleteTimingRequest id:" + id + " mac:" + mac + " model:" + model);
 
         if (SocketSecureKey.Util.isCommonTiming((byte) model)) {
 
@@ -175,9 +193,15 @@ public class Timing extends AbsHandlerJsInterface {
 
             TimingAdvanceData mTimingAdvanceData = new TimingAdvanceData();
             mTimingAdvanceData.setModelIsAdvance();
-            mTimingAdvanceData.id = (byte) Integer.parseInt(id.trim());
+            mTimingAdvanceData.mac = mac;
+            try {
+                mTimingAdvanceData.id = (byte) Integer.parseInt(id.trim());
+            } catch (Exception e) {
+
+            }
             mTimingAdvanceData.on = false;
             mTimingAdvanceData.startup = false;
+            mTimingAdvanceData.setStateIsDelete();
             getHandler().obtainMessage(MSG_SET_ADVANCE_TIMING, mTimingAdvanceData).sendToTarget();
 
         }

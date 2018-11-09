@@ -473,6 +473,11 @@ public class ProductDetectionManager implements DetectionRecyclerAdapter.OnClick
         mUIHandler.obtainMessage(REFRESH_FLASH_STATE, on).sendToTarget();
     }
 
+    @Override
+    public void receiveProtocolAnalysisResult(byte[] protocolParams) {
+        mUIHandler.obtainMessage(RECEIVE_TEST_ANALYSIS_RESULT, protocolParams).sendToTarget();
+    }
+
     private void recOnePkg(int type) {
         if (mDatas.size() > 0) {
             for (DetectInfo mDetect : mDatas) {
@@ -501,6 +506,7 @@ public class ProductDetectionManager implements DetectionRecyclerAdapter.OnClick
     private static final int REFRESH_RESPONSE_BYTE = 0x02;
     private static final int REFRESH_TOAST = 0x03;
     private static final int REFRESH_FLASH_STATE = 0x04;
+    private static final int RECEIVE_TEST_ANALYSIS_RESULT = 0x05;
 
 
     private void uiHandlerMessage(Message msg) {
@@ -547,7 +553,9 @@ public class ProductDetectionManager implements DetectionRecyclerAdapter.OnClick
                 mRecyclerAdapter.flashModel(on);
 
                 break;
-
+            case RECEIVE_TEST_ANALYSIS_RESULT:
+                mRecyclerAdapter.receiveProtocolAnalysisResult((byte[]) msg.obj);
+                break;
         }
 
     }

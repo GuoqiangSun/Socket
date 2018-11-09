@@ -10,4 +10,11 @@ public class LanBindInfo {
     public String mac;
     public String pwd;
 
+    @Override
+    public String toString() {
+        return "LanBindInfo{" +
+                "mac='" + mac + '\'' +
+                ", pwd='" + pwd + '\'' +
+                '}';
+    }
 }

@@ -29,7 +29,7 @@ public class GuideFragment extends BaseFragment {
     protected View inflateView() {
         Tlog.v(TAG, " GuideFragment inflateView() ");
 
-        if (CustomManager.getInstance().isSmartPlug()) {
+        if (CustomManager.getInstance().isGrowroomate()) {
 
             return View.inflate(getActivity(), R.layout.framgment_guide_smart_socket,
                     null);

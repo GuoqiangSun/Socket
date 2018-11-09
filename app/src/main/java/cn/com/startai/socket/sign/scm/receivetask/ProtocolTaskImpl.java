@@ -1,6 +1,7 @@
 package cn.com.startai.socket.sign.scm.receivetask;
 
 import cn.com.startai.socket.sign.scm.receivetask.impl.MyErrorTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.MyTestTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.ScmErrorTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.CostRateQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.CostRateSetReceiveTask;
@@ -48,13 +49,13 @@ import cn.com.startai.socket.sign.scm.receivetask.impl.system.UpdateReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.VoltageQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.VoltageSettingReceiveTask;
 import cn.com.startai.socket.sign.scm.util.MySocketSecureKey;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolOutput;
 import cn.com.swain.support.protocolEngine.ProtocolCode;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.result.SimpleProtocolResult;
 import cn.com.swain.support.protocolEngine.task.FailTaskResult;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -152,6 +153,9 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                 switch (protocolCmd) {
                     case SocketSecureKey.Cmd.CMD_ERROR:
                         new MyErrorTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_TEST:
+                        new MyTestTask(mTaskCallBack).execute(mParam);
                         break;
                     default:
                         new ScmErrorTask(ProtocolCode.ERROR_CODE_RESOLVE_CMD, mTaskCallBack).execute(mParam);

@@ -3,13 +3,7 @@
 
     <application
         android:name=".SmartPlugApplication"
-        android:allowBackup="true"
-        android:hardwareAccelerated="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name_ble"
-        android:largeHeap="true"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true">
-
-    </application>
+        android:icon="@mipmap/ic_launcher_growroomate"
+        android:label="@string/app_name_smartplug"
+        android:roundIcon="@mipmap/ic_launcher_growroomate_round"/>
 </manifest>

@@ -1,8 +1,9 @@
 package cn.com.startai.socket.sign.scm.bean.Timing;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
-import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 
 /**
  * author: Guoqiang_Sun
@@ -46,9 +47,27 @@ public class TimingAdvanceData {
 
     }
 
+//    {
+//        "time": "21:25",
+//            "time2": "23:25",
+//            "id":1,
+//            "state": false //  true启动
+//        "week": 5   // 10进制转换成二进制00000101表示
+//        周三、周一
+//    }
+
     public JSONObject toJsonObj() {
         JSONObject obj = new JSONObject();
+        try {
+            obj.put("time", this.onTime);
+            obj.put("time2", this.offTime);
+            obj.put("id", this.id);
+            obj.put("state", this.startup);
+            obj.put("week", this.week);
 
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         return obj;
     }
 
@@ -56,7 +75,42 @@ public class TimingAdvanceData {
     public int startMinute;
     private String onTime;
 
+    /**
+     * 保存
+     */
+    public static final int STATE_CONFIRM = 0x01;
+    /**
+     * 删除
+     */
+    public static final int STATE_DELETE = 0x02;
+
+
+    public void setStateIsConfirm() {
+        this.state = STATE_CONFIRM;
+    }
+
+    public boolean stateIsConfirm() {
+        return (state == STATE_CONFIRM);
+    }
+
+    public void setStateIsDelete() {
+        this.state = STATE_DELETE;
+    }
+
+    public boolean stateIsDelete() {
+        return (state == STATE_DELETE);
+    }
+
     public void setOnTime(String onTime) {
+        this.onTime = onTime;
+    }
+
+    /**
+     * 保存 删除
+     */
+    public byte state;
+
+    public void setOnTimeSplit(String onTime) {
 
         this.onTime = onTime;
 
@@ -87,12 +141,16 @@ public class TimingAdvanceData {
 
     }
 
-
     public int endHour;
     public int endMinute;
     private String offTime;
 
     public void setOffTime(String offTime) {
+        this.offTime = offTime;
+    }
+
+
+    public void setOffTimeSplit(String offTime) {
         this.offTime = offTime;
 
         if (this.offTime == null) {

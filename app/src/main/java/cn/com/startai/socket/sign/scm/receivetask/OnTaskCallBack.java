@@ -1,6 +1,7 @@
 package cn.com.startai.socket.sign.scm.receivetask;
 
 import cn.com.startai.socket.debuger.impl.IDebugerProtocolStream;
+import cn.com.startai.socket.mutual.js.bean.TimingSetResult;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
 import cn.com.startai.socket.sign.scm.bean.CostRate;
 import cn.com.startai.socket.sign.scm.bean.CountdownData;
@@ -108,9 +109,9 @@ public interface OnTaskCallBack {
      * 设置定时结果
      *
      * @param mac
-     * @param result
+     * @param mResult
      */
-    void onSetTimingResult(String mac, boolean result);
+    void onSetTimingResult(String mac, TimingSetResult mResult);
 
 
     /**
@@ -184,4 +185,8 @@ public interface OnTaskCallBack {
     void onQueryCumuParamsResult(boolean result, CumuParams cumuParams);
 
     void onUpdateVersionResult(boolean result, UpdateVersion mVersion);
+
+    void onUSBResult(String id, boolean on);
+
+    void onTestResult(byte[] protocolParams);
 }

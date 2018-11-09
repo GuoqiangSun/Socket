@@ -4,13 +4,9 @@
 
     <application
         android:name=".BleApplication"
-        android:allowBackup="true"
-        android:hardwareAccelerated="true"
         android:icon="@mipmap/logoble"
         android:label="@string/app_name_ble"
-        android:largeHeap="true"
-        android:roundIcon="@mipmap/logoble"
-        android:supportsRtl="true">
+        android:roundIcon="@mipmap/logoble">
 
     </application>
 

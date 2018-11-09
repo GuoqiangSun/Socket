@@ -41,6 +41,21 @@ public class WanBindingDevice {
 
     private String mac;
 
+    private String mid; // 我的userid
+
+    private boolean isAdmin;// 是否是管理员
+
+    private boolean hasBindingByWan; // 是否已经远程建立了绑定关系
+
+    private boolean hasBindingByLan; // 是否在局域网内建立了绑定关系
+
+    private String cpuInfo; // 设备cpuInfo
+
+    private int token; // 回话token
+
+    private long tokenInsterTimes; // 回话token插入时间
+
+
     @Override
     public String toString() {
         return "WanBindingDevice{" +
@@ -62,20 +77,6 @@ public class WanBindingDevice {
                 ", tokenInsterTimes=" + tokenInsterTimes +
                 '}';
     }
-
-    private String mid; // 我的userid
-
-    private boolean isAdmin;// 是否是管理员
-
-    private boolean hasBindingByWan; // 是否已经远程建立了绑定关系
-
-    private boolean hasBindingByLan; // 是否在局域网内建立了绑定关系
-
-    private String cpuInfo; // 设备cpuInfo
-
-    private int token; // 回话token
-
-    private long tokenInsterTimes; // 回话token插入时间
 
 
     @Generated(hash = 900102256)

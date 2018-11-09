@@ -1,7 +1,5 @@
 package cn.com.startai.socket.sign.scm.util;
 
-import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
-
 /**
  * author: Guoqiang_Sun
  * date : 2018/9/13 0013
@@ -85,6 +83,11 @@ public class MySocketSecureKey extends SocketSecureKey {
         public static final byte MODEL_FLASHLIGHT = 0x03;
 
         /**
+         * usb开关
+         */
+        public static final byte MODEL_USB = 0x04;
+
+        /**
          * 升级
          */
         public static final byte MODEL_UPDATE = 0x01;
@@ -110,6 +113,10 @@ public class MySocketSecureKey extends SocketSecureKey {
 
         public static boolean isFlashLightModel(byte model) {
             return (MModel.MODEL_FLASHLIGHT == model);
+        }
+
+        public static boolean isUSBModel(byte model) {
+            return (MModel.MODEL_USB == model);
         }
 
         public static boolean isQueryVersionAction(byte action) {

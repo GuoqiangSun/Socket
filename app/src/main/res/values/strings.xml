@@ -1,8 +1,5 @@
 <resources>
     <string name="app_name">Socket</string>
-    <string name="app_name_ble">TriggerHome</string>
-    <string name="app_name_wifi">TriggerHome</string>
-    <string name="app_name_smartplug">SmartPlug</string>
 
     <string name="goBack_again">Please drop out one more time</string>
     <string name="ble_forbid_enable_skip_setting">Bluetooth activation failed. Please jump to setup and manually open.</string>

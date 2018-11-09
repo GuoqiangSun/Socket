@@ -36,7 +36,8 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
 
     public static final class Method {
 
-        private static final String METHOD_TEMPERATURE_HUMIDITY_DATA = "javascript:temperatureAndHumidityDataResponse('$mac','$data')";
+        private static final String METHOD_TEMPERATURE_HUMIDITY_DATA
+                = "javascript:temperatureAndHumidityDataResponse('$mac','$data')";
 
         /**
          * 温湿度数据返回
@@ -50,7 +51,8 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
             return METHOD_TEMPERATURE_HUMIDITY_DATA.replace("$mac", mac).replace("$data", data);
         }
 
-        private static final String METHOD_TEMPERATURE_ALARM_VALUE = "javascript:alarmTemperatureValueResponse('$mac',$state,$model,$result)";
+        private static final String METHOD_TEMPERATURE_ALARM_VALUE
+                = "javascript:alarmTemperatureValueResponse('$mac',$state,$model,$result)";
 
         /**
          * 设置告警温度值返回
@@ -68,7 +70,8 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
                     .replace("$model", String.valueOf(model));
         }
 
-        private static final String METHOD_HUMIDITY_ALARM_VALUE = "javascript:alarmHumidityValueResponse('$mac',$state,$result)";
+        private static final String METHOD_HUMIDITY_ALARM_VALUE
+                = "javascript:alarmHumidityValueResponse('$mac',$state,$result)";
 
         /**
          * 设置告警湿度值返回
@@ -109,7 +112,10 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
      */
     @JavascriptInterface
     public void alarmTemperatureValueRequest(String mac, boolean powerState, float alarmValue, int limit) {
-        Tlog.v(TAG, " alarmTemperatureValueRequest mac:" + mac + " powerState:" + powerState + " alarmValue:" + alarmValue + " limit:" + limit);
+        Tlog.v(TAG, " alarmTemperatureValueRequest mac:" + mac
+                + " powerState:" + powerState
+                + " alarmValue:" + alarmValue
+                + " limit:" + limit);
 
         TempHumidityAlarmData mAlarmData = new TempHumidityAlarmData();
         mAlarmData.setTypeIsTemp();
@@ -125,14 +131,18 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
      * 设置告警湿度值请求
      */
     @JavascriptInterface
-    public void alarmHumidityValueRequest(String mac, boolean powerState, float alarmValue) {
-        Tlog.v(TAG, " alarmHumidityValueRequest mac:" + mac + " powerState:" + powerState + " alarmValue:" + alarmValue);
+    public void alarmHumidityValueRequest(String mac, boolean powerState, float alarmValue, int limit) {
+        Tlog.v(TAG, " alarmHumidityValueRequest mac:" + mac
+                + " powerState:" + powerState
+                + " alarmValue:" + alarmValue
+                + " limit:" + limit);
 
         TempHumidityAlarmData mAlarmData = new TempHumidityAlarmData();
         mAlarmData.setTypeIsHumidity();
         mAlarmData.setMac(mac);
         mAlarmData.setStartup(powerState);
         mAlarmData.setAlarmValue(alarmValue);
+        mAlarmData.setLimit(limit);
         getHandler().obtainMessage(MSG_SET_HUMIDITY_ALARM, mAlarmData).sendToTarget();
 
 

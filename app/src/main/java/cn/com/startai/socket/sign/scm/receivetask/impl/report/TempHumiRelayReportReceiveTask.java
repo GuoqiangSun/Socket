@@ -4,10 +4,8 @@ import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.Temperature;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolOutput;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
-import cn.com.swain.support.protocolEngine.pack.ResponseData;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.support.protocolEngine.utils.ProtocolDataCache;
-import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -30,11 +28,12 @@ public class TempHumiRelayReportReceiveTask extends SocketResponseTask {
     protected void doTask(SocketDataArray mSocketDataArray) {
 
         byte[] protocolParams = mSocketDataArray.getProtocolParams();
-        byte seq = (byte) mSocketDataArray.getSeq();
+        byte seq = (byte) mSocketDataArray.getProtocolSequence();
+
         if (protocolParams == null || protocolParams.length < 8) {
             Tlog.e(TAG, " TempHumiRelayReportReceiveTask params is error ... " + mSocketDataArray.toString());
-            ResponseData mResponseData = ProtocolDataCache.getTempHumidityExecuteReport(mSocketDataArray.getID(), false, seq);
-            response(mResponseData);
+//            ResponseData mResponseData = ProtocolDataCache.getTempHumidityExecuteReport(mSocketDataArray.getID(), false, seq);
+//            response(mResponseData);
             return;
         }
 
@@ -92,8 +91,8 @@ public class TempHumiRelayReportReceiveTask extends SocketResponseTask {
 
         }
 
-        ResponseData mResponseData = ProtocolDataCache.getTempHumidityExecuteReport(mSocketDataArray.getID(), true, seq);
-        response(mResponseData);
+//        ResponseData mResponseData = ProtocolDataCache.getTempHumidityExecuteReport(mSocketDataArray.getID(), true, seq);
+//        response(mResponseData);
     }
 
 

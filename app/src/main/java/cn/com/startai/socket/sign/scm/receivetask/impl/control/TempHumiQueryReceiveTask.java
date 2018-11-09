@@ -5,7 +5,7 @@ import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.Temperature;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -83,8 +83,18 @@ public class TempHumiQueryReceiveTask extends SocketResponseTask {
                 Tlog.v(TAG, " humidity ");
 
                 Humidity mHumidity = new Humidity();
-                mHumidity.alarmSwitch = startup;
-                mHumidity.alarmValue = alarmValue;
+                mHumidity.limit = limit;
+
+                if (SocketSecureKey.Util.isLimitUp(limit)) {
+                    mHumidity.hotAlarmSwitch = startup;
+                    mHumidity.hotAlarmValue = alarmValue;
+                } else {
+                    mHumidity.codeAlarmSwitch = startup;
+                    mHumidity.codeAlarmValue = alarmValue;
+                }
+
+//                mHumidity.alarmSwitch = startup;
+//                mHumidity.alarmValue = alarmValue;
                 mHumidity.currentValue = curValue;
 
                 mCallBack.onQueryHumidityResult(mac, result, mHumidity);

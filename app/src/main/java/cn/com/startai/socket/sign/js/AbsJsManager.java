@@ -1,5 +1,6 @@
 package cn.com.startai.socket.sign.js;
 
+import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.mutual.js.bean.MobileLogin;
 import cn.com.startai.socket.mutual.js.bean.StatusBarBean;
 import cn.com.startai.socket.mutual.js.bean.UserRegister;
@@ -7,6 +8,7 @@ import cn.com.startai.socket.mutual.js.bean.UserUpdateInfo;
 import cn.com.startai.socket.mutual.js.bean.WiFiConfig;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
 import cn.com.startai.socket.sign.js.jsInterface.Add;
+import cn.com.startai.socket.sign.js.jsInterface.ColourLamp;
 import cn.com.startai.socket.sign.js.jsInterface.Countdown;
 import cn.com.startai.socket.sign.js.jsInterface.Device;
 import cn.com.startai.socket.sign.js.jsInterface.DeviceList;
@@ -14,6 +16,7 @@ import cn.com.startai.socket.sign.js.jsInterface.Error;
 import cn.com.startai.socket.sign.js.jsInterface.Language;
 import cn.com.startai.socket.sign.js.jsInterface.Login;
 import cn.com.startai.socket.sign.js.jsInterface.Main;
+import cn.com.startai.socket.sign.js.jsInterface.NightLight;
 import cn.com.startai.socket.sign.js.jsInterface.ReName;
 import cn.com.startai.socket.sign.js.jsInterface.Router;
 import cn.com.startai.socket.sign.js.jsInterface.Setting;
@@ -23,6 +26,7 @@ import cn.com.startai.socket.sign.js.jsInterface.StatusBar;
 import cn.com.startai.socket.sign.js.jsInterface.Store;
 import cn.com.startai.socket.sign.js.jsInterface.TemperatureAndHumidity;
 import cn.com.startai.socket.sign.js.jsInterface.Timing;
+import cn.com.startai.socket.sign.js.jsInterface.USBSwitch;
 import cn.com.startai.socket.sign.js.jsInterface.User;
 import cn.com.startai.socket.sign.js.jsInterface.Version;
 import cn.com.startai.socket.sign.scm.bean.LanBindInfo;
@@ -46,7 +50,9 @@ public abstract class AbsJsManager implements Device.IJSDeviceCallBack,//
         DeviceList.IJSDeviceListCallBack, Login.IJSLoginCallBack,//
         ReName.IJSRenameCallBack, SpendingCountdown.IJSSpendingCallBack, Error.IJSErrorCallBack,//
         User.IJSUserCallBack, Store.IJSStoreCallBack, State.IJSStateCallBack,//
-        StatusBar.IJSStatusBarCallBack, Version.IJSVersionCallBack {
+        StatusBar.IJSStatusBarCallBack, Version.IJSVersionCallBack,
+        ColourLamp.IJSColourLampCallBack, NightLight.IJSNightLightCallBack,
+        USBSwitch.IJSUSBSwitchCallBack {
 
     public abstract void regJsManagerCallBack(IJSManagerCallback mJSManagerCallBack);
 
@@ -224,5 +230,14 @@ public abstract class AbsJsManager implements Device.IJSDeviceCallBack,//
         void onJSQueryScmVersion(String mac);
 
         void onJSUpdateScm(String mac);
+
+        void onJSWxLogin();
+
+        void onJSSetColourLampRGB(ColorLampRGB obj);
+
+        void onJSQueryUSBState(String mac);
+
+        void onJSSetUSBState(String mac, boolean state);
     }
+
 }

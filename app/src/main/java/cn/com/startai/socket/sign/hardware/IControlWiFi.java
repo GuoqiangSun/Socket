@@ -104,6 +104,8 @@ public interface IControlWiFi {
 
     String getNameByMac(String mac);
 
+    void wxLogin();
+
 
     interface IWiFiResultCallBack {
 
@@ -174,6 +176,8 @@ public interface IControlWiFi {
         void onResultEmailForgot(boolean result);
 
         void onResultNeedReBind(String mac);
+
+        void onResultWxLogin(boolean b, String errcode);
     }
 
 }

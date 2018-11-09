@@ -1,8 +1,5 @@
 <resources>
     <string name="app_name">插座</string>
-    <string name="app_name_ble">TriggerHome</string>
-    <string name="app_name_wifi">TriggerHome</string>
-    <string name="app_name_smartplug">超级插座</string>
 
     <string name="goBack_again">请再按一次退出</string>
     <string name="ble_forbid_enable_skip_setting">蓝牙激活失败，请跳转到设置界面手动打开</string>

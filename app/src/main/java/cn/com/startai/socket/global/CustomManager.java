@@ -2,9 +2,9 @@ package cn.com.startai.socket.global;
 
 import android.app.Application;
 
-import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
 import cn.com.swain.baselib.app.IApp.IApp;
 import cn.com.swain.support.protocolEngine.ProtocolBuild;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -25,26 +25,32 @@ public class CustomManager implements IApp {
         return ClassHolder.FLAVORS;
     }
 
-    private boolean isSuperPlugProject = false;
-    private boolean isSmartPlugProject = false;
-    private boolean isWiFiSocketProject = false;
-    private boolean isBleSocketProject = false;
+    private boolean isMUSIKProject = false;
+    private boolean isGrowroomateProject = false;
+    private boolean isTriggerWiFiProject = false;
+    private boolean isTriggerBleProject = false;
+    private boolean isTestSocketProject = false;
 
-    public boolean isSuperPlug() {
-        return isSuperPlugProject;
+    public boolean isMUSIK() {
+        return isMUSIKProject;
     }
 
-    public boolean isSmartPlug() {
-        return isSmartPlugProject;
+    public boolean isGrowroomate() {
+        return isGrowroomateProject;
     }
 
-    public boolean isWiFiSocket() {
-        return isWiFiSocketProject;
+    public boolean isTriggerWiFi() {
+        return isTriggerWiFiProject;
     }
 
-    public boolean isBleSocket() {
-        return isBleSocketProject;
+    public boolean isTriggerBle() {
+        return isTriggerBleProject;
     }
+
+    public boolean isTestProject() {
+        return isTestSocketProject;
+    }
+
 
     private volatile byte CUSTOM;
     private volatile byte PRODUCT;
@@ -62,24 +68,31 @@ public class CustomManager implements IApp {
         return PROTOCOL_VERSION;
     }
 
-    public void initBleSocketProject() {
-        Tlog.i(" is Ble socket project ");
-        this.isBleSocketProject = true;
+
+    public void initTestSocketProject() {
+        Tlog.i(" is Test socket project ");
+        this.isTriggerBleProject = true;
+        this.isTestSocketProject = true;
     }
 
-    public void initWiFiSocketProject() {
-        Tlog.i(" is WiFi socket project ");
-        this.isWiFiSocketProject = true;
+    public void initTriggerBleProject() {
+        Tlog.i(" is Trigger Ble project ");
+        this.isTriggerBleProject = true;
+    }
+
+    public void initTriggerWiFiProject() {
+        Tlog.i(" is Trigger WiFi project ");
+        this.isTriggerWiFiProject = true;
     }
 
     public void initSmartPlugProject() {
         Tlog.i(" is smart plug project ");
-        this.isSmartPlugProject = true;
+        this.isGrowroomateProject = true;
     }
 
-    public void initStartAISuperPlugProject() {
-        Tlog.i(" is startAI super plug project ");
-        this.isSuperPlugProject = true;
+    public void initMUSIKProject() {
+        Tlog.i(" is startAI musik project ");
+        this.isMUSIKProject = true;
     }
 
 
@@ -87,31 +100,27 @@ public class CustomManager implements IApp {
     public void init(Application app) {
         Tlog.i("CustomManager init : ");
 
-
-        this.CUSTOM = SocketSecureKey.Custom.CUSTOM_WAN;
-
-
-        if (isBleSocket()) {
+        if (isTriggerBle()) {
             CUSTOM = SocketSecureKey.Custom.CUSTOM_WAN;
-            PRODUCT = SocketSecureKey.Custom.PRODUCT_BLE_SOCKET;
-        } else if (isWiFiSocket()) {
+            PRODUCT = SocketSecureKey.Custom.PRODUCT_TRIGGER_BLE;
+            PROTOCOL_VERSION = ProtocolBuild.VERSION.VERSION_0;
+        } else if (isTriggerWiFi()) {
             CUSTOM = SocketSecureKey.Custom.CUSTOM_WAN;
-            PRODUCT = SocketSecureKey.Custom.PRODUCT_WIFI_SOCKET;
-        } else if (isSmartPlug()) {
-
-            PRODUCT = SocketSecureKey.Custom.PRODUCT_SMART_SOCKET;
-        } else if (isSuperPlug()) {
+            PRODUCT = SocketSecureKey.Custom.PRODUCT_TRIGGER_WIFI;
+            PROTOCOL_VERSION = ProtocolBuild.VERSION.VERSION_SEQ;
+        } else if (isGrowroomate()) {
+            CUSTOM = SocketSecureKey.Custom.CUSTOM_WAN;
+            PRODUCT = SocketSecureKey.Custom.PRODUCT_GROWROOMATE;
+            PROTOCOL_VERSION = ProtocolBuild.VERSION.VERSION_SEQ;
+        } else if (isMUSIK()) {
 
             CUSTOM = SocketSecureKey.Custom.CUSTOM_STARTAI;
-            PRODUCT = SocketSecureKey.Custom.PRODUCT_STARTAI_SUPER_SOCKET;
+            PRODUCT = SocketSecureKey.Custom.PRODUCT_MUSIK;
+            PROTOCOL_VERSION = ProtocolBuild.VERSION.VERSION_SEQ;
 
         } else {
-            PRODUCT = SocketSecureKey.Custom.PRODUCT_BLE_SOCKET;
-        }
-
-        if (isBleSocket()) {
-            PROTOCOL_VERSION = ProtocolBuild.VERSION.VERSION_0;
-        } else {
+            CUSTOM = SocketSecureKey.Custom.CUSTOM_STARTAI;
+            PRODUCT = SocketSecureKey.Custom.PRODUCT_MUSIK;
             PROTOCOL_VERSION = ProtocolBuild.VERSION.VERSION_SEQ;
         }
 

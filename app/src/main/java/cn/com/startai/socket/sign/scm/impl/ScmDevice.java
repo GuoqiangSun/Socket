@@ -154,6 +154,15 @@ class ScmDevice implements Heartbeat.OnHeartbeatCallBack {
         this.mTempHumi.setTempCodeAlarmData(tempCodeAlarmData);
     }
 
+    public final void setHumiHotAlarmData(float HumiHotAlarmData) {
+        this.mTempHumi.setHumiHotAlarmData(HumiHotAlarmData);
+    }
+
+    public final void setHumiCodeAlarmData(float HumiCodeAlarmData) {
+        this.mTempHumi.setHumiCodeAlarmData(HumiCodeAlarmData);
+    }
+
+
     private int requestRandom;
 
     public final void putRequestTokenRandom(int random) {

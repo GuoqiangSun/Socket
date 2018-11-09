@@ -40,7 +40,7 @@ public class ControlDevice {
 
     private boolean canWanCom = false;
 
-    private void setCanWanCom() {
+    public void setCanWanCom() {
         this.canWanCom = true;
     }
 

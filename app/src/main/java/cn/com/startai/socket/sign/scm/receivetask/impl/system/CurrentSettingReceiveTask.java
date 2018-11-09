@@ -1,9 +1,9 @@
 package cn.com.startai.socket.sign.scm.receivetask.impl.system;
 
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -26,7 +26,7 @@ public class CurrentSettingReceiveTask extends SocketResponseTask {
 
         byte[] protocolParams = mSocketDataArray.getProtocolParams();
 
-        if (protocolParams == null || protocolParams.length < 3) {
+        if (protocolParams == null || protocolParams.length < 1) {
             Tlog.e(TAG, " protocolParams == null");
             if (mTaskCallBack != null) {
                 mTaskCallBack.onSettingCurrentResult(mSocketDataArray.getID(), false, 0);
@@ -35,7 +35,11 @@ public class CurrentSettingReceiveTask extends SocketResponseTask {
         }
 
         boolean result = SocketSecureKey.Util.resultIsOk(protocolParams[0]);
-        float mAlarmCurrentValue = ((protocolParams[1] & 0xFF) << 8 | (protocolParams[2] & 0xFF)) / 100F;
+
+        float mAlarmCurrentValue = 0F;
+        if (protocolParams.length >= 3) {
+            mAlarmCurrentValue = ((protocolParams[1] & 0xFF) << 8 | (protocolParams[2] & 0xFF)) / 100F;
+        }
         Tlog.v(TAG, "CurrentSetting result : " + result + " mAlarmCurrentValue:" + mAlarmCurrentValue);
 
         if (mTaskCallBack != null) {

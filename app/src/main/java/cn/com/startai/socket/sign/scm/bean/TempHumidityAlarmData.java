@@ -1,6 +1,6 @@
 package cn.com.startai.socket.sign.scm.bean;
 
-import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 
 /**
  * author: Guoqiang_Sun

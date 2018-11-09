@@ -24,4 +24,6 @@ public interface IProductDetectionCallBack {
     void flashModel(boolean on);
 
     Context getApp();
+
+    void receiveProtocolAnalysisResult(byte[] protocolParams);
 }

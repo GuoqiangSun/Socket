@@ -9,57 +9,18 @@ import cn.com.startai.mqttsdk.mqtt.MqttInitParam;
  */
 public class DeveloperBuilder {
 
-
     /**
      * Ble插座-单片机的开发者信息
      */
-    public static final class BleSocketScmDeveloper extends DeveloperInfo {
+    public static final class BleSocketScmDeveloper extends MqttInitParam {
 
-        public static final String domain = "okaylight"; //开发者平台获取
-        public static final String m_ver = "Json_1.2.4_9.2.1";//文档约定
-        public static final String appid = "294dd313cd74dafae8e2199d4eb93616";//开发者平台获取
-        public static final String apptype = "smartOlBle/controlled/nonos";//开发者平台获取
-
-
-        @Override
-        public String setDomain(String s) {
-            throw new RuntimeException(" not impl ");
+        public BleSocketScmDeveloper() {
+            super.domain = "okaylight";
+            super.m_ver = "Json_1.2.4_9.2.1";
+            super.appid = "294dd313cd74dafae8e2199d4eb93616";
+            super.apptype = "smartOlBle/controlled/nonos";
         }
 
-        @Override
-        public String setVersion(String s) {
-            throw new RuntimeException(" not impl ");
-        }
-
-        @Override
-        public String setAppid(String s) {
-            throw new RuntimeException(" not impl ");
-        }
-
-        @Override
-        public String setApptype(String s) {
-            throw new RuntimeException(" not impl ");
-        }
-
-        @Override
-        public String getDomain() {
-            return domain;
-        }
-
-        @Override
-        public String getVersion() {
-            return m_ver;
-        }
-
-        @Override
-        public String getAppid() {
-            return appid;
-        }
-
-        @Override
-        public String getApptype() {
-            return apptype;
-        }
     }
 
 
@@ -68,55 +29,32 @@ public class DeveloperBuilder {
      * <p>
      * 万总的
      */
-    public static final class WiFiSocketDeveloper extends DeveloperInfo {
+    public static final class WiFiSocketDeveloper extends MqttInitParam {
 
-        public static final String domain = "okaylight"; //开发者平台获取
-        public static final String m_ver = "Json_1.2.4_9.2.1";//文档约定
-        public static final String appid = "f818c2704026de3c35c5aee06120ff98";//开发者平台获取
-        public static final String apptype = "smartOlWifi/controll/android";//开发者平台获取
-
-
-        @Override
-        public String setDomain(String s) {
-            throw new RuntimeException(" not impl ");
+        public WiFiSocketDeveloper() {
+            super.domain = "okaylight";
+            super.m_ver = "Json_1.2.4_9.2.1";
+            super.appid = "f818c2704026de3c35c5aee06120ff98";
+            super.apptype = "smartOlWifi/controll/android";
         }
 
-        @Override
-        public String setVersion(String s) {
-            throw new RuntimeException(" not impl ");
-        }
-
-        @Override
-        public String setAppid(String s) {
-            throw new RuntimeException(" not impl ");
-        }
-
-        @Override
-        public String setApptype(String s) {
-            throw new RuntimeException(" not impl ");
-        }
-
-        @Override
-        public String getDomain() {
-            return domain;
-        }
-
-        @Override
-        public String getVersion() {
-            return m_ver;
-        }
-
-        @Override
-        public String getAppid() {
-            return appid;
-        }
-
-        @Override
-        public String getApptype() {
-            return apptype;
-        }
     }
 
+    /**
+     * 英国插座android开发者信息
+     * <p>
+     * 万总的
+     */
+    public static final class SmartSocketDeveloper extends MqttInitParam {
+
+        public SmartSocketDeveloper() {
+            super.domain = "okaylight";
+            super.m_ver = "Json_1.2.4_9.2.1";
+            super.appid = "8040ab3093804dc1a8aeba3e24d3b97c";
+            super.apptype = "smartOlWifi/controll/android";
+        }
+
+    }
 
 
     /**
@@ -124,58 +62,15 @@ public class DeveloperBuilder {
      * <p>
      * 万总的
      */
-    public static final class SuperSocketDeveloper extends DeveloperInfo {
+    public static final class SuperSocketDeveloper extends MqttInitParam {
 
-        public static final String domain = "startai"; //开发者平台获取
-        public static final String m_ver = "Json_1.2.4_9.2.1";//文档约定
-        public static final String appid = "6e3788eedb60442c88b647bfaa1d285b";//开发者平台获取
-        public static final String apptype = "smartOlWifi/controll/android";//开发者平台获取
-
-
-        @Override
-        public String setDomain(String s) {
-            throw new RuntimeException(" not impl ");
+        public SuperSocketDeveloper() {
+            super.domain = "startai";
+            super.m_ver = "Json_1.2.4_9.2.1";
+            super.appid = "6e3788eedb60442c88b647bfaa1d285b";
+            super.apptype = "smartOlWifi/controll/android";
         }
 
-        @Override
-        public String setVersion(String s) {
-            throw new RuntimeException(" not impl ");
-        }
-
-        @Override
-        public String setAppid(String s) {
-            throw new RuntimeException(" not impl ");
-        }
-
-        @Override
-        public String setApptype(String s) {
-            throw new RuntimeException(" not impl ");
-        }
-
-        @Override
-        public String getDomain() {
-            return domain;
-        }
-
-        @Override
-        public String getVersion() {
-            return m_ver;
-        }
-
-        @Override
-        public String getAppid() {
-            return appid;
-        }
-
-        @Override
-        public String getApptype() {
-            return apptype;
-        }
-    }
-
-
-    public static MqttInitParam buildMqttInitParam(DeveloperInfo mDeveloperInfo) {
-        return new MqttInitParam(mDeveloperInfo.getDomain(), mDeveloperInfo.getApptype(), mDeveloperInfo.getAppid(), mDeveloperInfo.getVersion());
     }
 
 

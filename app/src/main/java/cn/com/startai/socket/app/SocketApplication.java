@@ -2,6 +2,9 @@ package cn.com.startai.socket.app;
 
 import android.content.res.Configuration;
 import android.os.Build;
+import android.support.multidex.MultiDexApplication;
+
+import com.facebook.stetho.Stetho;
 
 import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.debuger.Debuger;
@@ -18,13 +21,14 @@ import cn.com.swain169.log.Tlog;
  * desc :
  */
 
-public class SocketApplication extends BaseApplication {
+public class SocketApplication extends MultiDexApplication implements Thread.UncaughtExceptionHandler {
 
     public static final String TAG = "socketApp";
 
     @Override
     public void onCreate() {
         super.onCreate();
+        Thread.setDefaultUncaughtExceptionHandler(this);
         Tlog.setGlobalTag(TAG);
 
         Language.changeLanguage(getApplicationContext());
@@ -35,12 +39,14 @@ public class SocketApplication extends BaseApplication {
         LooperManager.getInstance().init(this);
         DBManager.getInstance().init(this);
 
-        Tlog.i("SocketApplication onCreate(); pid:" + android.os.Process.myPid() + "; Build.VERSION.SDK_INT :" + Build.VERSION.SDK_INT);
+        Stetho.initializeWithDefaults(this); //chrome://inspect
+
+        Tlog.i("SocketApplication onCreate(); pid:"+ android.os.Process.myPid()
+                + "; Build.VERSION.SDK_INT :" + Build.VERSION.SDK_INT);
     }
 
     @Override
     public void uncaughtException(Thread t, Throwable e) {
-        super.uncaughtException(t, e);
         Tlog.e(TAG, " SocketApplication caughtException ", e);
         FileManager.getInstance().saveAppException(t, e);
         android.os.Process.killProcess(android.os.Process.myPid());

@@ -163,7 +163,7 @@ public class LanDeviceInfo implements Cloneable {
             obj.put("mac", mac);
             obj.put("encrypted", bindNeedPwd);
             obj.put("isBinding", isWanBind);
-
+            obj.put("version", getVersion());
             JSONObject mWiFiInfo = new JSONObject();
             mWiFiInfo.put("ssid", ssid);
             mWiFiInfo.put("strength", rssi);
@@ -175,6 +175,10 @@ public class LanDeviceInfo implements Cloneable {
         }
 
         return obj;
+    }
+
+    public int getVersion() {
+        return ((mainVersion << 8) & 0xFF) | (subVersion & 0xFF);
     }
 
 
@@ -326,7 +330,7 @@ public class LanDeviceInfo implements Cloneable {
             setName(tMac);
         }
     }
-    
+
     public boolean getState() {
         return this.state;
     }

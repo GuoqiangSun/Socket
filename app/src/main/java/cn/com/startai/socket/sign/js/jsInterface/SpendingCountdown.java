@@ -27,18 +27,25 @@ public class SpendingCountdown extends AbsHandlerJsInterface {
     }
 
     public static final class Method {
-        private static final String SPENDING_COUNTDOWN_DATA = "javascript:spendingCountdownDataResponse('$mac',$result,'$data')";
+        private static final String SPENDING_COUNTDOWN_DATA
+                = "javascript:spendingCountdownDataResponse('$mac',$result,'$data')";
 
         public static String callJsSpendingCountdownData(String mac, boolean result, String data) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return SPENDING_COUNTDOWN_DATA.replace("$mac", mac).replace("$result", String.valueOf(result)).replace("$data", data);
+            return SPENDING_COUNTDOWN_DATA.replace("$mac", mac)
+                    .replace("$result", String.valueOf(result))
+                    .replace("$data", data);
         }
 
-        private static final String SPENDING_COUNTDOWN_ALARM = "javascript:spendingCountdownAlarmResponse('$mac',$model,$state,$result)";
+        private static final String SPENDING_COUNTDOWN_ALARM
+                = "javascript:spendingCountdownAlarmResponse('$mac',$model,$state,$result)";
 
         public static String callJsSpendingCountdownAlarm(String mac, int model, boolean state, boolean result) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return SPENDING_COUNTDOWN_ALARM.replace("$mac", mac).replace("$model", String.valueOf(model)).replace("$state", String.valueOf(state)).replace("$result", String.valueOf(result));
+            return SPENDING_COUNTDOWN_ALARM.replace("$mac", mac)
+                    .replace("$model", String.valueOf(model))
+                    .replace("$state", String.valueOf(state))
+                    .replace("$result", String.valueOf(result));
         }
 
     }
@@ -63,8 +70,13 @@ public class SpendingCountdown extends AbsHandlerJsInterface {
     }
 
     @JavascriptInterface
-    public void spendingCountdownAlarmRequest(String mac, int model, int alarmValue, boolean alarmSwitch, int year, int month, int day) {
-        Tlog.v(TAG, " spendingCountdownAlarmRequest ");
+    public void spendingCountdownAlarmRequest(String mac, int model,
+                                              int alarmValue, boolean alarmSwitch,
+                                              int year, int month, int day) {
+        Tlog.v(TAG, " spendingCountdownAlarmRequest model:" + model
+                + " alarmValue:" + alarmValue + " alarmSwitch:" + alarmSwitch
+                + " year:" + year + " month:" + month + " day:" + day);
+
         SpendingElectricityData mSpendingCountdownData = new SpendingElectricityData();
         mSpendingCountdownData.mac = mac;
         mSpendingCountdownData.model = model;

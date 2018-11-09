@@ -1,5 +1,7 @@
 package cn.com.startai.socket.sign.scm;
 
+import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
+import cn.com.startai.socket.mutual.js.bean.TimingSetResult;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
 import cn.com.startai.socket.sign.scm.bean.CostRate;
 import cn.com.startai.socket.sign.scm.bean.CountdownData;
@@ -198,6 +200,11 @@ public interface IVirtualSocketScm {
 
     void setLightRGB(String mac, int i, int r, int g, int b);
 
+    void setLightRGB(ColorLampRGB obj);
+
+    void queryUSBState(String mac);
+
+    void setUSBState(String mac, boolean state);
 
 
     /**
@@ -224,7 +231,7 @@ public interface IVirtualSocketScm {
 
         void onResultQueryTiming(String mac, TimingListData mTimingListData);
 
-        void onResultSetTiming(String mac, boolean result);
+        void onResultSetTiming(String mac, TimingSetResult mResult);
 
         void onResultScmTime(String mac, boolean result, long time);
 
@@ -287,6 +294,8 @@ public interface IVirtualSocketScm {
         void onResultHeartbeatReceive(String mac, boolean result);
 
         void onResultUpdateVersion(boolean result, UpdateVersion mVersion);
+
+        void onResultUSBState(String id, boolean on);
     }
 
 

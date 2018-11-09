@@ -9,6 +9,7 @@ import java.util.ArrayList;
 
 import cn.com.startai.socket.app.view.CrossWebView;
 import cn.com.startai.socket.global.LooperManager;
+import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.mutual.js.bean.MobileLogin;
 import cn.com.startai.socket.mutual.js.bean.StatusBarBean;
 import cn.com.startai.socket.mutual.js.bean.UserRegister;
@@ -17,6 +18,7 @@ import cn.com.startai.socket.mutual.js.bean.WiFiConfig;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
 import cn.com.startai.socket.sign.js.AbsJsManager;
 import cn.com.startai.socket.sign.js.jsInterface.Add;
+import cn.com.startai.socket.sign.js.jsInterface.ColourLamp;
 import cn.com.startai.socket.sign.js.jsInterface.Countdown;
 import cn.com.startai.socket.sign.js.jsInterface.Device;
 import cn.com.startai.socket.sign.js.jsInterface.DeviceList;
@@ -25,6 +27,7 @@ import cn.com.startai.socket.sign.js.jsInterface.Language;
 import cn.com.startai.socket.sign.js.jsInterface.Login;
 import cn.com.startai.socket.sign.js.jsInterface.Main;
 import cn.com.startai.socket.sign.js.jsInterface.Network;
+import cn.com.startai.socket.sign.js.jsInterface.NightLight;
 import cn.com.startai.socket.sign.js.jsInterface.ReName;
 import cn.com.startai.socket.sign.js.jsInterface.Router;
 import cn.com.startai.socket.sign.js.jsInterface.Setting;
@@ -34,6 +37,7 @@ import cn.com.startai.socket.sign.js.jsInterface.StatusBar;
 import cn.com.startai.socket.sign.js.jsInterface.Store;
 import cn.com.startai.socket.sign.js.jsInterface.TemperatureAndHumidity;
 import cn.com.startai.socket.sign.js.jsInterface.Timing;
+import cn.com.startai.socket.sign.js.jsInterface.USBSwitch;
 import cn.com.startai.socket.sign.js.jsInterface.User;
 import cn.com.startai.socket.sign.js.jsInterface.Version;
 import cn.com.startai.socket.sign.js.util.H5Config;
@@ -104,6 +108,9 @@ public class JsManager extends AbsJsManager implements IService {
         mJSInterfaces.add(17, new State(workLooper, this));
         mJSInterfaces.add(18, new StatusBar(workLooper, this));
         mJSInterfaces.add(19, new Version(workLooper, this));
+        mJSInterfaces.add(20, new ColourLamp(workLooper, this));
+        mJSInterfaces.add(21, new NightLight(workLooper, this));
+        mJSInterfaces.add(22, new USBSwitch(workLooper, this));
 
     }
 
@@ -122,10 +129,10 @@ public class JsManager extends AbsJsManager implements IService {
     public void regJsInterface(CrossWebView mWebView) {
 //        mWebView.addJavascriptInterface(mData, Data.NAME_JSI);
 
-        if (mJSInterfaces != null) {
+        if (mJSInterfaces != null && mWebView != null) {
             for (int i = 0; i < mJSInterfaces.size(); i++) {
                 AbsJsInterface mJsInterface = mJSInterfaces.get(i);
-                if (mJsInterface != null && mJsInterface.getName() != null && mWebView != null) {
+                if (mJsInterface != null && mJsInterface.getName() != null) {
                     mWebView.addJavascriptInterface(mJsInterface.getJsInterface(), mJsInterface.getName());
                 }
             }
@@ -623,6 +630,13 @@ public class JsManager extends AbsJsManager implements IService {
     }
 
     @Override
+    public void onJSWxLogin() {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSWxLogin();
+        }
+    }
+
+    @Override
     public void onJSRename(RenameBean mDisplayDevice) {
         if (mJSManagerCallBack != null) {
             mJSManagerCallBack.onJSRename(mDisplayDevice);
@@ -763,6 +777,27 @@ public class JsManager extends AbsJsManager implements IService {
     public void onJSUpdateScm(String mac) {
         if (mJSManagerCallBack != null) {
             mJSManagerCallBack.onJSUpdateScm(mac);
+        }
+    }
+
+    @Override
+    public void onJSSetColourLampRGB(ColorLampRGB obj) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSSetColourLampRGB(obj);
+        }
+    }
+
+    @Override
+    public void onJSQueryUSBState(String mac) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSQueryUSBState(mac);
+        }
+    }
+
+    @Override
+    public void onJSSetUSBState(String mac, boolean state) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSSetUSBState(mac, state);
         }
     }
 

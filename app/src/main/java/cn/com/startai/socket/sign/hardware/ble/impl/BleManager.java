@@ -18,6 +18,7 @@ import java.util.List;
 import cn.com.startai.socket.db.gen.DisplayBleDeviceDao;
 import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.debuger.Debuger;
+import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.LooperManager;
 import cn.com.startai.socket.mutual.js.bean.DisplayBleDevice;
 import cn.com.startai.socket.sign.hardware.AbsBle;
@@ -182,6 +183,11 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
         mShowUuid.add(0, "00001812-0000-1000-8000-00805f9b34fb");
         mShowUuid.add(1, "0000fee7-0000-1000-8000-00805f9b34fb");
 //        mShowUuid.add(2, "0000180c-0000-1000-8000-00805f9b34fb");
+
+        if (CustomManager.getInstance().isTestProject()) {
+            mShowUuid.add(2, "0000180d-0000-1000-8000-00805f9b34fb");
+        }
+
 
     }
 

@@ -69,4 +69,6 @@ public interface IDebugerProtocolStream {
     void receiveControlFlashState(Object obj, String id, boolean on);
 
     void receiveQueryFlashState(Object obj, String id, boolean on);
+
+    void receiveProtocolAnalysisResult(byte[] protocolParams);
 }

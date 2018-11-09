@@ -36,7 +36,7 @@ public class Store extends AbsHandlerJsInterface {
 
     @JavascriptInterface
     public void goToMallRequest(String path) {
-        Tlog.v(TAG, " goToMallRequest ");
+        Tlog.v(TAG, " goToMallRequest " + path);
 
         getHandler().obtainMessage(MSG_GO_MALL, path).sendToTarget();
 

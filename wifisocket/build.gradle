@@ -11,8 +11,8 @@ android {
         applicationId "cn.com.startai.wifisocket"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 16216
-        versionName "1.6.216"
+        versionCode 16222
+        versionName "1.6.222"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
@@ -25,7 +25,7 @@ android {
     }
     android.applicationVariants.all { variant ->
         variant.outputs.all {
-            outputFileName = "wifisocket-${variant.versionName}-${variant.buildType.name}.apk"
+            outputFileName = "TriggerWiFi-${variant.versionName}-${variant.buildType.name}.apk"
         }
     }
 }

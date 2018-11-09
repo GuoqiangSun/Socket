@@ -2,6 +2,8 @@ package cn.com.startai.socket.app.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +16,7 @@ import android.widget.Toast;
 
 import cn.com.startai.socket.R;
 import cn.com.startai.socket.debuger.Debuger;
+import cn.com.startai.socket.global.LooperManager;
 import cn.com.startai.socket.mutual.Controller;
 import cn.com.startai.socket.sign.scm.impl.SocketScmManager;
 import cn.com.swain169.log.Tlog;
@@ -117,6 +120,64 @@ public class TmpFunctionFragment extends BaseFragment {
             }
         });
 
+        Handler mWorkHandler = new Handler(LooperManager.getInstance().getWorkLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+
+                Toast.makeText(getContext(),
+                        " workThread Running",
+                        Toast.LENGTH_SHORT).show();
+
+            }
+        };
+
+        Button mCheckWorkThreadBtn = view.findViewById(R.id.check_work_thread_btn);
+        mCheckWorkThreadBtn.setOnClickListener(v -> mWorkHandler.sendEmptyMessage(0));
+
+        Handler mProtocolHandler = new Handler(LooperManager.getInstance().getWorkLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+
+                Toast.makeText(getContext(),
+                        " protocolThread Running",
+                        Toast.LENGTH_SHORT).show();
+            }
+        };
+
+
+        Button mCheckProtocolThreadBtn = view.findViewById(R.id.check_protocol_thread_btn);
+        mCheckProtocolThreadBtn.setOnClickListener(v -> mProtocolHandler.sendEmptyMessage(0));
+
+
+        Handler mRepeatHandler = new Handler(LooperManager.getInstance().getWorkLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+
+                Toast.makeText(getContext(),
+                        " repeatThread Running",
+                        Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        Button mCheckRepeatThreadBtn = view.findViewById(R.id.check_repeat_thread_btn);
+        mCheckRepeatThreadBtn.setOnClickListener(v -> mRepeatHandler.sendEmptyMessage(0));
+
+        EditText mInputEdt = view.findViewById(R.id.protocol_engine_input_edt);
+
+        Button mCheckProtocolEngineBtn = view.findViewById(R.id.check_protocolEngine_btn);
+        mCheckProtocolEngineBtn.setOnClickListener(v -> {
+            SocketScmManager scmManager = Controller.getInstance().getScmManager();
+            if (scmManager != null) {
+                String s = mInputEdt.getText().toString();
+                scmManager.testProtocolAnalysis(Debuger.getInstance().getProductDevice(), s);
+            } else {
+                Toast.makeText(getContext(), " scmManager=null ", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         return view;
     }
 
@@ -170,10 +231,18 @@ public class TmpFunctionFragment extends BaseFragment {
         Tlog.v(TAG, " TmpFunctionFragment onDestroy() ");
     }
 
-
     public void flashModel(boolean on) {
         if (mStateTxt != null) {
-            mStateTxt.setText(on ? "no" : "off");
+            mStateTxt.setText(on ? "on" : "off");
         }
     }
+
+    public void receiveProtocolAnalysisResult(byte[] protocolParams) {
+        String s = null;
+        if (protocolParams != null) {
+            s = new String(protocolParams);
+        }
+        Toast.makeText(getContext(), "Test success " + s, Toast.LENGTH_SHORT).show();
+    }
+
 }

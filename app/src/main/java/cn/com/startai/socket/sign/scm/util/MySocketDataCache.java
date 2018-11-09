@@ -2,8 +2,6 @@ package cn.com.startai.socket.sign.scm.util;
 
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.pack.ResponseData;
-import cn.com.swain.support.protocolEngine.utils.ProtocolDataCache;
-import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
 
 /**
  * author: Guoqiang_Sun
@@ -147,6 +145,17 @@ public class MySocketDataCache extends ProtocolDataCache {
         return newResponseData(mac, mSecureDataPack, true);
     }
 
+    public static ResponseData getSwitchUSB(String mac, boolean status) {
+        SocketDataArray mSecureDataPack = getMInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_RELAY_SWITCH);
+        final byte[] params = new byte[2];
+        params[0] = MySocketSecureKey.MModel.MODEL_USB;
+        params[1] = SocketSecureKey.Util.on(status);
+        mSecureDataPack.setParams(params);
+        return newResponseData(mac, mSecureDataPack, true);
+    }
+
     public static ResponseData getQueryFlashState(String mac) {
         SocketDataArray mSecureDataPack = getMInstance().produceSocketDataArray(mac);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
@@ -154,5 +163,30 @@ public class MySocketDataCache extends ProtocolDataCache {
         mSecureDataPack.setParams(new byte[]{MySocketSecureKey.MModel.MODEL_FLASHLIGHT});
         return newResponseDataRecord(mac, mSecureDataPack);
     }
+
+
+    public static ResponseData getQueryUSBState(String mac) {
+        SocketDataArray mSecureDataPack = getMInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_RELAY_STATUS);
+        mSecureDataPack.setParams(new byte[]{MySocketSecureKey.MModel.MODEL_USB});
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getResponseTestData(String mac, String content) {
+        SocketDataArray mSecureDataPack = getMInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_ERROR);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_TEST);
+        byte[] params;
+        if (content != null) {
+            params = content.getBytes();
+        } else {
+            params = new byte[1];
+            params[0] = 1;
+        }
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
 
 }

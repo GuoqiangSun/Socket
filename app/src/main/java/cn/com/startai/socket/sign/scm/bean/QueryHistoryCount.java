@@ -15,6 +15,7 @@ public class QueryHistoryCount {
 
     public String mac;
     public String startTime;
+    public long startTimeMillis;
     public String endTime;
     public int interval;
 
@@ -25,8 +26,8 @@ public class QueryHistoryCount {
     public String toJsonArrayData() {
         JSONArray mArray = new JSONArray();
 
-        if(mDataArray!=null){
-            for (Data mData : mDataArray){
+        if (mDataArray != null) {
+            for (Data mData : mDataArray) {
                 mArray.put(mData.toJsonObjData());
             }
         }
@@ -34,16 +35,25 @@ public class QueryHistoryCount {
         return mArray.toString();
     }
 
+    public ArrayList<Day> mDayArray;
+
+    public static class Day {
+
+        public byte[] countData;
+        public long startTime;
+    }
+
     public static class Data {
         public float e;
         public float s;
 
-        public String toJsonObjData(){
+
+        public String toJsonObjData() {
             JSONObject mObj = new JSONObject();
 
             try {
-                mObj.put("e",e);
-                mObj.put("s",s);
+                mObj.put("e", e);
+                mObj.put("s", s);
             } catch (JSONException e1) {
                 e1.printStackTrace();
             }

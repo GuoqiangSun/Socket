@@ -81,12 +81,12 @@ public class DeviceEnablePost extends AsyncTask<Void, Void, String> {
             JSONArray rootArray = new JSONArray();
 
             JSONObject devObj = new JSONObject();
-            devObj.put("m_ver", mBleDeveloper.getVersion());
+            devObj.put("m_ver", mBleDeveloper.m_ver);
             devObj.put("clientid", sn);
             devObj.put("sn", sn);
-            devObj.put("appid", mBleDeveloper.getAppid());
-            devObj.put("apptype", mBleDeveloper.getApptype());
-            devObj.put("domain", mBleDeveloper.getDomain());
+            devObj.put("appid", mBleDeveloper.appid);
+            devObj.put("apptype", mBleDeveloper.apptype);
+            devObj.put("domain", mBleDeveloper.domain);
 
             JSONObject hardwareObj = new JSONObject();
             hardwareObj.put("sysVersion", "");

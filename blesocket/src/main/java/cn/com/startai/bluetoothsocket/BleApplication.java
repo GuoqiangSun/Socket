@@ -12,7 +12,7 @@ public class BleApplication extends SocketApplication {
 
     @Override
     public void onCreate() {
-        CustomManager.getInstance().initBleSocketProject();
+        CustomManager.getInstance().initTriggerBleProject();
         super.onCreate();
     }
 }

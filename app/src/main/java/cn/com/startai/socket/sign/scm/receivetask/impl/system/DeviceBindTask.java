@@ -6,7 +6,7 @@ import cn.com.swain.baselib.util.Bit;
 import cn.com.swain.baselib.util.MacUtil;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -64,7 +64,10 @@ public class DeviceBindTask extends SocketResponseTask {
 
         int isBindResult = protocolParams[2 + 32 + 32 + 6 + 4];
 
-        Tlog.v(TAG, " deviceID:" + deviceUserID + " userID" + userID + " mac:" + mac + " cpuInfo:" + cpuInfo + " " + Integer.toBinaryString(isBindResult & 0xFF));
+        Tlog.v(TAG, " deviceID:" + deviceUserID
+                + " userID" + userID + " mac:" + mac
+                + " cpuInfo:" + cpuInfo
+                + " " + Integer.toBinaryString(isBindResult & 0xFF));
         if (mOnTaskCallBack != null) {
             if (Bit.isOne(isBindResult, 0)) {
                 mOnTaskCallBack.onLanBindResult(result, mLanBindingDevice);

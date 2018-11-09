@@ -36,6 +36,8 @@ public class Login extends AbsHandlerJsInterface {
         void onJSEmailRegister(UserRegister obj);
 
         void onJSEmailForgot(String email);
+
+        void onJSWxLogin();
     }
 
     public static final class Method {
@@ -44,6 +46,12 @@ public class Login extends AbsHandlerJsInterface {
 
         public static String callJsThirdLogin(boolean result, String data) {
             return THIRD_LOGIN.replace("$result", String.valueOf(result)).replace("$data", data);
+        }
+
+        private static final String WX_LOGIN = "javascript:mobileLoginResponse($result)";
+
+        public static String callJsWXLogin(boolean result) {
+            return WX_LOGIN.replace("$result", String.valueOf(result));
         }
 
         private static final String MOBILE_LOGIN = "javascript:mobileLoginResponse($result,'$code')";
@@ -172,6 +180,12 @@ public class Login extends AbsHandlerJsInterface {
         getHandler().obtainMessage(MSG_EMAIL_FORGOT, email).sendToTarget();
     }
 
+    @JavascriptInterface
+    public void wechatLoginRequest() {
+        Tlog.v(TAG, " wechatLoginRequest ");
+        getHandler().sendEmptyMessage(MSG_WX_LOGIN);
+    }
+
 
     private static final int MSG_THIRD_LOGIN = 0x2A;
     private static final int MSG_MOBILE_LOGIN = 0x2B;
@@ -186,51 +200,68 @@ public class Login extends AbsHandlerJsInterface {
     private static final int MSG_EMAIL_REGISTER = 0x30;
     private static final int MSG_EMAIL_FORGOT = 0x31;
 
+    private static final int MSG_WX_LOGIN = 0x32;
+
 
     @Override
     protected void handleMessage(Message msg) {
 
-        if (msg.what == MSG_THIRD_LOGIN) {
-            if (mCallBack != null) {
-                mCallBack.onJSThirdLogin((String) msg.obj);
-            }
-        } else if (msg.what == MSG_MOBILE_LOGIN) {
-            if (mCallBack != null) {
-                mCallBack.onJSMobileLogin((MobileLogin) (msg.obj));
-            }
+        switch (msg.what) {
+            case MSG_THIRD_LOGIN:
+                if (mCallBack != null) {
+                    mCallBack.onJSThirdLogin((String) msg.obj);
+                }
+                break;
+            case MSG_MOBILE_LOGIN:
+                if (mCallBack != null) {
+                    mCallBack.onJSMobileLogin((MobileLogin) (msg.obj));
+                }
 
-        } else if (msg.what == MSG_GET_MOBILE_LOGIN_CODE) {
-            if (mCallBack != null) {
-                mCallBack.onJSGetMobileLoginCode((String) msg.obj);
-            }
-        } else if (msg.what == MSG_IS_LOGIN) {
+                break;
+            case MSG_GET_MOBILE_LOGIN_CODE:
+                if (mCallBack != null) {
+                    mCallBack.onJSGetMobileLoginCode((String) msg.obj);
+                }
+                break;
+            case MSG_IS_LOGIN:
 
-            if (mCallBack != null) {
-                mCallBack.onJSIsLogin();
-            }
+                if (mCallBack != null) {
+                    mCallBack.onJSIsLogin();
+                }
 
-        } else if (msg.what == MSG_LOGIN_OUT) {
-            if (mCallBack != null) {
-                mCallBack.onJSLoginOut();
-            }
-        } else if (msg.what == MSG_EMAIL_LOGIN) {
-            if (mCallBack != null) {
-                mCallBack.onJSEmailLogin((MobileLogin) (msg.obj));
-            }
-        } else if (msg.what == MSG_EMAIL_REGISTER) {
+                break;
+            case MSG_LOGIN_OUT:
+                if (mCallBack != null) {
+                    mCallBack.onJSLoginOut();
+                }
+                break;
+            case MSG_EMAIL_LOGIN:
+                if (mCallBack != null) {
+                    mCallBack.onJSEmailLogin((MobileLogin) (msg.obj));
+                }
+                break;
+            case MSG_EMAIL_REGISTER:
 
-            if (mCallBack != null) {
-                mCallBack.onJSEmailRegister((UserRegister) (msg.obj));
-            }
+                if (mCallBack != null) {
+                    mCallBack.onJSEmailRegister((UserRegister) (msg.obj));
+                }
 
-        } else if (msg.what == MSG_EMAIL_FORGOT) {
+                break;
+            case MSG_EMAIL_FORGOT:
 
-            if (mCallBack != null) {
-                mCallBack.onJSEmailForgot((String) (msg.obj));
-            }
+                if (mCallBack != null) {
+                    mCallBack.onJSEmailForgot((String) (msg.obj));
+                }
 
-        } else {
-            Tlog.e(TAG, NAME_JSI + " handleMessage unknown what:" + msg.what);
+                break;
+            case MSG_WX_LOGIN:
+                if (mCallBack != null) {
+                    mCallBack.onJSWxLogin();
+                }
+                break;
+            default:
+                Tlog.e(TAG, NAME_JSI + " handleMessage unknown what:" + msg.what);
+                break;
         }
 
     }

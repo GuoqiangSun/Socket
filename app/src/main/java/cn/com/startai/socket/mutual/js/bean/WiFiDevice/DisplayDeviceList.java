@@ -36,7 +36,7 @@ public class DisplayDeviceList {
      * key deviceID
      * obj LanDeviceInfo
      */
-    private final Map<String, LanDeviceInfo> mIDArray = Collections.synchronizedMap(new HashMap<String, LanDeviceInfo>());
+    private final Map<String, LanDeviceInfo> mIDArray = Collections.synchronizedMap(new HashMap<>());
 
     /**
      * key deviceMac
@@ -97,7 +97,7 @@ public class DisplayDeviceList {
 
         for (Map.Entry<String, LanDeviceInfo> tmpEntries : mIDArrayCopy.entrySet()) {
             remove(tmpEntries.getValue());
-            if (Debuger.isDebug) {
+            if (Debuger.isLogDebug) {
                 Tlog.e(TAG, " mIDArray.remove:" + tmpEntries.getValue().toString());
             }
         }

@@ -4,9 +4,9 @@ import cn.com.startai.socket.debuger.impl.IDebugerProtocolStream;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingListData;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -48,7 +48,7 @@ public class TimingListQueryReceiveTask extends SocketResponseTask {
         if (!result) {
             if (mCallBack != null) {
 
-                mCallBack.onQueryTimingResult(mSocketDataArray.getID(), result, mData);
+                mCallBack.onQueryTimingResult(mSocketDataArray.getID(), false, mData);
 
                 IDebugerProtocolStream iDebugerStream = mCallBack.getIDebugerStream();
                 if (iDebugerStream != null) {
@@ -79,7 +79,16 @@ public class TimingListQueryReceiveTask extends SocketResponseTask {
                 }
             }
         } else if (mData.isAdvanceModel()) {
-            final int onePkgLength = 11;
+            int onePkgLength;
+
+            if (listByteLength % 11 == 0) {
+                onePkgLength = 11;
+            } else if (listByteLength % 12 == 0) {
+                onePkgLength = 12;
+            } else {
+                onePkgLength = 11;
+            }
+
             if ((listByteLength >= onePkgLength) && (listByteLength % onePkgLength == 0)) {
                 int number = listByteLength / onePkgLength;
                 byte[] buf = new byte[onePkgLength];
@@ -91,14 +100,19 @@ public class TimingListQueryReceiveTask extends SocketResponseTask {
                     mAdvanceData.id = buf[0];
                     mAdvanceData.startHour = buf[1] & 0xFF;
                     mAdvanceData.startMinute = buf[2] & 0xFF;
+                    mAdvanceData.setOnTime(mAdvanceData.startHour + ":" + mAdvanceData.startMinute);
                     mAdvanceData.endHour = buf[3] & 0xFF;
                     mAdvanceData.endMinute = buf[4] & 0xFF;
+                    mAdvanceData.setOffTime(mAdvanceData.endHour + ":" + mAdvanceData.endMinute);
                     mAdvanceData.on = SocketSecureKey.Util.on(buf[5]);
                     mAdvanceData.onIntervalHour = buf[6] & 0xFF;
                     mAdvanceData.onIntervalMinute = buf[7] & 0xFF;
                     mAdvanceData.offIntervalHour = buf[8] & 0xFF;
                     mAdvanceData.offIntervalMinute = buf[9] & 0xFF;
                     mAdvanceData.startup = SocketSecureKey.Util.startup(buf[10]);
+                    if (buf.length > 11) {
+                        mAdvanceData.week = buf[11];
+                    }
                     Tlog.v(TAG, " advance Array copy : " + mAdvanceData.toString());
                     mData.putAdvanceData(mAdvanceData);
 

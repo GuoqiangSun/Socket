@@ -12,8 +12,8 @@ android {
         applicationId "cn.com.startai.superplug"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 16001
-        versionName "1.6.001"
+        versionCode 16008
+        versionName "1.6.008"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
@@ -28,7 +28,7 @@ android {
 
     android.applicationVariants.all { variant ->
         variant.outputs.all {
-            outputFileName = "startAI-smartPlug-${variant.versionName}-${variant.buildType.name}.apk"
+            outputFileName = "MUSIK-${variant.versionName}-${variant.buildType.name}.apk"
         }
     }
 

@@ -61,17 +61,17 @@ public class Controller implements IService {
 
         AbsHardware mHardware = null;
 
-        if (CustomManager.getInstance().isBleSocket()) {
+        if (CustomManager.getInstance().isTriggerBle()) {
             // 协议输出，jsToBle,
             mHardware = new BleManager(app);
 
-        } else if (CustomManager.getInstance().isWiFiSocket()) {
+        } else if (CustomManager.getInstance().isTriggerWiFi()) {
             mHardware = new NetworkManager(app);
 
-        } else if (CustomManager.getInstance().isSmartPlug()) {
+        } else if (CustomManager.getInstance().isGrowroomate()) {
             mHardware = new NetworkManager(app);
 
-        } else if (CustomManager.getInstance().isSuperPlug()) {
+        } else if (CustomManager.getInstance().isMUSIK()) {
             mHardware = new NetworkManager(app);
 
         }

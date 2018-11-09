@@ -26,12 +26,15 @@ public class Version extends AbsHandlerJsInterface {
 
     public static final class Method {
 
-        private static final String QUERY_VERSION = "javascript:checkFirmwareVersionResponse('$mac',$update,'$version')";
+        private static final String QUERY_VERSION = "javascript:checkFirmwareVersionResponse('$mac',$update,'$version','$curVersion')";
 
-        public static String callJsScmVersion(String mac, boolean update, int version) {
+        public static String callJsScmVersion(String mac, boolean update,
+                                              int newVersion, int curVersion) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return QUERY_VERSION.replace("$mac", mac).replace("$update", String.valueOf(update))
-                    .replace("$version", String.valueOf(version));
+            return QUERY_VERSION.replace("$mac", mac)
+                    .replace("$update", String.valueOf(update))
+                    .replace("$version", String.valueOf(newVersion))
+                    .replace("$curVersion", String.valueOf(curVersion));
         }
 
         private static final String UPDATE_VERSION= "javascript:firmwareUpgradeResponse('$mac','$name',$update)";

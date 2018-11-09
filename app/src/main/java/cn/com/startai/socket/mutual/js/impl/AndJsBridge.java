@@ -21,9 +21,11 @@ import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.global.FileManager;
 import cn.com.startai.socket.mutual.js.AbsAndJsBridge;
 import cn.com.startai.socket.mutual.js.IAndJSCallBack;
+import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.mutual.js.bean.DisplayBleDevice;
 import cn.com.startai.socket.mutual.js.bean.MobileLogin;
 import cn.com.startai.socket.mutual.js.bean.StatusBarBean;
+import cn.com.startai.socket.mutual.js.bean.TimingSetResult;
 import cn.com.startai.socket.mutual.js.bean.UpdateProgress;
 import cn.com.startai.socket.mutual.js.bean.UserRegister;
 import cn.com.startai.socket.mutual.js.bean.UserUpdateInfo;
@@ -47,6 +49,7 @@ import cn.com.startai.socket.sign.js.jsInterface.SpendingCountdown;
 import cn.com.startai.socket.sign.js.jsInterface.State;
 import cn.com.startai.socket.sign.js.jsInterface.TemperatureAndHumidity;
 import cn.com.startai.socket.sign.js.jsInterface.Timing;
+import cn.com.startai.socket.sign.js.jsInterface.USBSwitch;
 import cn.com.startai.socket.sign.js.jsInterface.User;
 import cn.com.startai.socket.sign.js.jsInterface.Version;
 import cn.com.startai.socket.sign.scm.bean.CostRate;
@@ -613,6 +616,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         onJSBindLanDevice(mLanBindInfo);
     }
 
+
     @Override
     public void onJSIsLogin() {
         Tlog.v(TAG, " onJSIsLogin() ");
@@ -942,6 +946,38 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
+    public void onJSWxLogin() {
+        if (mNetworkManager != null) {
+            mNetworkManager.wxLogin();
+        }
+    }
+
+    @Override
+    public void onJSSetColourLampRGB(ColorLampRGB obj) {
+//        if (mScmVirtual != null) {
+//            mScmVirtual.setLightRGB(obj.mac, obj.seq, obj.r, obj.g, obj.b);
+//        }
+
+        if (mScmVirtual != null) {
+            mScmVirtual.setLightRGB(obj);
+        }
+    }
+
+    @Override
+    public void onJSQueryUSBState(String mac) {
+        if (mScmVirtual != null) {
+            mScmVirtual.queryUSBState(mac);
+        }
+    }
+
+    @Override
+    public void onJSSetUSBState(String mac, boolean state) {
+        if (mScmVirtual != null) {
+            mScmVirtual.setUSBState(mac, state);
+        }
+    }
+
+    @Override
     public void onJSDisableGoBack(boolean status) {
         if (mCallBack != null) {
             mCallBack.ajDisableGoBack(status);
@@ -1248,9 +1284,14 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
-    public void onResultSetTiming(String mac, boolean result) {
-        Tlog.v(TAG, " onResultSetTiming() result:" + result);
-        String method = Timing.Method.callJsTimingCommonSet(mac, result);
+    public void onResultSetTiming(String mac, TimingSetResult mResult) {
+        Tlog.v(TAG, " onResultSetTiming() result:" + String.valueOf(mResult));
+
+        if (mResult == null) {
+            mResult = new TimingSetResult();
+        }
+        String method = Timing.Method.callJsTimingCommonSet(mac,
+                mResult.result, mResult.on, mResult.id, mResult.model);
         loadJs(method);
     }
 
@@ -1456,6 +1497,13 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         String method = Login.Method.callJsMobileLogin(result, errorCode);
         loadJs(method);
 
+    }
+
+    @Override
+    public void onResultWxLogin(boolean result, String errcode) {
+        Tlog.v(TAG, " onResultWxLogin() " + result);
+        String method = Login.Method.callJsWXLogin(result);
+        loadJs(method);
     }
 
     @Override
@@ -1674,7 +1722,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onResultUpdateVersion(boolean result, UpdateVersion mVersion) {
         if (mVersion.isQueryVersionAction()) {
             String method = Version.Method.callJsScmVersion(mVersion.mac,
-                    mVersion.newVersion > mVersion.curVersion, mVersion.newVersion);
+                    mVersion.newVersion > mVersion.curVersion, mVersion.newVersion, mVersion.curVersion);
             loadJs(method);
         } else if (mVersion.isUpdateVersionAction()) {
 
@@ -1691,6 +1739,12 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
             loadJs(method);
 
         }
+    }
+
+    @Override
+    public void onResultUSBState(String id, boolean on) {
+        String method = USBSwitch.Method.callJsUSBState(id, on);
+        loadJs(method);
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.github.yuweiguocn.library.greendao.MigrationHelper;
 
 import org.greenrobot.greendao.database.Database;
 
+import cn.com.startai.socket.db.gen.CountElectricityDao;
 import cn.com.startai.socket.db.gen.DaoMaster;
 import cn.com.startai.socket.db.gen.DisplayBleDeviceDao;
 import cn.com.startai.socket.db.gen.LanDeviceInfoDao;
@@ -51,7 +52,7 @@ public class UpdateOpenHelper extends DaoMaster.OpenHelper {
                         DaoMaster.dropAllTables(db, ifExists);
                     }
                 }, PowerCountdownDao.class, DisplayBleDeviceDao.class,
-                WanBindingDeviceDao.class,
+                WanBindingDeviceDao.class, CountElectricityDao.class,
                 UserInfoDao.class, LanDeviceInfoDao.class);
 
     }

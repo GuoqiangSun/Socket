@@ -12,6 +12,12 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Looper;
 
+import com.blankj.utilcode.constant.PermissionConstants;
+import com.blankj.utilcode.util.PermissionUtils;
+import com.tencent.mm.opensdk.modelbase.BaseResp;
+import com.tencent.mm.plugin.exdevice.jni.C2JavaExDevice;
+import com.tencent.mm.plugin.exdevice.jni.Java2CExDevice;
+
 import java.net.InetAddress;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -68,6 +74,7 @@ import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
 import cn.com.startai.socket.sign.scm.util.MySocketSecureKey;
 import cn.com.swain.baselib.util.IpUtil;
 import cn.com.swain.baselib.util.MacUtil;
+import cn.com.swain.baselib.util.WiFiUtil;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolInput;
 import cn.com.swain.support.protocolEngine.pack.ReceivesData;
 import cn.com.swain.support.protocolEngine.pack.ResponseData;
@@ -198,10 +205,21 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
         MqttInitParam mqttInitParam = null;
 
         if (CustomManager.getInstance().getCustom() == MySocketSecureKey.Custom.CUSTOM_WAN) {
-            mqttInitParam = DeveloperBuilder.buildMqttInitParam(new DeveloperBuilder.WiFiSocketDeveloper());
+
+            if (CustomManager.getInstance().getProduct() == MySocketSecureKey.Custom.PRODUCT_GROWROOMATE) {
+                mqttInitParam = new DeveloperBuilder.SmartSocketDeveloper();
+            } else if (CustomManager.getInstance().getProduct() == MySocketSecureKey.Custom.PRODUCT_GROWROOMATE) {
+                mqttInitParam = new DeveloperBuilder.WiFiSocketDeveloper();
+            }
+
         } else if (CustomManager.getInstance().getCustom() == MySocketSecureKey.Custom.CUSTOM_STARTAI) {
-            mqttInitParam = DeveloperBuilder.buildMqttInitParam(new DeveloperBuilder.SuperSocketDeveloper());
+            if (CustomManager.getInstance().getProduct() == MySocketSecureKey.Custom.PRODUCT_MUSIK) {
+                mqttInitParam = new DeveloperBuilder.SuperSocketDeveloper();
+            }
         }
+//        else {
+//            mqttInitParam = DeveloperBuilder.buildMqttInitParam(new DeveloperBuilder.SuperSocketDeveloper());
+//        }
 
         if (mqttInitParam == null) {
             throw new NullPointerException(" no custom ");
@@ -345,7 +363,7 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
     private ExecutorService service;
     private boolean hasConfigureWiFi = false;
 
-   /* private final C2JavaExDevice.OnAirKissListener airKissLsn = new C2JavaExDevice.OnAirKissListener() {
+    private final C2JavaExDevice.OnAirKissListener airKissLsn = new C2JavaExDevice.OnAirKissListener() {
 
         @Override
         public void onAirKissSuccess() {
@@ -371,7 +389,7 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
 
         }
 
-    };*/
+    };
 
 
     private final MyEsptouchListener mEspLsn = new MyEsptouchListener() {
@@ -387,18 +405,22 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
 
         @Override
         public void onEsptouchResultAdded(IEsptouchResult iEsptouchResult) {
-            Tlog.v(TAG, "配置成功 用时 " + ((System.currentTimeMillis() - startT) / 1000) + " s " + iEsptouchResult.getBssid() + "\n");
+            Tlog.v(TAG, "配置成功 用时 "
+                    + ((System.currentTimeMillis() - startT) / 1000) + " s "
+                    + iEsptouchResult.getBssid());
             if (mResultCallBack != null) {
                 mResultCallBack.onResultDeviceConfigureWiFi(true);
             }
         }
     };
 
-    private final AirkissHelper.AirkissHelperListener mAirKissHelperLsn = new AirkissHelper.AirkissHelperListener() {
+    private final AirkissHelper.AirkissHelperListener mAirKissHelperLsn
+            = new AirkissHelper.AirkissHelperListener() {
         @Override
         public void onAirkissSuccess(InetAddress inetAddress) {
             String ip = inetAddress != null ? inetAddress.getHostAddress() : "0.0.0.0";
-            Tlog.v(TAG, "配置成功 用时 " + ((System.currentTimeMillis() - startT) / 1000) + " s " + ip + "\n");
+            Tlog.v(TAG, "配置成功 用时 "
+                    + ((System.currentTimeMillis() - startT) / 1000) + " s " + ip);
             if (mResultCallBack != null) {
                 mResultCallBack.onResultDeviceConfigureWiFi(true);
             }
@@ -411,6 +433,24 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
 
     @Override
     public void configureWiFi(WiFiConfig mConfig) {
+
+        PermissionUtils permission = PermissionUtils.permission(PermissionConstants.LOCATION);
+        permission.callback(new PermissionUtils.SimpleCallback() {
+            @Override
+            public void onGranted() {
+                config(mConfig);
+            }
+
+            @Override
+            public void onDenied() {
+
+            }
+        });
+        permission.request();
+
+    }
+
+    private void config(WiFiConfig mConfig) {
 
         if (service == null) {
             synchronized (NetworkManager.this) {
@@ -441,34 +481,21 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
         startT = System.currentTimeMillis();
         service.execute(() -> {
 
-            final String conSSID = "\"" + ssid + "\"";
-            String bssid = "";
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP &&
+                    WiFiUtil.is5GHz(mWiFiManager)) {
 
-            WifiInfo connectionInfo = mWiFiManager.getConnectionInfo();
-
-            if (connectionInfo.getNetworkId() == -1) {
                 if (mResultCallBack != null) {
+                    mResultCallBack.onResultMsgSendError("0xAA0200");
                     mResultCallBack.onResultConfigureWiFi(false);
                 }
+
                 return;
             }
 
-            if (connectionInfo.getSSID().equalsIgnoreCase(conSSID)) {
-                bssid = connectionInfo.getBSSID();
-                Tlog.v(TAG, "connectionInfo bssid " + bssid);
-            } else {
-                List<WifiConfiguration> configuredNetworks = mWiFiManager.getConfiguredNetworks();
+            String bssid = WiFiUtil.getWiFiBSSID(ssid, mWiFiManager);
 
-                if (configuredNetworks != null) {
-                    for (WifiConfiguration mWiFiConfig : configuredNetworks) {
-                        if (mWiFiConfig.SSID.equalsIgnoreCase(conSSID)) {
-                            bssid = mWiFiConfig.BSSID;
-                            Tlog.v(TAG, "WifiConfiguration bssid " + bssid);
-                            break;
-                        }
-                    }
-                }
-            }
+//            Tlog.v(TAG, " security:" + WiFiUtil.getSecurity(ssid, mWiFiManager));
+
 
             if (!MacUtil.macMatches(bssid)) {
                 Tlog.e(TAG, " bssid unInvalid " + bssid);
@@ -479,22 +506,27 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
             }
 
             if (!hasConfigureWiFi) {
-                Tlog.v(TAG, "startAirKiss() " + ssid + " pwd:" + pwd);
+                Tlog.v(TAG, "startAirKiss() " + ssid + " pwd:" + pwd + " bssid:" + bssid);
 
                 if (mTask != null) {
                     mTask.cancelEsptouch();
                 }
 
                 hasConfigureWiFi = true;
-                final EsptouchAsyncTask mTmpTask = new EsptouchAsyncTask(app, bssid, ssid, pwd, 0, (int) AIR_KISS_TIME_OUT, mEspLsn);
+
+
+                final EsptouchAsyncTask mTmpTask = new EsptouchAsyncTask(
+                        app, bssid, ssid, pwd, 0, (int) AIR_KISS_TIME_OUT, mEspLsn);
                 mTmpTask.execute();
                 mTask = mTmpTask;
-
                 AirkissHelper.getInstance().start(AIR_KISS_TIME_OUT, mAirKissHelperLsn);
 
+
 //                C2JavaExDevice.getInstance().setAirKissListener(airKissLsn);
-//                Java2CExDevice.startAirKissWithInter(pwd, ssid, ARI_KISS_ASE_KEY.getBytes(), AIR_KISS_TIME_OUT, processPeroid, datePeroid);
-//                Java2CExDevice.startAirKiss(pwd, ssid, ARI_KISS_ASE_KEY.getBytes(), AIR_KISS_TIME_OUT);
+//                String key = ""; // aes
+//                Java2CExDevice.startAirKissWithInter(pwd, ssid, key.getBytes(), AIR_KISS_TIME_OUT,
+//                        0, 5);
+//                Java2CExDevice.startAirKiss(pwd, ssid, key.getBytes(), AIR_KISS_TIME_OUT);
 
             }
 
@@ -518,12 +550,12 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
                     if (mTask != null) {
                         mTask.cancelEsptouch();
                         mTask = null;
+                        AirkissHelper.getInstance().stop();
+                    } else {
+                        C2JavaExDevice.getInstance().setAirKissListener(null);
+                        Java2CExDevice.stopAirKiss();
                     }
 
-                    AirkissHelper.getInstance().stop();
-
-//                    C2JavaExDevice.getInstance().setAirKissListener(null);
-//                    Java2CExDevice.stopAirKiss();
 
                 }
                 Tlog.v(TAG, "stopConfigureWiFi() finish ");
@@ -614,6 +646,16 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
     }
 
 
+    @Override
+    public void wxLogin() {
+        mUserManager.wxLogin();
+    }
+
+
+    public void onWxLoginResult(BaseResp baseResp) {
+        mUserManager.onWxLoginResult(baseResp);
+    }
+
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         mUserManager.onActivityResult(requestCode, resultCode, data);
     }
@@ -626,8 +668,9 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
         if (displayDeviceByMac != null) {
             return displayDeviceByMac.getName();
         }
-        return "socket";
+        return "socket" + mac;
     }
+
 
     @Override
     public void queryBindDeviceList() {
@@ -680,12 +723,15 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
             controlDevice.lanDeviceDiscovery(token, loginUserID);
         }
 
+//        && mDevice.hasActivate && getLoginUserID() != null
         // 显示
-        if (mResultCallBack != null && lanDiscoveryDisplay && mDevice.hasActivate && getLoginUserID() != null) {
+        if (mResultCallBack != null && lanDiscoveryDisplay) {
 
-            WanBindingDeviceDao wanBindingDeviceDao = DBManager.getInstance().getDaoSession().getWanBindingDeviceDao();
-            List<WanBindingDevice> listWan = wanBindingDeviceDao.queryBuilder().where(WanBindingDeviceDao.Properties.Mac.eq(mDevice.mac),
-                    WanBindingDeviceDao.Properties.Mid.eq(getLoginUserID())).list();
+            WanBindingDeviceDao wanBindingDeviceDao = DBManager.getInstance().getDaoSession()
+                    .getWanBindingDeviceDao();
+            List<WanBindingDevice> listWan = wanBindingDeviceDao.queryBuilder()
+                    .where(WanBindingDeviceDao.Properties.Mac.eq(mDevice.mac),
+                            WanBindingDeviceDao.Properties.Mid.eq(getLoginUserID())).list();
 
             if (listWan.size() <= 0) {
                 Tlog.e(TAG, " update discovery device BindingState is false " + mDevice.getMac() + " " + mDevice.getName());
@@ -701,6 +747,7 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
             if (Debuger.isLogDebug) {
                 Tlog.i(TAG, " lanDeviceDiscovery() " + mDevice.toString());
             }
+
             DisplayDeviceList mList = new DisplayDeviceList(mDevice);
             mResultCallBack.onResultLanDeviceListDisplay(true, mList);
         }
@@ -709,7 +756,7 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
 
     @Override
     public void bindingDevice(LanBindInfo mLanBindInfo) {
-        Tlog.w(TAG, "bindingDevice() :" + mLanBindInfo.toString());
+        Tlog.w(TAG, "bindingDevice() :" + String.valueOf(mLanBindInfo));
     }
 
 
@@ -802,7 +849,9 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
 
             if (result) {
                 LanDeviceInfo discoveryDeviceByMac = mDeviceManager.getDiscoveryDeviceByMac(mac);
-                mControlDevice.responseConnected(discoveryDeviceByMac != null && IpUtil.ipMatches(discoveryDeviceByMac.ip));
+                mControlDevice.responseConnected(
+                        discoveryDeviceByMac != null
+                        && IpUtil.ipMatches(discoveryDeviceByMac.ip));
             } else {
                 mControlDevice.responseConnectedFail(getLoginUserID());
             }
@@ -983,8 +1032,8 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
 
         if (mDiscoveryDeviceByMac != null) {
 
-//            mResponseData.obj = mDiscoveryDeviceByMac.ip;
-//            mResponseData.arg = mDiscoveryDeviceByMac.port;
+            mResponseData.obj = mDiscoveryDeviceByMac.ip;
+            mResponseData.arg = mDiscoveryDeviceByMac.port;
 //            mUdpCom.write(mResponseData);
 
             UdpResponseMsg udpMsg = new UdpResponseMsg();
@@ -1046,12 +1095,28 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
         } else {
 
             if (Debuger.isLogDebug) {
-                Tlog.e(TAG, "onOutputDataToServerByWan() unknown userID; " + mResponseData.toString());
+                Tlog.e(TAG, "onOutputDataToServerByWan() unknown deviceID; " + mResponseData.toString());
             }
 
             if (mResponseData.toID != null && !mResponseData.toID.equalsIgnoreCase(H5Config.DEFAULT_MAC)) {
-                if (mResultCallBack != null) {
-                    mResultCallBack.onResultMsgSendError(String.valueOf(StartaiError.ERROR_SEND_NO_FID));
+
+//                Tlog.v(TAG, " displayDevie:" + String.valueOf(displayDeviceByMac));
+
+                if (displayDeviceByMac != null &&
+                        displayDeviceByMac.isLanBind &&
+                        !displayDeviceByMac.isWanBind) {
+
+                    if (mResultCallBack != null) {
+                        // 5109 没有广域网绑定
+                        mResultCallBack.onResultMsgSendError("5109");
+                    }
+
+                } else {
+
+//                    if (mResultCallBack != null) {
+//                        mResultCallBack.onResultMsgSendError(String.valueOf(StartaiError.ERROR_SEND_NO_FID));
+//                    }
+
                 }
             }
 
@@ -1059,16 +1124,6 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
 
     }
 
-    private InetAddress getBroadcastAddress() {
-        InetAddress address = IpUtil.getWiFiBroadcastAddress(app);
-        if (address == null || address.getHostAddress().equalsIgnoreCase(IpUtil.BROAD_IP_BOUND)) {
-            address = IpUtil.getLocalBroadcastAddress();
-            if (address == null) {
-                address = IpUtil.getBoundBroadcast();
-            }
-        }
-        return address;
-    }
 
     @Override
     public void onBroadcastDataToServer(ResponseData mResponseData) {
@@ -1078,28 +1133,26 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
             return;
         }
 
-        if (mUdpCom != null) {
-            if (mResponseData.data != null) {
+        InetAddress broadcastAddress = IpUtil.getBroadcastAddress(app);
 
-//                mResponseData.obj = getBroadcastAddress();
-//                mResponseData.arg = 9222;
+        mResponseData.obj = broadcastAddress;
+        mResponseData.arg = 9222;
 //                mUdpCom.broadcast(mResponseData);
 
-                InetAddress broadcastAddress = getBroadcastAddress();
-                if (broadcastAddress != null) {
-                    UdpResponseMsg udpMsg = new UdpResponseMsg();
-                    udpMsg.ip = broadcastAddress.getHostAddress();
-                    udpMsg.port = 9222;
-                    udpMsg.data = mResponseData.data;
-                    mUdpCom.broadcast(udpMsg);
-                }
-
-                if (Debuger.isLogDebug) {
-                    Tlog.w(TAG, "onBroadcastDataToServer() :" + mResponseData.toString());
-                }
-
-            }
+        if (mResponseData.data != null && mUdpCom != null && broadcastAddress != null) {
+            UdpResponseMsg udpMsg = new UdpResponseMsg();
+            udpMsg.ip = broadcastAddress.getHostAddress();
+//                    udpMsg.ip =  broadcastAddress.getHostName();
+            udpMsg.port = 9222;
+            udpMsg.data = mResponseData.data;
+            mUdpCom.broadcast(udpMsg);
         }
+
+        if (Debuger.isLogDebug) {
+            Tlog.w(TAG, "onBroadcastDataToServer() :"
+                    + String.valueOf(mResponseData));
+        }
+
     }
 
 
@@ -1178,6 +1231,8 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
             if (mResultCallBack != null) {
                 mResultCallBack.onResultServerConnectState(true, "");
             }
+
+            mDeviceManager.onMqttConnected(getLoginUserID());
 
         }
 
@@ -1278,6 +1333,14 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
         public void onBindResult(C_0x8002.Resp resp, String id, C_0x8002.Resp.ContentBean.BebindingBean bebinding) {
             super.onBindResult(resp, id, bebinding);
             mDeviceManager.onBindResult(resp, id, bebinding);
+
+            if (bebinding == null) {
+                return;
+            }
+            ControlDevice controlDevice = mControlDeviceUtil.get(bebinding.getMac());
+            if (controlDevice != null) {
+                controlDevice.setCanWanCom();
+            }
         }
 
 

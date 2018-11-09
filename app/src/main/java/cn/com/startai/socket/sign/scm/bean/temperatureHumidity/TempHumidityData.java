@@ -70,6 +70,34 @@ public class TempHumidityData {
     }
 
     public Temperature mTemperature = new Temperature();
+
+
+    private float humiHotAlarmData;
+
+    public void setHumiHotAlarmData(float humiHotAlarmData) {
+        this.humiHotAlarmData = humiHotAlarmData;
+    }
+
+    public void useSetHumiHotAlarmData() {
+        if (humiHotAlarmData != 0F) {
+            mHumidity.hotAlarmValue = humiHotAlarmData;
+        }
+    }
+
+
+    private float humiCodeAlarmData;
+
+    public void setHumiCodeAlarmData(float humiCodeAlarmData) {
+        this.humiCodeAlarmData = humiCodeAlarmData;
+    }
+
+    public void useSetHumiCodeAlarmData() {
+        if (humiCodeAlarmData != 0F) {
+            mHumidity.codeAlarmValue = humiCodeAlarmData;
+        }
+    }
+
+
     public Humidity mHumidity = new Humidity();
 
     public void clearAll() {
@@ -77,6 +105,8 @@ public class TempHumidityData {
         mHumidity.clearAll();
         tempHotAlarmData = 0F;
         tempCodeAlarmData = 0F;
+        humiHotAlarmData = 0F;
+        humiCodeAlarmData = 0F;
     }
 
 
@@ -100,8 +130,11 @@ public class TempHumidityData {
 
             JSONObject mHumidityJson = new JSONObject();
             mHumidityJson.put("currentValue", this.mHumidity.currentValue);
-            mHumidityJson.put("alarmValue", this.mHumidity.alarmValue);
-            mHumidityJson.put("alarmSwitch", this.mHumidity.alarmSwitch);
+            mHumidityJson.put("hotAlarmValue", this.mHumidity.hotAlarmValue);
+            mHumidityJson.put("hotAlarmSwitch", this.mHumidity.hotAlarmSwitch);
+
+            mHumidityJson.put("codeAlarmValue", this.mHumidity.codeAlarmValue);
+            mHumidityJson.put("codeAlarmSwitch", this.mHumidity.codeAlarmSwitch);
             mRootJsonObj.put("humidity", mHumidityJson);
 
             return mRootJsonObj.toString();

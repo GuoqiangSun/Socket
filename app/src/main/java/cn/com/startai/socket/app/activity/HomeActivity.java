@@ -3,8 +3,6 @@ package cn.com.startai.socket.app.activity;
 import android.Manifest;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -15,9 +13,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
-import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import java.io.File;
@@ -31,7 +26,6 @@ import cn.com.startai.socket.app.fragment.BaseFragment;
 import cn.com.startai.socket.app.fragment.GuideFragment;
 import cn.com.startai.socket.app.fragment.WebFragment;
 import cn.com.startai.socket.debuger.Debuger;
-import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.FileManager;
 import cn.com.startai.socket.global.LoginHelp;
 import cn.com.startai.socket.mutual.Controller;
@@ -45,6 +39,7 @@ import cn.com.startai.socket.sign.js.jsInterface.Router;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.swain.baselib.Queue.LimitQueue;
 import cn.com.swain.baselib.util.PermissionRequest;
+import cn.com.swain.baselib.util.StatusBarUtil;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -85,82 +80,6 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
 
     private int mCurFrame = ID_GUIDE;
 
-    private boolean hide = false;
-
-    private void hideStatsBar() {
-
-        Window window = getWindow();
-        View decorView = window.getDecorView();
-        int model;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-
-            model =
-                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-//                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // 隐藏导航图标
-            ;
-
-            if (hide) { // 有流海屏的手机会有问题
-                model |= View.SYSTEM_UI_FLAG_FULLSCREEN;
-                getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN //隐藏状态栏
-                );
-            } else { // 有流海屏的手机,用上面的方法有问题
-                model |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
-            }
-
-//            model |= decorView.getSystemUiVisibility();
-
-//            //在使用LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES的时候，状态栏会显示为白色，这和主内容区域颜色冲突,
-//            //所以我们要开启沉浸式布局模式，即真正的全屏模式,以实现状态和主体内容背景一致
-//            WindowManager.LayoutParams lp = getWindow().getAttributes();
-//            lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
-//            window.setAttributes(lp);
-
-        } else {
-
-            model = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN;
-//                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
-
-        }
-
-        decorView.setSystemUiVisibility(model);
-    }
-
-
-    private void showStatusBar() {
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Window window = getWindow();
-
-
-            window.clearFlags(
-//                    WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS |
-//                    WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION |
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN//显示状态栏
-            );
-
-            window.getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-//                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION // 隐藏导航图标
-            );
-
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            //api21新增接口
-            window.setStatusBarColor(Color.TRANSPARENT);
-//            window.setNavigationBarColor(Color.TRANSPARENT);
-        } else {
-            Window window = getWindow();
-            window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,
-                    WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-        }
-
-    }
-
     private volatile boolean showStatusBar = true;
 
     @Override
@@ -172,9 +91,12 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         Tlog.v(TAG, "HomeActivity  onWindowFocusChanged() ");
     }
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        StatusBarUtil.fullscreenShowBarFontWhite(getWindow());
 
         setContentView(R.layout.activity_home);
 
@@ -185,26 +107,17 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
             mPermissionRequest = new PermissionRequest(this);
         }
 
-        String[] per;
+        String[] per = new String[2];
+        per[0] = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+        per[1] = Manifest.permission.ACCESS_COARSE_LOCATION; // 开启蓝牙,wifi配网 需要此权限
 
-        if (CustomManager.getInstance().isBleSocket()) {
-            //开蓝牙需要位置权限
-            per = new String[2];
-            per[0] = Manifest.permission.WRITE_EXTERNAL_STORAGE;
-            per[1] = Manifest.permission.ACCESS_COARSE_LOCATION;
-        } else {
-            per = new String[1];
-            per[0] = Manifest.permission.WRITE_EXTERNAL_STORAGE;
-        }
-        mPermissionRequest.requestAllPermission(new PermissionRequest.OnPermissionResult() {
-            @Override
-            public void onPermissionRequestResult(String permission, boolean granted) {
-                Tlog.v(TAG, "HomeActivity onPermissionRequestFinish() ");
-                FileManager.getInstance().recreate(getApplication());
-                Debuger.getInstance().reCheckLogRecord(HomeActivity.this);
-            }
+        mPermissionRequest.requestAllPermission(() -> {
+            Tlog.v(TAG, "HomeActivity onPermissionRequestFinish() ");
+            FileManager.getInstance().recreate(getApplication());
+            Debuger.getInstance().reCheckLogRecord(HomeActivity.this);
+        }, (permission, granted) -> {
+            Tlog.v(TAG, "HomeActivity permission :" + permission + " granted:" + granted);
         }, per);
-
 
         if (mUiHandler == null) {
             Tlog.d(TAG, "activity new UiHandler(this);");
@@ -595,9 +508,8 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
 
             BaseFragment baseFragment = mFragments.get(ID_WEB);
             if (baseFragment != null) {
-                WebFragment mWebFragment = (WebFragment) baseFragment;
                 String method = (String) msg.obj;
-                mWebFragment.loadJs(method);
+                ((WebFragment) baseFragment).loadJs(method);
             } else {
                 Tlog.e(TAG, " loadJs baseFragment=null");
             }
@@ -636,9 +548,9 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         } else if (msg.what == MSG_WHAT_CHANGE_STATUS_BAR) {
             showStatusBar = (Boolean) (msg.obj);
             if (showStatusBar) {
-                showStatusBar();
+                StatusBarUtil.fullscreenShowBarFontWhite(getWindow());
             } else {
-                hideStatsBar();
+                StatusBarUtil.fullScreenHideStatusBar(getWindow(), true);
             }
         }
 

@@ -12,7 +12,7 @@ public class MiniWiFiApplication extends SocketApplication {
 
     @Override
     public void onCreate() {
-        CustomManager.getInstance().initWiFiSocketProject();
+        CustomManager.getInstance().initTriggerWiFiProject();
         super.onCreate();
     }
 }

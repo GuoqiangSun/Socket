@@ -1,2 +1,0 @@
-webpackJsonp([24],{K8ul:function(t,e){},KR8f:function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var s={render:function(){var t=this.$createElement,e=this._self._c||t;return e("div",{staticClass:"home"},[e("img",{attrs:{src:""}}),e("br"),this._v("\n  "+this._s(this.msg)+"\n")])},staticRenderFns:[]};var r=n("VU/8")({name:"home",data:function(){return{msg:"Welcome to Your Vue.js Frame"}},mounted:function(){}},s,!1,function(t){n("K8ul")},"data-v-476cc209",null);e.default=r.exports}});
-//# sourceMappingURL=24.cad2d75bb99e30381f23.js.map

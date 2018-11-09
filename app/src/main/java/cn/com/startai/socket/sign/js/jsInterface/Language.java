@@ -41,7 +41,8 @@ public class Language extends AbsHandlerJsInterface {
         private static final String METHOD_SET_LANGUAGE = "javascript:setSystemLanguageResponse($result,'$lang')";
 
         public static String callJsSetSystemLanguage(boolean result, String lang) {
-            return METHOD_SET_LANGUAGE.replace("$result", String.valueOf(result)).replace("$lang", String.valueOf(lang));
+            return METHOD_SET_LANGUAGE.replace("$result", String.valueOf(result))
+                    .replace("$lang", String.valueOf(lang));
         }
 
     }

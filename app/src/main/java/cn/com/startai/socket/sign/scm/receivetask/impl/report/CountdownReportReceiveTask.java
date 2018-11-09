@@ -4,10 +4,8 @@ import cn.com.startai.socket.sign.scm.bean.CountdownData;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolOutput;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
-import cn.com.swain.support.protocolEngine.pack.ResponseData;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.support.protocolEngine.utils.ProtocolDataCache;
-import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -30,12 +28,12 @@ public class CountdownReportReceiveTask extends SocketResponseTask {
     protected void doTask(SocketDataArray mSocketDataArray) {
 
         byte[] protocolParams = mSocketDataArray.getProtocolParams();
-        byte seq = (byte) mSocketDataArray.getSeq();
+        byte seq = (byte) mSocketDataArray.getProtocolSequence();
 
         if (protocolParams == null || protocolParams.length < 4) {
             Tlog.e(TAG, " CountdownReportReceiveTask params is error ... " + mSocketDataArray.toString());
-            ResponseData mResponseData = ProtocolDataCache.getCountdownExecuteReport(mSocketDataArray.getID(), false, seq);
-            response(mResponseData);
+//            ResponseData mResponseData = ProtocolDataCache.getCountdownExecuteReport(mSocketDataArray.getID(), false, seq);
+//            response(mResponseData);
             return;
         }
 
@@ -64,7 +62,7 @@ public class CountdownReportReceiveTask extends SocketResponseTask {
         if (mCallBack != null) {
             mCallBack.onCountdownReportResult(mSocketDataArray.getID(), mCountdownData);
         }
-        ResponseData mResponseData = ProtocolDataCache.getCountdownExecuteReport(mSocketDataArray.getID(), true, seq);
-        response(mResponseData);
+//        ResponseData mResponseData = ProtocolDataCache.getCountdownExecuteReport(mSocketDataArray.getID(), true, seq);
+//        response(mResponseData);
     }
 }

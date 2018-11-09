@@ -77,7 +77,7 @@ public class State extends AbsHandlerJsInterface {
         mQueryCount.startTime = startTime;
         mQueryCount.endTime = endTime;
         mQueryCount.interval = interval;
-        getHandler().obtainMessage(MSG_DISCOVERY, mQueryCount).sendToTarget();
+        getHandler().obtainMessage(MSG_HISTORY, mQueryCount).sendToTarget();
 
     }
 
@@ -92,13 +92,13 @@ public class State extends AbsHandlerJsInterface {
         getHandler().obtainMessage(MSG_COST_RATE_PARAM, mac).sendToTarget();
     }
 
-    private static final int MSG_DISCOVERY = 0x2D;
+    private static final int MSG_HISTORY = 0x2D;
     private static final int MSG_CUMU_PARAM = 0x2E;
     private static final int MSG_COST_RATE_PARAM = 0x2F;
 
     @Override
     protected void handleMessage(Message msg) {
-        if (msg.what == MSG_DISCOVERY) {
+        if (msg.what == MSG_HISTORY) {
             if (mCallBack != null) {
                 mCallBack.onJSQueryHistoryCount((QueryHistoryCount) msg.obj);
             }

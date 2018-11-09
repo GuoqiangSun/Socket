@@ -3,9 +3,7 @@ package cn.com.startai.socket.sign.scm.receivetask.impl.report;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolOutput;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
-import cn.com.swain.support.protocolEngine.pack.ResponseData;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.support.protocolEngine.utils.ProtocolDataCache;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -28,14 +26,13 @@ public class TempHumiReportReceiveTask extends SocketResponseTask {
     protected void doTask(SocketDataArray mSocketDataArray) {
 
         byte[] protocolParams = mSocketDataArray.getProtocolParams();
-
-        byte seq = (byte) mSocketDataArray.getSeq();
+        byte seq = (byte) mSocketDataArray.getProtocolSequence();
 
         if (protocolParams == null || protocolParams.length < 4) {
             Tlog.e(TAG, " TempHumiReportReceiveTask params is error ... ");
-            ResponseData mResponseData = ProtocolDataCache.getTempHumiValueReport(mSocketDataArray.getID(),
-                    false, seq);
-            response(mResponseData);
+//            ResponseData mResponseData = ProtocolDataCache.getTempHumiValueReport(mSocketDataArray.getID(),
+//                    false, seq);
+//            response(mResponseData);
             return;
         }
 
@@ -55,8 +52,8 @@ public class TempHumiReportReceiveTask extends SocketResponseTask {
             mCallBack.onTempHumiResult(mSocketDataArray.getID(), temp, humi);
         }
 
-        ResponseData mResponseData = ProtocolDataCache.getTempHumiValueReport(mSocketDataArray.getID(), true, seq);
-        response(mResponseData);
+//        ResponseData mResponseData = ProtocolDataCache.getTempHumiValueReport(mSocketDataArray.getID(), true, seq);
+//        response(mResponseData);
     }
 
 }

@@ -3,7 +3,7 @@ package cn.com.startai.socket.sign.scm.bean.Timing;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import cn.com.swain.support.protocolEngine.utils.SocketSecureKey;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 
 /**
  * author: Guoqiang_Sun
