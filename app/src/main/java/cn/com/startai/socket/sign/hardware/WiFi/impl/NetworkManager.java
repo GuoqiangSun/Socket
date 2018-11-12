@@ -71,7 +71,8 @@ import cn.com.startai.socket.sign.js.jsInterface.Add;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.bean.LanBindInfo;
 import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
-import cn.com.startai.socket.sign.scm.util.MySocketSecureKey;
+import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.baselib.util.IpUtil;
 import cn.com.swain.baselib.util.MacUtil;
 import cn.com.swain.baselib.util.WiFiUtil;
@@ -204,16 +205,16 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
 
         MqttInitParam mqttInitParam = null;
 
-        if (CustomManager.getInstance().getCustom() == MySocketSecureKey.Custom.CUSTOM_WAN) {
+        if (CustomManager.getInstance().getCustom() == SocketSecureKey.Custom.CUSTOM_WAN) {
 
-            if (CustomManager.getInstance().getProduct() == MySocketSecureKey.Custom.PRODUCT_GROWROOMATE) {
+            if (CustomManager.getInstance().getProduct() == SocketSecureKey.Custom.PRODUCT_GROWROOMATE) {
                 mqttInitParam = new DeveloperBuilder.SmartSocketDeveloper();
-            } else if (CustomManager.getInstance().getProduct() == MySocketSecureKey.Custom.PRODUCT_GROWROOMATE) {
+            } else if (CustomManager.getInstance().getProduct() == SocketSecureKey.Custom.PRODUCT_TRIGGER_WIFI) {
                 mqttInitParam = new DeveloperBuilder.WiFiSocketDeveloper();
             }
 
-        } else if (CustomManager.getInstance().getCustom() == MySocketSecureKey.Custom.CUSTOM_STARTAI) {
-            if (CustomManager.getInstance().getProduct() == MySocketSecureKey.Custom.PRODUCT_MUSIK) {
+        } else if (CustomManager.getInstance().getCustom() == SocketSecureKey.Custom.CUSTOM_STARTAI) {
+            if (CustomManager.getInstance().getProduct() == SocketSecureKey.Custom.PRODUCT_MUSIK) {
                 mqttInitParam = new DeveloperBuilder.SuperSocketDeveloper();
             }
         }
@@ -712,6 +713,11 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
     }
 
     @Override
+    public void onDeviceUpdateResult(UpdateVersion mVersion) {
+        discoveryLanDevice(3);
+    }
+
+    @Override
     public void lanDeviceDiscovery(LanDeviceInfo mDevice) {
 
         mDeviceManager.lanDeviceDiscovery(mDevice);
@@ -851,7 +857,7 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
                 LanDeviceInfo discoveryDeviceByMac = mDeviceManager.getDiscoveryDeviceByMac(mac);
                 mControlDevice.responseConnected(
                         discoveryDeviceByMac != null
-                        && IpUtil.ipMatches(discoveryDeviceByMac.ip));
+                                && IpUtil.ipMatches(discoveryDeviceByMac.ip));
             } else {
                 mControlDevice.responseConnectedFail(getLoginUserID());
             }

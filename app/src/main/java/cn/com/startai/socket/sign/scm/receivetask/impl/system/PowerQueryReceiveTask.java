@@ -16,7 +16,7 @@ public class PowerQueryReceiveTask extends SocketResponseTask {
     private OnTaskCallBack mTaskCallBack;
 
     public PowerQueryReceiveTask(OnTaskCallBack mTaskCallBack) {
-        Tlog.e(TAG, " new PowerSettingReceiveTask() ");
+        Tlog.e(TAG, " new PowerQueryReceiveTask() ");
         this.mTaskCallBack = mTaskCallBack;
     }
 

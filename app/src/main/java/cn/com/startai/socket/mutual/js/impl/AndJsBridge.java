@@ -1720,6 +1720,11 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onResultUpdateVersion(boolean result, UpdateVersion mVersion) {
+
+        if(mNetworkManager!=null){
+            mNetworkManager.onDeviceUpdateResult(mVersion);
+        }
+
         if (mVersion.isQueryVersionAction()) {
             String method = Version.Method.callJsScmVersion(mVersion.mac,
                     mVersion.newVersion > mVersion.curVersion, mVersion.newVersion, mVersion.curVersion);
@@ -1739,6 +1744,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
             loadJs(method);
 
         }
+
+
     }
 
     @Override

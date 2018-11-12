@@ -12,6 +12,7 @@ import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
 import cn.com.startai.socket.sign.js.JsUserInfo;
 import cn.com.startai.socket.sign.scm.bean.LanBindInfo;
 import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
+import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 
 /**
  * author: Guoqiang_Sun
@@ -105,6 +106,8 @@ public interface IControlWiFi {
     String getNameByMac(String mac);
 
     void wxLogin();
+
+    void onDeviceUpdateResult(UpdateVersion mVersion);
 
 
     interface IWiFiResultCallBack {

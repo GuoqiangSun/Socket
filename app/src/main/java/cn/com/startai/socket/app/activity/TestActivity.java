@@ -100,7 +100,7 @@ public class TestActivity extends AppCompatActivity {
         buf[1] = (byte) 0xe5;
         buf[2] = 0x5f;
         buf[3] = 0x50;
-        long l =  ((0x00)|(0x00)|(0x00)|(0x00)|((buf[0] << 24) & 0xFF)
+        long l = ((0x00) | (0x00) | (0x00) | (0x00) | ((buf[0] << 24) & 0xFF)
                 | ((buf[1] << 16) & 0xFF)
                 | ((buf[2] << 8) & 0xFF)
                 | ((buf[3]) & 0xFF));
@@ -117,6 +117,11 @@ public class TestActivity extends AppCompatActivity {
         buf2[7] = 0x50;
         long aLong = ByteBuffer.wrap(buf2, 0, 8).getLong();
         System.out.println(" aLong:" + aLong);
+
+        byte version0 = 1;
+        byte version1 = 8;
+        int version =  ((version0 &0xFF)<< 8) | (version1 & 0xFF);
+        System.out.println(" version:" + version);
     }
 
     @Override

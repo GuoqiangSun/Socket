@@ -7,9 +7,9 @@ import android.os.Message;
 import java.lang.ref.WeakReference;
 
 import cn.com.startai.socket.sign.scm.impl.SocketScmManager;
+import cn.com.startai.socket.sign.scm.util.MySocketDataCache;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolOutput;
 import cn.com.swain.support.protocolEngine.pack.ResponseData;
-import cn.com.startai.socket.sign.scm.util.ProtocolDataCache;
 import cn.com.swain.support.protocolEngine.utils.SEQ;
 import cn.com.swain169.log.Tlog;
 
@@ -94,7 +94,8 @@ public class Heartbeat {
                     mCallBack.onStartSendHeartbeat(mResponseData.toID);
                 }
 
-                ResponseData responseData = ProtocolDataCache.getHeartbeat(mResponseData.toID, token, mSeq.getSelfAddSeq());
+                ResponseData responseData = MySocketDataCache.getHeartbeat(
+                        mResponseData.toID, token, mSeq.getSelfAddSeq());
                 responseData.getSendModel().setSendModelIsLan();
                 mProtocolDataOutput.onOutputDataToServer(responseData);
             } else {

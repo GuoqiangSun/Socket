@@ -1,6 +1,7 @@
 package cn.com.startai.socket.sign.scm.bean;
 
-import cn.com.startai.socket.sign.scm.util.MySocketSecureKey;
+
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 
 /**
  * author: Guoqiang_Sun
@@ -14,11 +15,11 @@ public class UpdateVersion {
     public int progress;
 
     public boolean isQueryVersionAction() {
-        return MySocketSecureKey.MUtil.isQueryVersionAction(action);
+        return SocketSecureKey.Util.isQueryVersionAction(action);
     }
 
     public boolean isUpdateVersionAction() {
-        return MySocketSecureKey.MUtil.isUpdateModel(action);
+        return SocketSecureKey.Util.isUpdateModel(action);
     }
 
     public int curVersion;

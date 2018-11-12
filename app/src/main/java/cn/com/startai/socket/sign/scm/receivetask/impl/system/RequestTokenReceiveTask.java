@@ -1,9 +1,9 @@
 package cn.com.startai.socket.sign.scm.receivetask.impl.system;
 
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -44,7 +44,7 @@ public class RequestTokenReceiveTask extends SocketResponseTask {
 
         String id = mSocketDataArray.getID();
 
-        Tlog.e(TAG, " result :" + result + " id:" + id + " random : " + random + " token: 0x" + Integer.toHexString(token));
+        Tlog.e(TAG, " result :" + result + ":" + protocolParams[0] + " id:" + id + " random : " + random + " token: 0x" + Integer.toHexString(token));
 
 
         if (mTaskCallBack != null) {

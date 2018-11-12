@@ -2,7 +2,6 @@ package cn.com.startai.socket.sign.scm.receivetask.impl.control;
 
 import cn.com.startai.socket.debuger.impl.IDebugerProtocolStream;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
-import cn.com.startai.socket.sign.scm.util.MySocketSecureKey;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
@@ -45,7 +44,7 @@ public class SwitchControllerReceiveTask extends SocketResponseTask {
             model = protocolParams[2];
         }
         Tlog.v(TAG, "control switch result:" + SocketSecureKey.Util.resultIsOk(protocolParams[0]) + "; on:" + on + " model:" + model);
-        if (MySocketSecureKey.MUtil.isRelayModel(model)) {
+        if (SocketSecureKey.Util.isRelayModel(model)) {
             if (mCallBack != null) {
                 mCallBack.onRelayResult(mSocketDataArray.getID(), on);
 
@@ -60,11 +59,11 @@ public class SwitchControllerReceiveTask extends SocketResponseTask {
             }
 
 
-        } else if (MySocketSecureKey.MUtil.isBackLightModel(model)) {
+        } else if (SocketSecureKey.Util.isBackLightModel(model)) {
             Tlog.e(TAG, "control switch is BackLight ");
 
 
-        } else if (MySocketSecureKey.MUtil.isFlashLightModel(model)) {
+        } else if (SocketSecureKey.Util.isFlashLightModel(model)) {
             Tlog.e(TAG, "control switch is FlashLight ");
 
 
@@ -74,7 +73,7 @@ public class SwitchControllerReceiveTask extends SocketResponseTask {
             }
 
 
-        }else if(MySocketSecureKey.MUtil.isUSBModel(model)){
+        }else if(SocketSecureKey.Util.isUSBModel(model)){
             Tlog.e(TAG, "control switch is USB ");
             if (mCallBack != null) {
                 mCallBack.onUSBResult(mSocketDataArray.getID(), on);

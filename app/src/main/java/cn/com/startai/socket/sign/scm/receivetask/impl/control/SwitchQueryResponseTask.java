@@ -2,10 +2,9 @@ package cn.com.startai.socket.sign.scm.receivetask.impl.control;
 
 import cn.com.startai.socket.debuger.impl.IDebugerProtocolStream;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
-import cn.com.startai.socket.sign.scm.util.MySocketSecureKey;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -46,10 +45,10 @@ public class SwitchQueryResponseTask extends SocketResponseTask {
         }
 
 
-        Tlog.v(TAG, "query switch result: "+ SocketSecureKey.Util.resultIsOk(protocolParams[0])
+        Tlog.v(TAG, "query switch result: " + SocketSecureKey.Util.resultIsOk(protocolParams[0])
                 + " on:" + on + " model:" + model);
 
-        if (MySocketSecureKey.MUtil.isRelayModel(model)) {
+        if (SocketSecureKey.Util.isRelayModel(model)) {
             Tlog.e(TAG, "query switch model is relay ");
 
             if (mCallBack != null) {
@@ -62,10 +61,10 @@ public class SwitchQueryResponseTask extends SocketResponseTask {
             }
 
 
-        } else if (MySocketSecureKey.MUtil.isBackLightModel(model)) {
+        } else if (SocketSecureKey.Util.isBackLightModel(model)) {
             Tlog.e(TAG, "query switch model is backLight ");
 
-        } else if (MySocketSecureKey.MUtil.isFlashLightModel(model)) {
+        } else if (SocketSecureKey.Util.isFlashLightModel(model)) {
             Tlog.e(TAG, "control switch is FlashLight ");
 
             IDebugerProtocolStream IDebugerStream = mCallBack.getIDebugerStream();
@@ -73,13 +72,12 @@ public class SwitchQueryResponseTask extends SocketResponseTask {
                 IDebugerStream.receiveQueryFlashState(mSocketDataArray.getObj(), mSocketDataArray.getID(), on);
             }
 
-        }else if(MySocketSecureKey.MUtil.isUSBModel(model)){
+        } else if (SocketSecureKey.Util.isUSBModel(model)) {
             Tlog.e(TAG, "control switch is USB ");
             if (mCallBack != null) {
                 mCallBack.onUSBResult(mSocketDataArray.getID(), on);
             }
         }
-
 
 
     }

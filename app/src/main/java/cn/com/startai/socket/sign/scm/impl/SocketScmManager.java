@@ -48,7 +48,6 @@ import cn.com.startai.socket.sign.scm.util.MySocketDataCache;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.baselib.app.IApp.IService;
 import cn.com.swain.baselib.util.Bit;
-import cn.com.swain.baselib.util.StrUtil;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolOutput;
 import cn.com.swain.support.protocolEngine.ProtocolProcessorFactory;
 import cn.com.swain.support.protocolEngine.pack.ReceivesData;
@@ -143,8 +142,8 @@ public class SocketScmManager extends AbsSocketScm
         mParams.setProduct(CustomManager.getInstance().getProduct());
         mParams.setProtocolVersion(CustomManager.getInstance().getProtocolVersion());
 
-        MySocketDataCache.getMInstance().init(mParams);
-        MySocketDataCache.getMInstance().onSCreate();
+        MySocketDataCache.getInstance().init(mParams);
+        MySocketDataCache.getInstance().onSCreate();
 
         mScmDeviceUtils = new ScmDeviceUtils(this, this);
 
@@ -159,20 +158,20 @@ public class SocketScmManager extends AbsSocketScm
     @Override
     public void onSResume() {
         Tlog.v(TAG, " SocketProtocolWrapper onSResume()");
-        MySocketDataCache.getMInstance().onSResume();
+        MySocketDataCache.getInstance().onSResume();
     }
 
     @Override
     public void onSPause() {
         Tlog.v(TAG, " SocketProtocolWrapper onSPause()");
-        MySocketDataCache.getMInstance().onSPause();
+        MySocketDataCache.getInstance().onSPause();
     }
 
     @Override
     public void onSDestroy() {
         Tlog.v(TAG, " SocketProtocolWrapper onSDestroy()");
 
-        MySocketDataCache.getMInstance().onSDestroy();
+        MySocketDataCache.getInstance().onSDestroy();
 
         if (pm != null) {
             pm.release();
@@ -185,7 +184,7 @@ public class SocketScmManager extends AbsSocketScm
     @Override
     public void onSFinish() {
         Tlog.v(TAG, " SocketProtocolWrapper onSFinish()");
-        MySocketDataCache.getMInstance().onSFinish();
+        MySocketDataCache.getInstance().onSFinish();
     }
 
     @Override
@@ -199,7 +198,8 @@ public class SocketScmManager extends AbsSocketScm
     public void onStartSendHeartbeat(ScmDevice scmDevice) {
 
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, scmDevice.getAddress() + " onStartSendHeartbeat :" + Integer.toHexString(scmDevice.getToken()));
+            Tlog.v(TAG, scmDevice.getAddress() + " onStartSendHeartbeat :"
+                    + Integer.toHexString(scmDevice.getToken()));
         }
 
     }
@@ -313,41 +313,177 @@ public class SocketScmManager extends AbsSocketScm
     @Override
     public void queryHistoryCount(QueryHistoryCount mQueryCount) {
 
-        byte[] params = new byte[7];
-
         SimpleDateFormat mFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
+        long startTimestamp = System.currentTimeMillis();
+
         if (mQueryCount.startTime != null) {
             try {
                 Date date = mFormat.parse(mQueryCount.startTime);
-                params[0] = (byte) (date.getYear() + 1900 - 2000);
-                params[1] = (byte) (date.getMonth() + 1);
-                params[2] = (byte) date.getDate();
+                startTimestamp = date.getTime();
             } catch (ParseException e) {
                 e.printStackTrace();
+
                 Tlog.e(TAG, " queryHistoryCount parse startTime", e);
             }
         }
 
+        long endTimestamp = System.currentTimeMillis();
         if (mQueryCount.endTime != null) {
             try {
                 Date date = mFormat.parse(mQueryCount.endTime);
-                params[3] = (byte) (date.getYear() + 1900 - 2000);
-                params[4] = (byte) (date.getMonth() + 1);
-                params[5] = (byte) date.getDate();
+                endTimestamp = date.getTime();
             } catch (ParseException e) {
                 e.printStackTrace();
                 Tlog.e(TAG, " queryHistoryCount parse endTime", e);
             }
         }
 
-        params[6] = (byte) mQueryCount.interval;
 
-        ResponseData mResponseData = MySocketDataCache.getQueryHistoryCount(mQueryCount.mac, params);
-        if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryHistoryCount " + mResponseData.toString());
+        QueryHistoryCount mCount = new QueryHistoryCount();
+        mCount.mac = mQueryCount.mac;
+        mCount.startTime = mQueryCount.startTime;
+        mCount.interval = mQueryCount.interval;
+        mCount.mDataArray = new ArrayList<>();
+        mCount.mDayArray = new ArrayList<>();
+
+        QueryHistoryCount.Day mDay;
+        QueryHistoryCount.Data mData;
+
+
+        CountElectricityDao countElectricityDao =
+                DBManager.getInstance().getDaoSession().getCountElectricityDao();
+
+
+        final long oneDay = 24 * 60 * 60 * 1000;
+        while (startTimestamp <= endTimestamp) {
+
+            List<CountElectricity> listElectricitys = countElectricityDao.queryBuilder()
+                    .where(CountElectricityDao.Properties.Mac.eq(mQueryCount.mac),
+                            CountElectricityDao.Properties.Timestamp.eq(startTimestamp)).list();
+
+            if (listElectricitys != null && listElectricitys.size() > 0) {
+                CountElectricity countElectricity = listElectricitys.get(0);
+
+                mDay = new QueryHistoryCount.Day();
+                mDay.countData = countElectricity.getElectricity();
+                mDay.startTime = startTimestamp;
+                mCount.mDayArray.add(mDay);
+
+
+                int oneLength = 8; // 一组数据大小
+                int oneDaySize = 60 / 5 * 24; //一天数据个数
+                int oneDayBytes = oneDaySize * oneLength; // 一天数据长度
+
+                for (int j = 0; j < oneDaySize; j++) {
+
+                    byte[] countData = new byte[oneLength];
+
+                    System.arraycopy(mDay.countData, j * oneLength, countData, 0, oneLength);
+
+                    int e = (countData[0] & 0xFF) << 24 | (countData[1] & 0xFF) << 16
+                            | (countData[2] & 0xFF) << 8 | (countData[3] & 0xFF);
+
+                    int s = (countData[4] & 0xFF) << 24 | (countData[5] & 0xFF) << 16
+                            | (countData[6] & 0xFF) << 8 | (countData[7] & 0xFF);
+
+                    mData = new QueryHistoryCount.Data();
+                    mData.e = e;
+                    mData.s = s;
+
+                    if (Tlog.isDebug()) {
+                        Tlog.d(TAG, " HistoryCountTask e:" + e + " s:" + s);
+                    }
+
+                    mCount.mDataArray.add(mData);
+                }
+
+
+            } else {
+
+                byte[] params = new byte[7];
+
+                Date date = new Date(startTimestamp);
+                params[0] = (byte) (date.getYear() + 1990 - 2000);
+                params[1] = (byte) (date.getMonth() + 1);
+                params[2] = (byte) date.getDate();
+
+                date = new Date(startTimestamp + oneDay);
+                params[3] = (byte) (date.getYear() + 1990 - 2000);
+                params[4] = (byte) (date.getMonth() + 1);
+                params[5] = (byte) date.getDate();
+
+                params[6] = (byte) mQueryCount.interval;
+
+                ResponseData mResponseData = MySocketDataCache.getQueryHistoryCount(mQueryCount.mac, params);
+                if (Debuger.isLogDebug) {
+                    Tlog.v(TAG, " queryHistoryCount " + mResponseData.toString());
+                }
+                onOutputDataToServer(mResponseData);
+
+            }
+
+            startTimestamp += oneDay;
         }
-        onOutputDataToServer(mResponseData);
+
+
     }
+
+
+    @Override
+    public void onQueryHistoryCountResult(boolean result, QueryHistoryCount mCount) {
+
+        CountElectricityDao countElectricityDao =
+                DBManager.getInstance().getDaoSession().getCountElectricityDao();
+
+        ArrayList<QueryHistoryCount.Day> mDayArray = mCount.mDayArray;
+
+        if (mDayArray != null) {
+
+            List<CountElectricity> list1 = countElectricityDao.queryBuilder()
+                    .where(CountElectricityDao.Properties.Mac.eq(mCount.mac),
+                            CountElectricityDao.Properties.Timestamp.eq(mCount.startTimeMillis)).list();
+
+            long sequence = 0L;
+
+            if (list1.size() > 0) {
+                CountElectricity countElectricity = list1.get(0);
+                sequence = countElectricity.getSequence();
+
+            }
+
+            for (QueryHistoryCount.Day mData : mDayArray) {
+
+                List<CountElectricity> list = countElectricityDao.queryBuilder()
+                        .where(CountElectricityDao.Properties.Mac.eq(mCount.mac),
+                                CountElectricityDao.Properties.Timestamp.eq(mData.startTime)).list();
+
+                CountElectricity countElectricity = null;
+                if (list.size() > 0) {
+                    countElectricity = list.get(0);
+                }
+
+                if (countElectricity == null) {
+                    CountElectricity mCountElectricity = new CountElectricity();
+                    mCountElectricity.setMac(mCount.mac);
+                    mCountElectricity.setElectricity(mData.countData);
+                    mCountElectricity.setTimestamp(mData.startTime);
+                    mCountElectricity.setSequence(++sequence);
+                    long insert = countElectricityDao.insert(mCountElectricity);
+                    Tlog.v(SocketResponseTask.TAG, " HistoryCount insert:" + insert);
+                } else {
+                    countElectricity.setElectricity(mData.countData);
+                    countElectricityDao.update(countElectricity);
+                    Tlog.v(SocketResponseTask.TAG, " HistoryCount update:" + countElectricity.getId());
+                }
+            }
+        }
+
+
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onQueryHistoryCountResult(result, mCount);
+        }
+    }
+
 
     @Override
     public void queryCostRate(String mac) {
@@ -539,6 +675,7 @@ public class SocketScmManager extends AbsSocketScm
         int info = new Bit().add(0).reserve(1, (bytes != null && bytes.length > 0)).getDevice();
         byte[] pwdBuf = mLanBindInfo.pwd != null ? mLanBindInfo.pwd.getBytes() : null;
         ResponseData mResponseData = MySocketDataCache.getBindDevice(mLanBindInfo.mac, bytes, (byte) info, pwdBuf);
+        mResponseData.getRepeatMsgModel().setMaxRepeatTimes(3);
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " bindDevice data: " + mResponseData.toString());
         }
@@ -1321,61 +1458,6 @@ public class SocketScmManager extends AbsSocketScm
     public void onDisconnectResult(boolean result, String id) {
         if (mScmResultCallBack != null) {
             mScmResultCallBack.onResultDisconnect(result, id);
-        }
-    }
-
-    @Override
-    public void onQueryHistoryCountResult(boolean result, QueryHistoryCount mCount) {
-
-        CountElectricityDao countElectricityDao =
-                DBManager.getInstance().getDaoSession().getCountElectricityDao();
-
-        ArrayList<QueryHistoryCount.Day> mDayArray = mCount.mDayArray;
-
-        if (mDayArray != null) {
-
-            List<CountElectricity> list1 = countElectricityDao.queryBuilder()
-                    .where(CountElectricityDao.Properties.Mac.eq(mCount.mac),
-                            CountElectricityDao.Properties.Timestamp.eq(mCount.startTimeMillis)).list();
-
-            long sequence = 0L;
-
-            if (list1.size() > 0) {
-                CountElectricity countElectricity = list1.get(0);
-                sequence = countElectricity.getSequence();
-
-            }
-
-            for (QueryHistoryCount.Day mData : mDayArray) {
-
-                List<CountElectricity> list = countElectricityDao.queryBuilder()
-                        .where(CountElectricityDao.Properties.Mac.eq(mCount.mac),
-                                CountElectricityDao.Properties.Timestamp.eq(mData.startTime)).list();
-
-                CountElectricity countElectricity = null;
-                if (list.size() > 0) {
-                    countElectricity = list.get(0);
-                }
-
-                if (countElectricity == null) {
-                    CountElectricity mCountElectricity = new CountElectricity();
-                    mCountElectricity.setMac(mCount.mac);
-                    mCountElectricity.setElectricity(mData.countData);
-                    mCountElectricity.setTimestamp(mData.startTime);
-                    mCountElectricity.setSequence(++sequence);
-                    long insert = countElectricityDao.insert(mCountElectricity);
-                    Tlog.v(SocketResponseTask.TAG, " HistoryCount insert:" + insert);
-                } else {
-                    countElectricity.setElectricity(mData.countData);
-                    countElectricityDao.update(countElectricity);
-                    Tlog.v(SocketResponseTask.TAG, " HistoryCount update:" + countElectricity.getId());
-                }
-            }
-        }
-
-
-        if (mScmResultCallBack != null) {
-            mScmResultCallBack.onQueryHistoryCountResult(result, mCount);
         }
     }
 

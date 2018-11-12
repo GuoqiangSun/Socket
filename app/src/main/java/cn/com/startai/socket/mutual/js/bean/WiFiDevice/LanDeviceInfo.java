@@ -164,6 +164,7 @@ public class LanDeviceInfo implements Cloneable {
             obj.put("encrypted", bindNeedPwd);
             obj.put("isBinding", isWanBind);
             obj.put("version", getVersion());
+
             JSONObject mWiFiInfo = new JSONObject();
             mWiFiInfo.put("ssid", ssid);
             mWiFiInfo.put("strength", rssi);
@@ -178,9 +179,8 @@ public class LanDeviceInfo implements Cloneable {
     }
 
     public int getVersion() {
-        return ((mainVersion << 8) & 0xFF) | (subVersion & 0xFF);
+        return ((mainVersion & 0xFF) << 8) | (subVersion & 0xFF);
     }
-
 
     public static LanDeviceInfo fromJson(String deviceJson) {
         LanDeviceInfo mWiFiDevice = new LanDeviceInfo();

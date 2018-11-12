@@ -48,7 +48,6 @@ import cn.com.startai.socket.sign.scm.receivetask.impl.system.TemperatureUnitSet
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.UpdateReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.VoltageQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.VoltageSettingReceiveTask;
-import cn.com.startai.socket.sign.scm.util.MySocketSecureKey;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolOutput;
 import cn.com.swain.support.protocolEngine.ProtocolCode;
@@ -174,7 +173,7 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                     case SocketSecureKey.Cmd.CMD_BIND_DEVICE_RESPONSE:
                         new DeviceBindTask(mTaskCallBack).execute(mParam);
                         break;
-                    case MySocketSecureKey.MCmd.CMD_UPDATE_RESPONSE:
+                    case SocketSecureKey.Cmd.CMD_UPDATE_RESPONSE:
                         new UpdateReceiveTask(mTaskCallBack).execute(mParam);
                         break;
                     case SocketSecureKey.Cmd.CMD_SET_VOLTAGE_ALARM_VALUE_RESPONSE:
@@ -279,19 +278,19 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                     case SocketSecureKey.Cmd.CMD_QUERY_SPENDING_ELECTRICITY_DATA_RESPONSE:
                         new SpendingElectricityQueryReceiveTask(mTaskCallBack).execute(mParam);
                         break;
-                    case MySocketSecureKey.MCmd.CMD_QUERY_HISTORY_COUNT_RESPONSE:
+                    case SocketSecureKey.Cmd.CMD_QUERY_HISTORY_COUNT_RESPONSE:
                         new HistoryCountTask(mTaskCallBack).execute(mParam);
                         break;
-                    case MySocketSecureKey.MCmd.CMD_SET_COST_RATE_RESPONSE:
+                    case SocketSecureKey.Cmd.CMD_SET_COST_RATE_RESPONSE:
                         new CostRateSetReceiveTask(mTaskCallBack).execute(mParam);
                         break;
-                    case MySocketSecureKey.MCmd.CMD_QUERY_COST_RATE_RESPONSE:
+                    case SocketSecureKey.Cmd.CMD_QUERY_COST_RATE_RESPONSE:
                         new CostRateQueryReceiveTask(mTaskCallBack).execute(mParam);
                         break;
-                    case MySocketSecureKey.MCmd.CMD_QUERY_CUMU_PARAM_RESPONSE:
+                    case SocketSecureKey.Cmd.CMD_QUERY_CUMU_PARAM_RESPONSE:
                         new CumuParamQueryReceiveTask(mTaskCallBack).execute(mParam);
                         break;
-                    case MySocketSecureKey.MCmd.CMD_QUERY_MAX_OUTPUT_RESPONSE:
+                    case SocketSecureKey.Cmd.CMD_QUERY_MAX_OUTPUT_RESPONSE:
                         new MaxOutputQueryReceiveTask(mTaskCallBack).execute(mParam);
                         break;
 
@@ -320,7 +319,7 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                     case SocketSecureKey.Cmd.CMD_TIMING_REPORT:
                         new TimingExecuteReportReceiveTask(mTaskCallBack, mResponse).execute(mParam);
                         break;
-                    case MySocketSecureKey.MCmd.CMD_ELECTRICITY_REPORT:
+                    case SocketSecureKey.Cmd.CMD_ELECTRICITY_REPORT:
                         new PointReportReceiveTask(mTaskCallBack, mResponse).execute(mParam);
                         break;
                     default:

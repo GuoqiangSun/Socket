@@ -29,10 +29,11 @@ public class State extends AbsHandlerJsInterface {
 
     public static final class Method {
 
-        private static final String RENAME = "javascript:deviceHistoryDataResponse('$mac','$time',$day,$interval,'$data')";
+        private static final String HISTORY
+                = "javascript:deviceHistoryDataResponse('$mac','$time',$day,$interval,'$data')";
 
         public static String callJsHistoryData(String mac, String time, int day, int interval, String data) {
-            return RENAME.replace("$mac", String.valueOf(mac)).replace("$time", String.valueOf(time))
+            return HISTORY.replace("$mac", String.valueOf(mac)).replace("$time", String.valueOf(time))
                     .replace("$day", String.valueOf(day)).replace("$interval", String.valueOf(interval))
                     .replace("$data", String.valueOf(data));
         }
@@ -49,7 +50,8 @@ public class State extends AbsHandlerJsInterface {
                     .replace("$minute2", String.valueOf(minute2)).replace("$price2", String.valueOf(price2));
         }
 
-        private static final String CUMU_PARAMS = "javascript:deviceAccumulationParameterResponse('$mac',$time,$ghg,$electricity)";
+        private static final String CUMU_PARAMS
+                = "javascript:deviceAccumulationParameterResponse('$mac',$time,$ghg,$electricity)";
 
         public static String callJsCumuParams(String mac, long time, long ghg, long electrycity) {
             return CUMU_PARAMS.replace("$mac", String.valueOf(mac)).replace("$time", String.valueOf(time))
@@ -71,7 +73,8 @@ public class State extends AbsHandlerJsInterface {
 
     @JavascriptInterface
     public void deviceHistoryDataRequest(String mac, String startTime, String endTime, int interval) {
-        Tlog.v(TAG, " deviceHistoryDataRequest startTime:" + startTime);
+        Tlog.v(TAG, " deviceHistoryDataRequest startTime:" + startTime
+                + " endTime:" + endTime + " interval:" + interval);
         final QueryHistoryCount mQueryCount = new QueryHistoryCount();
         mQueryCount.mac = mac;
         mQueryCount.startTime = startTime;
