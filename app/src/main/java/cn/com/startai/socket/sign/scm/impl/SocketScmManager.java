@@ -3,13 +3,10 @@ package cn.com.startai.socket.sign.scm.impl;
 import android.app.Application;
 import android.widget.Toast;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import cn.com.startai.socket.db.gen.CountElectricityDao;
 import cn.com.startai.socket.db.manager.DBManager;
@@ -313,31 +310,15 @@ public class SocketScmManager extends AbsSocketScm
     @Override
     public void queryHistoryCount(QueryHistoryCount mQueryCount) {
 
-        SimpleDateFormat mFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
-        long startTimestamp = System.currentTimeMillis();
+        long startTimestamp = mQueryCount.getStartTimestampFromStr();
+        long endTimestamp = mQueryCount.getEndTimestampFromStr();
 
-        if (mQueryCount.startTime != null) {
-            try {
-                Date date = mFormat.parse(mQueryCount.startTime);
-                startTimestamp = date.getTime();
-            } catch (ParseException e) {
-                e.printStackTrace();
-
-                Tlog.e(TAG, " queryHistoryCount parse startTime", e);
-            }
+        if (Debuger.isLogDebug) {
+            Tlog.d(TAG, " queryHistoryCount startTimestamp:" + startTimestamp
+                    + " " + mQueryCount.startTime
+                    + " endTimestamp:" + endTimestamp
+                    + " " + mQueryCount.endTime);
         }
-
-        long endTimestamp = System.currentTimeMillis();
-        if (mQueryCount.endTime != null) {
-            try {
-                Date date = mFormat.parse(mQueryCount.endTime);
-                endTimestamp = date.getTime();
-            } catch (ParseException e) {
-                e.printStackTrace();
-                Tlog.e(TAG, " queryHistoryCount parse endTime", e);
-            }
-        }
-
 
         QueryHistoryCount mCount = new QueryHistoryCount();
         mCount.mac = mQueryCount.mac;
@@ -352,6 +333,11 @@ public class SocketScmManager extends AbsSocketScm
 
         CountElectricityDao countElectricityDao =
                 DBManager.getInstance().getDaoSession().getCountElectricityDao();
+
+
+        int oneLength = 8; // 一组数据大小
+        int oneDaySize = 60 / 5 * 24; //一天数据个数
+        final byte[] countData = new byte[oneLength];
 
 
         final long oneDay = 24 * 60 * 60 * 1000;
@@ -369,16 +355,15 @@ public class SocketScmManager extends AbsSocketScm
                 mDay.startTime = startTimestamp;
                 mCount.mDayArray.add(mDay);
 
-
-                int oneLength = 8; // 一组数据大小
-                int oneDaySize = 60 / 5 * 24; //一天数据个数
-                int oneDayBytes = oneDaySize * oneLength; // 一天数据长度
-
                 for (int j = 0; j < oneDaySize; j++) {
 
-                    byte[] countData = new byte[oneLength];
+                    try {
+                        System.arraycopy(mDay.countData, j * oneLength, countData, 0, oneLength);
 
-                    System.arraycopy(mDay.countData, j * oneLength, countData, 0, oneLength);
+                    } catch (Exception e) {
+                        Tlog.e(TAG, " e ", e);
+                        break;
+                    }
 
                     int e = (countData[0] & 0xFF) << 24 | (countData[1] & 0xFF) << 16
                             | (countData[2] & 0xFF) << 8 | (countData[3] & 0xFF);
@@ -390,7 +375,7 @@ public class SocketScmManager extends AbsSocketScm
                     mData.e = e;
                     mData.s = s;
 
-                    if (Tlog.isDebug()) {
+                    if (Debuger.isLogDebug) {
                         Tlog.d(TAG, " HistoryCountTask e:" + e + " s:" + s);
                     }
 

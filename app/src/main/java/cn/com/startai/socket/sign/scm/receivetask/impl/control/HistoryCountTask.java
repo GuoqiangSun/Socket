@@ -71,7 +71,7 @@ public class HistoryCountTask extends SocketResponseTask {
 
         int oneLength = 8; // 一组数据大小
         int dataLength = (protocolParams.length - 1 - 5);//数据大小长度
-
+        final byte[] countData = new byte[oneLength];
 
         QueryHistoryCount mCount = new QueryHistoryCount();
         mCount.mac = mSocketDataArray.getID();
@@ -123,8 +123,6 @@ public class HistoryCountTask extends SocketResponseTask {
             }
 
             for (int j = 0; j < oneDaySize; j++) {
-
-                byte[] countData = new byte[oneLength];
 
                 System.arraycopy(oneDayData, j * oneLength, countData, 0, oneLength);
 

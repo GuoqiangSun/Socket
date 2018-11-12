@@ -4,7 +4,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * author: Guoqiang_Sun
@@ -16,7 +20,47 @@ public class QueryHistoryCount {
     public String mac;
     public String startTime;
     public long startTimeMillis;
+
+    public long getStartTimestampFromStr() {
+
+        SimpleDateFormat mFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
+        long startTimestamp = System.currentTimeMillis();
+
+        if (startTime != null) {
+            try {
+                Date date = mFormat.parse(startTime);
+                startTimestamp = date.getTime();
+            } catch (ParseException e) {
+                e.printStackTrace();
+
+            }
+        }
+
+        return startTimestamp;
+    }
+
+
     public String endTime;
+
+    public long getEndTimestampFromStr() {
+
+        SimpleDateFormat mFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
+        long endTimestamp = System.currentTimeMillis();
+
+        if (endTime != null) {
+            try {
+                Date date = mFormat.parse(endTime);
+                endTimestamp = date.getTime();
+            } catch (ParseException e) {
+                e.printStackTrace();
+
+            }
+        }
+
+        return endTimestamp;
+    }
+
+
     public int interval;
 
 
