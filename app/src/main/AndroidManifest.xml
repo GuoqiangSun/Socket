@@ -46,6 +46,20 @@
             </intent-filter>
         </activity>
 
+
+        <activity
+            android:name=".app.activity.TestActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:exported="true"
+            android:multiprocess="true"
+            android:windowSoftInputMode="stateHidden|stateAlwaysHidden">
+            <intent-filter>
+
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name=".app.activity.WebActivity"
             android:configChanges="locale|orientation|screenSize|layoutDirection"
@@ -100,17 +114,6 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data android:scheme="@string/fb_login_protocol_scheme" />
-            </intent-filter>
-        </activity>
-
-
-        <activity
-            android:name=".app.activity.TestActivity"
-            android:exported="true">
-            <intent-filter>
-
-                <category android:name="android.intent.category.LAUNCHER" />
-                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 

@@ -1,5 +1,6 @@
 package cn.com.startai.socket.sign.hardware.ble.impl;
 
+import android.Manifest;
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothGatt;
@@ -8,9 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Looper;
-
-import com.blankj.utilcode.constant.PermissionConstants;
-import com.blankj.utilcode.util.PermissionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +25,8 @@ import cn.com.startai.socket.sign.hardware.ble.array.BleArrayUtils;
 import cn.com.startai.socket.sign.hardware.ble.util.DeviceEnablePost;
 import cn.com.startai.socket.sign.hardware.ble.util.InsertDisplayDeviceDaoUtil;
 import cn.com.startai.socket.sign.hardware.ble.xml.ConBleSp;
+import cn.com.swain.baselib.util.PermissionHelper;
+import cn.com.swain.baselib.util.PermissionRequest;
 import cn.com.swain.baselib.util.StrUtil;
 import cn.com.swain.support.ble.connect.AbsBleConnect;
 import cn.com.swain.support.ble.connect.BleConnectEngine;
@@ -351,16 +351,27 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
         if (mScanning) {
             if (!mBle.isValid()) {
                 if (Debuger.isLogDebug) {
-                    Tlog.w(TAG, " ScanBle is unValid " + mBle.address + "--" + mBle.name + "--" + mBle.getFirstBroadUUID());
+                    Tlog.w(TAG, " ScanBle is unValid " + mBle.address
+                            + "--" + mBle.name + "--" + mBle.getFirstBroadUUID());
                 }
                 return;
+            } else if (CustomManager.getInstance().isTriggerBle()
+                    && !mBle.address.startsWith("90:00")) {
+
+                if (Debuger.isLogDebug) {
+                    Tlog.w(TAG, " ScanBle isTriggerBle " + mBle.address + " not startsWith 90:00");
+                }
+                return;
+
             }
             if (!mBle.matchBroadUUID(mShowUuid)) {
                 if (Debuger.isLogDebug) {
-                    Tlog.w(TAG, " broadUuid not match " + mBle.address + "--" + mBle.name + "--" + mBle.getFirstBroadUUID());
+                    Tlog.w(TAG, " broadUuid not match " + mBle.address
+                            + "--" + mBle.name + "--" + mBle.getFirstBroadUUID());
                 }
-                return;
+//                return;
             }
+
 
             if (Debuger.isLogDebug) {
                 Tlog.w(TAG, " onResultBsGattScan " + mBle.toString());
@@ -413,19 +424,32 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
     public void scanningHW() {
         Tlog.v(TAG, " scanningBle() ");
 
-        PermissionUtils permission = PermissionUtils.permission(PermissionConstants.LOCATION);
-        permission.callback(new PermissionUtils.SimpleCallback() {
-            @Override
-            public void onGranted() {
-                scanBle();
-            }
+//        PermissionUtils permission = PermissionUtils.permission(PermissionConstants.LOCATION);
+//        permission.callback(new PermissionUtils.SimpleCallback() {
+//            @Override
+//            public void onGranted() {
+//                scanBle();
+//            }
+//
+//            @Override
+//            public void onDenied() {
+//
+//            }
+//        });
+//        permission.request();
+
+        PermissionHelper.requestPermission(app, new PermissionRequest.OnPermissionResult() {
 
             @Override
-            public void onDenied() {
+            public void onPermissionRequestResult(String permission, boolean granted) {
 
+                Tlog.v(TAG, " scanningBle() PermissionHelper : " + permission + " granted:" + granted);
+
+                if (granted) {
+                    scanBle();
+                }
             }
-        });
-        permission.request();
+        }, Manifest.permission.ACCESS_COARSE_LOCATION);
 
     }
 
@@ -921,6 +945,7 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
 
         if (mProtocolInput != null) {
             ReceivesData mReceiverData = new ReceivesData(mac, data);
+            mReceiverData.getReceiveModel().setModelIsBle();
             mReceiverData.obj = uuidStr;
             mProtocolInput.onInputServerData(mReceiverData);
         } else {

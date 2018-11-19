@@ -12,8 +12,8 @@ android {
         applicationId "cn.com.startai.bluetoothsocket"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 16180
-        versionName "1.6.180"
+        versionCode 16183
+        versionName "1.6.183"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
@@ -28,7 +28,7 @@ android {
 
     android.applicationVariants.all { variant ->
         variant.outputs.all {
-            outputFileName = "blesocket-${variant.versionName}-${variant.buildType.name}.apk"
+            outputFileName = "TriggerHomeBle-${variant.versionName}-${variant.buildType.name}.apk"
         }
     }
 

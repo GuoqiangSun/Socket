@@ -97,11 +97,14 @@ public class Debuger implements IApp, IService {
      */
     public static boolean isLoadLocalH5 = false;
 
+    /**
+     * 是否test
+     */
+    public static boolean isTest = false;
+
 
     /**
      * 权限申请后再判断录制文件是否创建
-     *
-     * @param activity
      */
     public void reCheckLogRecord(Activity activity) {
         if (!Tlog.hasILogRecordImpl() && isRecordLogDebug) {
@@ -153,6 +156,11 @@ public class Debuger implements IApp, IService {
             File strictFile = new File(appRootPath, "strict.debug");
             if (strictFile.exists()) {
                 enableStrict();
+            }
+
+            File testFile = new File(appRootPath, "test.debug");
+            if (testFile.exists()) {
+                isTest = true;
             }
 
         }

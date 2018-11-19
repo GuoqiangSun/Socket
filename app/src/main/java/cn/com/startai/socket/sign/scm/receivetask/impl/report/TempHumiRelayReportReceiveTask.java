@@ -1,5 +1,6 @@
 package cn.com.startai.socket.sign.scm.receivetask.impl.report;
 
+import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.Humidity;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.Temperature;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolOutput;
@@ -82,8 +83,19 @@ public class TempHumiRelayReportReceiveTask extends SocketResponseTask {
 
             } else if (model == SocketSecureKey.Model.ALARM_MODEL_HUMIDITY) {
 
-                Tlog.v(TAG, " humidity ");
                 mCallBack.onRelayResult(mac, on);
+
+                Humidity mHumidity = new Humidity();
+                mHumidity.limit = limit;
+                if (SocketSecureKey.Util.isLimitUp(limit)) {
+                    mHumidity.hotAlarmSwitch = startup;
+                    mHumidity.hotAlarmValue = alarmValue;
+                } else {
+                    mHumidity.codeAlarmSwitch = startup;
+                    mHumidity.codeAlarmValue = alarmValue;
+                }
+                mHumidity.currentValue = curValue;
+                mCallBack.onQueryHumidityResult(mac, true, mHumidity);
 
             } else {
                 Tlog.e(TAG, " model error ... ");

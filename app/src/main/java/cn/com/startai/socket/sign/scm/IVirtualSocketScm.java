@@ -8,6 +8,7 @@ import cn.com.startai.socket.sign.scm.bean.CountdownData;
 import cn.com.startai.socket.sign.scm.bean.CumuParams;
 import cn.com.startai.socket.sign.scm.bean.LanBindInfo;
 import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
+import cn.com.startai.socket.sign.scm.bean.PointReport;
 import cn.com.startai.socket.sign.scm.bean.PowerCountdown;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
 import cn.com.startai.socket.sign.scm.bean.RenameBean;
@@ -109,11 +110,25 @@ public interface IVirtualSocketScm {
     void queryScmTime(String mac);
 
     /**
+     * 查询单片机的时间
+     *
+     * @param mac
+     */
+    void queryScmTimezone(String mac);
+
+    /**
      * 设置单片机的系统时间
      *
      * @param mac
      */
     void setScmTime(String mac);
+
+    /**
+     * 设置单片机的系统时间
+     *
+     * @param mac
+     */
+    void setScmTimezone(String mac);
 
     /**
      * 设备连接
@@ -206,6 +221,8 @@ public interface IVirtualSocketScm {
 
     void setUSBState(String mac, boolean state);
 
+    int getScmToken(String mac);
+
 
     /**
      * author: Guoqiang_Sun
@@ -296,6 +313,10 @@ public interface IVirtualSocketScm {
         void onResultUpdateVersion(boolean result, UpdateVersion mVersion);
 
         void onResultUSBState(String id, boolean on);
+
+        void onElectricityReportResult(boolean result, PointReport mElectricity);
+
+        int getTokenFromDB(String mac);
     }
 
 

@@ -1,4 +1,4 @@
-package cn.com.startai.socket.sign.scm.receivetask.impl.system;
+package cn.com.startai.socket.sign.scm.receivetask.impl.setting;
 
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
@@ -11,36 +11,35 @@ import cn.com.swain169.log.Tlog;
  * date : 2018/4/26 0026
  * desc :
  */
-public class CurrentQueryReceiveTask extends SocketResponseTask {
+public class TemperatureUnitQueryReceiveTask extends SocketResponseTask {
 
     private OnTaskCallBack mTaskCallBack;
 
-    public CurrentQueryReceiveTask(OnTaskCallBack mTaskCallBack) {
-        Tlog.e(TAG, " new CurrentQueryReceiveTask() ");
+    public TemperatureUnitQueryReceiveTask(OnTaskCallBack mTaskCallBack) {
+        Tlog.e(TAG, " new TemperatureUnitQueryReceiveTask() ");
         this.mTaskCallBack = mTaskCallBack;
     }
-
 
     @Override
     protected void doTask(SocketDataArray mSocketDataArray) {
 
         byte[] protocolParams = mSocketDataArray.getProtocolParams();
 
-        if (protocolParams == null || protocolParams.length < 3) {
+        if (protocolParams == null || protocolParams.length < 2) {
             Tlog.e(TAG, " protocolParams == null");
             if (mTaskCallBack != null) {
-                mTaskCallBack.onQueryCurrentResult(mSocketDataArray.getID(), false, 0);
+                mTaskCallBack.onQueryTemperatureUnitResult(mSocketDataArray.getID(), false, 0);
             }
             return;
         }
 
         boolean result = SocketSecureKey.Util.resultIsOk(protocolParams[0]);
-        float mAlarmCurrentValue = ((protocolParams[1] & 0xFF) << 8 | (protocolParams[2] & 0xFF)) / 100F;
+        int mTemperatureUnit = (protocolParams[1] & 0xFF);
 
-        Tlog.v(TAG, "CurrentQuery result : " + result + " mAlarmCurrentValue:" + mAlarmCurrentValue);
+        Tlog.v(TAG, "TemperatureQuery result : " + result + " mTemperatureUnit:" + mTemperatureUnit);
 
         if (mTaskCallBack != null) {
-            mTaskCallBack.onQueryCurrentResult(mSocketDataArray.getID(), result, mAlarmCurrentValue);
+            mTaskCallBack.onQueryTemperatureUnitResult(mSocketDataArray.getID(), result, mTemperatureUnit);
         }
 
     }

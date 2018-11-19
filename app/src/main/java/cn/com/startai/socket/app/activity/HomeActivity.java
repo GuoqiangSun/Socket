@@ -95,12 +95,12 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Tlog.v(TAG, "HomeActivity  onCreate() ");
 
         StatusBarUtil.fullscreenShowBarFontWhite(getWindow());
 
         setContentView(R.layout.activity_home);
 
-        Tlog.v(TAG, "HomeActivity  onCreate() ");
 
         if (mPermissionRequest == null) {
             Tlog.v(TAG, "HomeActivity new PermissionRequest() ");

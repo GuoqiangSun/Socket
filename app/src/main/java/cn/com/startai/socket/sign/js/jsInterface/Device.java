@@ -174,7 +174,8 @@ public class Device extends AbsJsInterface {
         private static final String METHOD_FIRST_BINDING = "javascript:isFirstBindingResponse($result,'$data')";
 
         public static String callJSFirstBinding(boolean first, String data) {
-            return METHOD_FIRST_BINDING.replace("$result", String.valueOf(first)).replace("$data", data == null ? "" : data);
+            return METHOD_FIRST_BINDING.replace("$result", String.valueOf(first))
+                    .replace("$data", data == null ? "" : data);
         }
 
     }

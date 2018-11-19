@@ -1,4 +1,4 @@
-package cn.com.startai.socket.sign.scm.receivetask.impl.system;
+package cn.com.startai.socket.sign.scm.receivetask.impl.setting;
 
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;

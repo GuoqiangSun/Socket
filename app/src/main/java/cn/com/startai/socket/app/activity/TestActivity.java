@@ -8,17 +8,14 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
+import com.blankj.utilcode.constant.PermissionConstants;
+import com.blankj.utilcode.util.PermissionUtils;
 import com.tencent.mm.plugin.exdevice.jni.C2JavaExDevice;
 import com.tencent.mm.plugin.exdevice.jni.Java2CExDevice;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import cn.com.startai.socket.app.SocketApplication;
 import cn.com.startai.socket.db.gen.DaoSession;
@@ -49,80 +46,6 @@ public class TestActivity extends AppCompatActivity {
 
     private static String TAG = SocketApplication.TAG;
 
-    public static void main(String[] args) {
-//        long t = 1537954715260L;
-//        Date d = new Date(t);
-//        System.out.println(d.toString());
-//
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
-//        String format = dateFormat.format(new Date());
-//        System.out.println(" " + format);
-
-        String date = "2018/6/1";
-        String date2 = "2018/6/2";
-
-        try {
-            Date parse = dateFormat.parse(date);
-
-            Date parse1 = dateFormat.parse(date2);
-
-            long time = parse.getTime();
-
-            long time1 = parse1.getTime();
-
-            long diff = time1 - time;
-
-            System.out.println(diff);
-
-            long diff2 = 24 * 60 * 60 * 1000;
-
-            System.out.println(diff2);
-
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-        String[] s = new String[2];
-
-        System.out.println(s.length);
-        System.out.println(s[0]);
-        System.out.println(s[1]);
-
-        for (String ss : s) {
-            System.out.println(ss);
-        }
-
-
-//        5b, e5, 5f, 50,
-//        1541758800
-        byte[] buf = new byte[4];
-        buf[0] = 0x5b;
-        buf[1] = (byte) 0xe5;
-        buf[2] = 0x5f;
-        buf[3] = 0x50;
-        long l = ((0x00) | (0x00) | (0x00) | (0x00) | ((buf[0] << 24) & 0xFF)
-                | ((buf[1] << 16) & 0xFF)
-                | ((buf[2] << 8) & 0xFF)
-                | ((buf[3]) & 0xFF));
-        System.out.println(" l:" + l);
-
-        byte[] buf2 = new byte[8];
-        buf2[0] = 0x00;
-        buf2[1] = 0x00;
-        buf2[2] = 0x00;
-        buf2[3] = 0x00;
-        buf2[4] = 0x5b;
-        buf2[5] = (byte) 0xe5;
-        buf2[6] = 0x5f;
-        buf2[7] = 0x50;
-        long aLong = ByteBuffer.wrap(buf2, 0, 8).getLong();
-        System.out.println(" aLong:" + aLong);
-
-        byte version0 = 1;
-        byte version1 = 8;
-        int version =  ((version0 &0xFF)<< 8) | (version1 & 0xFF);
-        System.out.println(" version:" + version);
-    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -159,6 +82,21 @@ public class TestActivity extends AppCompatActivity {
 
 //        ConnectivityService c;
 //        WifiCommand d;
+
+
+        PermissionUtils permission = PermissionUtils.permission(PermissionConstants.LOCATION);
+        permission.callback(new PermissionUtils.SimpleCallback() {
+            @Override
+            public void onGranted() {
+                Toast.makeText(getApplicationContext(), " granted ", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onDenied() {
+                Toast.makeText(getApplicationContext(), " denied ", Toast.LENGTH_SHORT).show();
+            }
+        });
+        permission.request();
 
     }
 

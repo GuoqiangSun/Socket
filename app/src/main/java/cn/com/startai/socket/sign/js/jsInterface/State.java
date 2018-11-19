@@ -5,8 +5,10 @@ import android.os.Message;
 
 import org.xwalk.core.JavascriptInterface;
 
+import cn.com.startai.socket.global.Utils.DateUtils;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.baselib.jsInterface.AbsHandlerJsInterface;
 import cn.com.swain169.log.Tlog;
 
@@ -54,10 +56,21 @@ public class State extends AbsHandlerJsInterface {
                 = "javascript:deviceAccumulationParameterResponse('$mac',$time,$ghg,$electricity)";
 
         public static String callJsCumuParams(String mac, long time, long ghg, long electrycity) {
-            return CUMU_PARAMS.replace("$mac", String.valueOf(mac)).replace("$time", String.valueOf(time))
-                    .replace("$ghg", String.valueOf(ghg)).replace("$electrycity", String.valueOf(electrycity));
+            return CUMU_PARAMS.replace("$mac", String.valueOf(mac))
+                    .replace("$time", String.valueOf(time))
+                    .replace("$ghg", String.valueOf(ghg))
+                    .replace("$electrycity", String.valueOf(electrycity));
         }
 
+
+        private static final String POINT_REPORT
+                = "javascript:deviceHistoryReportDataResponse('$mac',$time,'$data')";
+
+        public static String callJsElecPointReport(String mac, long time, String data) {
+            return POINT_REPORT.replace("$mac", String.valueOf(mac))
+                    .replace("$time", String.valueOf(time))
+                    .replace("$data", String.valueOf(data));
+        }
     }
 
     private final IJSStateCallBack mCallBack;
@@ -77,9 +90,32 @@ public class State extends AbsHandlerJsInterface {
                 + " endTime:" + endTime + " interval:" + interval);
         final QueryHistoryCount mQueryCount = new QueryHistoryCount();
         mQueryCount.mac = mac;
+
+//        if (startTime != null) {
+//            if (SocketSecureKey.Util.isIntervalMonth((byte) mQueryCount.interval)) {
+//                String[] split = startTime.split("/");
+//                if (split.length >= 2) {
+//                    int curMonth = DateUtils.getCurMonth();
+//                    int curYear = DateUtils.getCurYear();
+//                    int curAllMonth = curYear * 12 + curMonth;
+//                    int jsYear = Integer.parseInt(split[0]);
+//                    int jsMonth = Integer.parseInt(split[1]);
+//                    int jsAllMonth = (jsYear * 12 + jsMonth);
+//                    int validMonth = curAllMonth - 7;
+//                    if (jsAllMonth < validMonth) {
+//                        jsAllMonth = validMonth;
+//                    }
+//                    jsYear = jsAllMonth / 12;
+//                    jsMonth = jsAllMonth - jsYear + 7;
+//                    startTime = jsYear + "/" + jsMonth + "/" + split[2];
+//                }
+//            }
+//        }
+
         mQueryCount.startTime = startTime;
         mQueryCount.endTime = endTime;
         mQueryCount.interval = interval;
+        mQueryCount.needQueryFromServer = true;
         getHandler().obtainMessage(MSG_HISTORY, mQueryCount).sendToTarget();
 
     }

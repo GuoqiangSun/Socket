@@ -57,6 +57,7 @@ import cn.com.startai.socket.sign.scm.bean.CountdownData;
 import cn.com.startai.socket.sign.scm.bean.CumuParams;
 import cn.com.startai.socket.sign.scm.bean.LanBindInfo;
 import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
+import cn.com.startai.socket.sign.scm.bean.PointReport;
 import cn.com.startai.socket.sign.scm.bean.PowerCountdown;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
 import cn.com.startai.socket.sign.scm.bean.RenameBean;
@@ -800,7 +801,6 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         if (mScmVirtual != null) {
             mScmVirtual.quickControlRelay(mac, on);
         }
-
     }
 
     @Override
@@ -809,6 +809,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         if (mScmVirtual != null) {
             mScmVirtual.quickQueryRelay(mac);
         }
+
     }
 
     @Override
@@ -1721,8 +1722,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onResultUpdateVersion(boolean result, UpdateVersion mVersion) {
 
-        if(mNetworkManager!=null){
-            mNetworkManager.onDeviceUpdateResult(mVersion);
+        if (mNetworkManager != null) {
+            mNetworkManager.onDeviceUpdateResult(result,mVersion);
         }
 
         if (mVersion.isQueryVersionAction()) {
@@ -1752,6 +1753,21 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onResultUSBState(String id, boolean on) {
         String method = USBSwitch.Method.callJsUSBState(id, on);
         loadJs(method);
+    }
+
+    @Override
+    public void onElectricityReportResult(boolean result, PointReport mElectricity) {
+        String method = State.Method.callJsElecPointReport(
+                mElectricity.mac, mElectricity.ts, mElectricity.toJsonStr());
+        loadJs(method);
+    }
+
+    @Override
+    public int getTokenFromDB(String mac) {
+        if (mNetworkManager != null) {
+            return mNetworkManager.getToken(mac);
+        }
+        return -1;
     }
 
     @Override

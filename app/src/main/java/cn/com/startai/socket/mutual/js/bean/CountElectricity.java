@@ -24,8 +24,11 @@ public class CountElectricity {
 
     private byte[] electricity;
 
-    // 一天
-    public static final int SIZE = 60 / 5 * 24;
+    public static final int ONE_PKG_LENGTH = 8; // 一组数据大小
+    // 一天数据个数
+    public static final int SIZE_ONE_DAY = 60 / 5 * 24;
+
+    public static final int ONE_DAY_BYTES = SIZE_ONE_DAY * ONE_PKG_LENGTH; // 一天数据长度
 
     @Generated(hash = 387654504)
     public CountElectricity(Long id, String mac, long timestamp, long sequence,

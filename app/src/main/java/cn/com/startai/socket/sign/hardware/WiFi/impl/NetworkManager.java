@@ -1,5 +1,6 @@
 package cn.com.startai.socket.sign.hardware.WiFi.impl;
 
+import android.Manifest;
 import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -12,8 +13,6 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Looper;
 
-import com.blankj.utilcode.constant.PermissionConstants;
-import com.blankj.utilcode.util.PermissionUtils;
 import com.tencent.mm.opensdk.modelbase.BaseResp;
 import com.tencent.mm.plugin.exdevice.jni.C2JavaExDevice;
 import com.tencent.mm.plugin.exdevice.jni.Java2CExDevice;
@@ -75,10 +74,13 @@ import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.baselib.util.IpUtil;
 import cn.com.swain.baselib.util.MacUtil;
+import cn.com.swain.baselib.util.PermissionHelper;
+import cn.com.swain.baselib.util.PermissionRequest;
 import cn.com.swain.baselib.util.WiFiUtil;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolInput;
 import cn.com.swain.support.protocolEngine.pack.ReceivesData;
 import cn.com.swain.support.protocolEngine.pack.ResponseData;
+import cn.com.swain.support.protocolEngine.pack.SendModel;
 import cn.com.swain.support.udp.ISocketResult;
 import cn.com.swain.support.udp.UdpLanCom;
 import cn.com.swain.support.udp.UdpResponseMsg;
@@ -435,19 +437,31 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
     @Override
     public void configureWiFi(WiFiConfig mConfig) {
 
-        PermissionUtils permission = PermissionUtils.permission(PermissionConstants.LOCATION);
-        permission.callback(new PermissionUtils.SimpleCallback() {
-            @Override
-            public void onGranted() {
-                config(mConfig);
-            }
+//        PermissionUtils permission = PermissionUtils.permission(PermissionConstants.LOCATION);
+//        permission.callback(new PermissionUtils.SimpleCallback() {
+//            @Override
+//            public void onGranted() {
+//                config(mConfig);
+//            }
+//
+//            @Override
+//            public void onDenied() {
+//
+//            }
+//        });
+//        permission.request();
 
+        PermissionHelper.requestPermission(app, new PermissionRequest.OnPermissionResult() {
             @Override
-            public void onDenied() {
+            public void onPermissionRequestResult(String permission, boolean granted) {
 
+                Tlog.v(TAG, " configureWiFi() PermissionHelper : " + permission + " granted:" + granted);
+
+                if (granted) {
+                    config(mConfig);
+                }
             }
-        });
-        permission.request();
+        }, Manifest.permission.ACCESS_COARSE_LOCATION);
 
     }
 
@@ -528,6 +542,7 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
 //                Java2CExDevice.startAirKissWithInter(pwd, ssid, key.getBytes(), AIR_KISS_TIME_OUT,
 //                        0, 5);
 //                Java2CExDevice.startAirKiss(pwd, ssid, key.getBytes(), AIR_KISS_TIME_OUT);
+
 
             }
 
@@ -713,8 +728,11 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
     }
 
     @Override
-    public void onDeviceUpdateResult(UpdateVersion mVersion) {
-        discoveryLanDevice(3);
+    public void onDeviceUpdateResult(boolean result, UpdateVersion mVersion) {
+        discoveryLanDevice(12);
+        if (result) {
+            mDeviceManager.onDeviceUpdateResult(mVersion);
+        }
     }
 
     @Override
@@ -808,8 +826,8 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
         ControlDevice controlDevice = mControlDeviceUtil.get(mac);
         if (controlDevice != null) {
             final String loginUserID = getLoginUserID();
-            final int token = getToken(mac);
-            controlDevice.onTokenInvalid(token, loginUserID);
+//            final int token = getToken(mac);
+            controlDevice.onTokenInvalid(-1, loginUserID);
         }
 
     }
@@ -988,7 +1006,6 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
 
         }
 
-
         @Override
         public boolean needUISafety() {
             return false;
@@ -997,8 +1014,8 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
 
     @Override
     public void onOutputDataToServer(ResponseData mResponseData) {
-
-        if (mResponseData.getSendModel().isSendModelOnlyLan()) {
+        SendModel sendModel = mResponseData.getSendModel();
+        if (sendModel.isSendModelOnlyLan()) {
 
             if (Debuger.isLogDebug) {
                 Tlog.i(TAG, "mResponseData.getSendModel().isSendModelOnlyLan()");
@@ -1009,7 +1026,7 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
             return;
         }
 
-        if (mResponseData.getSendModel().isSendModelOnlyWan()) {
+        if (sendModel.isSendModelOnlyWan()) {
 
             if (Debuger.isLogDebug) {
                 Tlog.i(TAG, "mResponseData.getSendModel().isSendModelOnlyWan()");
@@ -1019,6 +1036,19 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
 
             return;
         }
+
+        if (sendModel.isSendModelIsLan() && sendModel.isSendModelIsWan()) {
+
+            if (Debuger.isLogDebug) {
+                Tlog.i(TAG, "mResponseData.getSendModel().isSendModelWaAndLan()");
+            }
+
+            if (!sendMsgByLan(mResponseData)) {
+                sendMsgByWan(mResponseData);
+            }
+            return;
+        }
+
 
         ControlDevice controlDevice = mControlDeviceUtil.get(mResponseData.toID);
 
@@ -1046,7 +1076,7 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
             udpMsg.ip = mDiscoveryDeviceByMac.ip;
             udpMsg.port = mDiscoveryDeviceByMac.port;
             udpMsg.data = mResponseData.data;
-            mUdpCom.write(udpMsg);
+            mUdpCom.writeDelay(udpMsg);
 
             if (Debuger.isLogDebug) {
                 Tlog.w(TAG, "onOutputDataToServerByLan() :" + mResponseData.toString());
@@ -1161,6 +1191,7 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
 
     }
 
+    private long lastDiscovery;
 
     @Override
     public void onSocketReceiveData(String ip, int port, byte[] data) {
@@ -1171,9 +1202,15 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
 
             if (mac == null) {
                 mac = H5Config.DEFAULT_MAC;
+                long d = System.currentTimeMillis();
+                if (Math.abs(d - lastDiscovery) > 1000 * 7) {
+                    discoveryLanDevice(1);
+                }
+                lastDiscovery = d;
             }
 
             ReceivesData mReceiveData = new ReceivesData(mac, data);
+            mReceiveData.getReceiveModel().setReceiveModelIsLan();
             mReceiveData.obj = ip;
             mReceiveData.arg = port;
             mReceives.onInputServerData(mReceiveData);
@@ -1197,6 +1234,7 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
             }
 
             ReceivesData mReceiveData = new ReceivesData(mac, data);
+            mReceiveData.getReceiveModel().setReceiveModelIsWan();
             mReceiveData.obj = fromId;
             mReceives.onInputServerData(mReceiveData);
 

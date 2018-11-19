@@ -17,6 +17,22 @@ import java.util.Locale;
  */
 public class QueryHistoryCount {
 
+
+    public QueryHistoryCount cloneMyself() {
+        QueryHistoryCount mQueryHistoryCount = new QueryHistoryCount();
+        mQueryHistoryCount.mac = mac;
+        mQueryHistoryCount.startTime = startTime;
+        mQueryHistoryCount.startTimeMillis = startTimeMillis;
+        mQueryHistoryCount.endTime = endTime;
+        mQueryHistoryCount.interval = interval;
+        mQueryHistoryCount.day = day;
+        return mQueryHistoryCount;
+    }
+
+    public int msgSeq;
+
+    public boolean needQueryFromServer;
+
     public String mac;
     public String startTime;
     public long startTimeMillis;
@@ -24,7 +40,7 @@ public class QueryHistoryCount {
     public long getStartTimestampFromStr() {
 
         SimpleDateFormat mFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
-        long startTimestamp = System.currentTimeMillis();
+        long startTimestamp = 0L;
 
         if (startTime != null) {
             try {
@@ -45,7 +61,7 @@ public class QueryHistoryCount {
     public long getEndTimestampFromStr() {
 
         SimpleDateFormat mFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
-        long endTimestamp = System.currentTimeMillis();
+        long endTimestamp = 0L;
 
         if (endTime != null) {
             try {
@@ -65,6 +81,8 @@ public class QueryHistoryCount {
 
 
     public int day;
+
+
     public ArrayList<Data> mDataArray;
 
     public String toJsonArrayData() {
@@ -72,7 +90,7 @@ public class QueryHistoryCount {
 
         if (mDataArray != null) {
             for (Data mData : mDataArray) {
-                mArray.put(mData.toJsonObjData());
+                mArray.put(mData.toJsonObj());
             }
         }
 
@@ -91,8 +109,7 @@ public class QueryHistoryCount {
         public float e;
         public float s;
 
-
-        public String toJsonObjData() {
+        public JSONObject toJsonObj() {
             JSONObject mObj = new JSONObject();
 
             try {
@@ -102,8 +119,9 @@ public class QueryHistoryCount {
                 e1.printStackTrace();
             }
 
-            return mObj.toString();
+            return mObj;
         }
+
     }
 
 

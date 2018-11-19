@@ -1,4 +1,4 @@
-package cn.com.startai.socket.sign.scm.receivetask.impl.system;
+package cn.com.startai.socket.sign.scm.receivetask.impl.setting;
 
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
@@ -11,35 +11,36 @@ import cn.com.swain169.log.Tlog;
  * date : 2018/4/26 0026
  * desc :
  */
-public class ElectricityPricesQueryReceiveTask extends SocketResponseTask {
+public class TemperatureUnitSettingReceiveTask extends SocketResponseTask {
 
     private OnTaskCallBack mTaskCallBack;
 
-    public ElectricityPricesQueryReceiveTask(OnTaskCallBack mTaskCallBack) {
-        Tlog.e(TAG, " new ElectricityPricesQueryReceiveTask() ");
+    public TemperatureUnitSettingReceiveTask(OnTaskCallBack mTaskCallBack) {
+        Tlog.e(TAG, " new TemperatureUnitSettingReceiveTask() ");
         this.mTaskCallBack = mTaskCallBack;
     }
+
 
     @Override
     protected void doTask(SocketDataArray mSocketDataArray) {
 
         byte[] protocolParams = mSocketDataArray.getProtocolParams();
 
-        if (protocolParams == null || protocolParams.length < 3) {
+        if (protocolParams == null || protocolParams.length < 2) {
             Tlog.e(TAG, " protocolParams == null");
             if (mTaskCallBack != null) {
-                mTaskCallBack.onQueryElectricityPriceResult(mSocketDataArray.getID(), false, 0);
+                mTaskCallBack.onSettingTemperatureUnitResult(mSocketDataArray.getID(), false, 0);
             }
             return;
         }
 
         boolean result = SocketSecureKey.Util.resultIsOk(protocolParams[0]);
-        int mElectricityPrices = (protocolParams[1] & 0xFF) << 8 | (protocolParams[2] & 0xFF);
+        int mTemperatureUnit = (protocolParams[1] & 0xFF);
 
-        Tlog.v(TAG, "ElectricityPricesQuery result : " + result + " mElectricityPrice:" + mElectricityPrices);
+        Tlog.v(TAG, "TemperatureUnit result : " + result + " mTemperatureUnit:" + mTemperatureUnit);
 
         if (mTaskCallBack != null) {
-            mTaskCallBack.onQueryElectricityPriceResult(mSocketDataArray.getID(), result, mElectricityPrices);
+            mTaskCallBack.onSettingTemperatureUnitResult(mSocketDataArray.getID(), result, mTemperatureUnit);
         }
 
     }

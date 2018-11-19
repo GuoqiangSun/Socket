@@ -7,6 +7,7 @@ import cn.com.startai.socket.sign.scm.bean.CostRate;
 import cn.com.startai.socket.sign.scm.bean.CountdownData;
 import cn.com.startai.socket.sign.scm.bean.CumuParams;
 import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
+import cn.com.startai.socket.sign.scm.bean.PointReport;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
 import cn.com.startai.socket.sign.scm.bean.SpendingElectricityData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;
@@ -176,9 +177,11 @@ public interface OnTaskCallBack {
 
     void onQueryHistoryCountResult(boolean result, QueryHistoryCount mCount);
 
+    void onElectricityReportResult(boolean result, PointReport mElectricity);
+
     void onCostRateSetResult(boolean result, byte model);
 
-    void onNewElectricResult(String id, int relpower, int avepower, int maxpower,float freq,float voltage, float current, float maxCurrent, float powerFactory);
+    void onNewElectricResult(String id, int relpower, int avepower, int maxpower, float freq, float voltage, float current, float maxCurrent, float powerFactory);
 
     void onQueryCostRateResult(boolean result, CostRate mCostRate);
 
@@ -189,4 +192,9 @@ public interface OnTaskCallBack {
     void onUSBResult(String id, boolean on);
 
     void onTestResult(byte[] protocolParams);
+
+    void onSetTimezoneResult(boolean result, String id,byte zone);
+
+    void onQueryTimezoneResult(boolean result, String id,byte zone);
+
 }

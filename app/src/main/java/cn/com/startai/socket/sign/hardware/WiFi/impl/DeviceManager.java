@@ -7,6 +7,7 @@ import android.util.SparseArray;
 import org.greenrobot.greendao.query.QueryBuilder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ import cn.com.startai.socket.sign.hardware.IControlWiFi;
 import cn.com.startai.socket.sign.hardware.WiFi.bean.WanBindingDevice;
 import cn.com.startai.socket.sign.hardware.WiFi.util.LanDeviceLst;
 import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
+import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.swain.baselib.app.IApp.IService;
 import cn.com.swain169.log.Tlog;
 
@@ -79,6 +81,7 @@ public class DeviceManager implements IService {
         mDisplayDeviceLst.clear();
         mDiscoveryDeviceLst.clear();
         mDisplayHandler = null;
+        tokenMap.clear();
     }
 
     @Override
@@ -140,6 +143,35 @@ public class DeviceManager implements IService {
         if (mDisplayHandler != null) {
             mDisplayHandler.obtainMessage(MAG_WHAT_DISPLAY_BIND_DEVICE, mid).sendToTarget();
         }
+    }
+
+    void onDeviceUpdateResult(UpdateVersion mVersion) {
+
+        if (mVersion != null) {
+//            mDisplayDeviceLst.updateVersion(mVersion.mac, mVersion.curVersion);
+
+            LanDeviceInfo lanDeviceByMac = mDiscoveryDeviceLst.getLanDeviceByMac(mVersion.mac);
+            if (lanDeviceByMac != null) {
+                lanDeviceByMac.setMainVersion((mVersion.curVersion >> 8) & 0xFF);
+                lanDeviceByMac.setSubVersion(mVersion.curVersion & 0xFF);
+            }
+
+            LanDeviceInfo displayDeviceByMac = mDisplayDeviceLst.getDisplayDeviceByMac(mVersion.mac);
+
+            if (displayDeviceByMac != null) {
+                displayDeviceByMac.setMainVersion((mVersion.curVersion >> 8) & 0xFF);
+                displayDeviceByMac.setSubVersion(mVersion.curVersion & 0xFF);
+
+                if (mResultCallBack != null) {
+                    DisplayDeviceList mLst = new DisplayDeviceList(displayDeviceByMac);
+                    mResultCallBack.onResultWiFiDeviceListDisplay(mLst);
+                }
+
+            }
+
+        }
+
+
     }
 
 
@@ -492,9 +524,12 @@ public class DeviceManager implements IService {
 
     }
 
+    private final Map<String, Integer> tokenMap = Collections.synchronizedMap(new HashMap<>());
 
     void onDeviceResponseToken(String mac, int token, String userID) {
         Tlog.e(TAG, " onDeviceResponseToken mac:" + mac + " token:" + token);
+
+        tokenMap.put(mac, token);
 
         WanBindingDeviceDao bindingDeviceDao = DBManager.getInstance().getDaoSession().getWanBindingDeviceDao();
         List<WanBindingDevice> listBind = bindingDeviceDao.queryBuilder()
@@ -512,6 +547,30 @@ public class DeviceManager implements IService {
 
     }
 
+
+    public int getToken(String mac, String userID) {
+
+        Integer integer = tokenMap.get(mac);
+
+        if (integer != null) {
+            return integer;
+        }
+
+        WanBindingDeviceDao bindingDeviceDao = DBManager.getInstance().getDaoSession().getWanBindingDeviceDao();
+        List<WanBindingDevice> listBind = bindingDeviceDao.queryBuilder()
+                .where(WanBindingDeviceDao.Properties.Mid.eq(userID),
+                        WanBindingDeviceDao.Properties.Mac.eq(mac)).list();
+
+        int token = 0;
+        if (listBind.size() > 0) {
+            WanBindingDevice windingDevice = listBind.get(0);
+            token = windingDevice.getToken();
+        }
+
+        tokenMap.put(mac, token);
+        return token;
+    }
+
     void onDeviceResponseConnect(boolean result, String id, String loginUserID) {
         Tlog.e(TAG, " onDeviceResponseConnect result " + result + " id: " + id + " loginUserID:" + loginUserID);
     }
@@ -524,21 +583,6 @@ public class DeviceManager implements IService {
         Tlog.e(TAG, " onDeviceResponseDisconnect result " + result + " id: " + id + " loginUserID:" + loginUserID);
     }
 
-
-    public int getToken(String mac, String userID) {
-
-        WanBindingDeviceDao bindingDeviceDao = DBManager.getInstance().getDaoSession().getWanBindingDeviceDao();
-        List<WanBindingDevice> listBind = bindingDeviceDao.queryBuilder()
-                .where(WanBindingDeviceDao.Properties.Mid.eq(userID),
-                        WanBindingDeviceDao.Properties.Mac.eq(mac)).list();
-
-        if (listBind.size() > 0) {
-            WanBindingDevice windingDevice = listBind.get(0);
-            return windingDevice.getToken();
-        }
-
-        return -1;
-    }
 
     /*********************/
 
@@ -948,6 +992,7 @@ public class DeviceManager implements IService {
     void onLogoutResult(int result) {
         Tlog.d(TAG, " onLogoutResult " + result);
         hasRequestBindLst = false;
+        tokenMap.clear();
 
         if (result == 1) {
             if (mDisplayHandler != null) {

@@ -15,6 +15,7 @@ import cn.com.startai.socket.R;
 import cn.com.startai.socket.app.SocketApplication;
 import cn.com.startai.socket.app.adapter.DetectionRecyclerAdapter;
 import cn.com.startai.socket.app.adapter.FragmentPagerAdapter;
+import cn.com.startai.socket.app.fragment.DBFragment;
 import cn.com.startai.socket.app.fragment.DetectionFragment;
 import cn.com.startai.socket.app.fragment.DetectionReportFragment;
 import cn.com.startai.socket.app.fragment.TmpFunctionFragment;
@@ -42,6 +43,7 @@ public class ProductDetectionActivity extends AppCompatActivity implements IProd
     private DetectionReportFragment mDetectionReportFragment;
     private DetectionFragment mDetectionFragment;
     private TmpFunctionFragment mTmpFunctionFragment;
+    private DBFragment mDbFragment;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -63,10 +65,12 @@ public class ProductDetectionActivity extends AppCompatActivity implements IProd
         mDetectionFragment = new DetectionFragment();
         mDetectionReportFragment = new DetectionReportFragment();
         mTmpFunctionFragment = new TmpFunctionFragment();
+        mDbFragment = new DBFragment();
 
         mFragments.add(mDetectionFragment);
         mFragments.add(mDetectionReportFragment);
         mFragments.add(mTmpFunctionFragment);
+        mFragments.add(mDbFragment);
 
         FragmentPagerAdapter mAdapter = new FragmentPagerAdapter(getSupportFragmentManager(), mFragments);
         mFrameVp.setAdapter(mAdapter);

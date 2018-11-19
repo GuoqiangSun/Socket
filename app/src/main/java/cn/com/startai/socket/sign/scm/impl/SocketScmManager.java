@@ -1,12 +1,17 @@
 package cn.com.startai.socket.sign.scm.impl;
 
 import android.app.Application;
+import android.os.Handler;
+import android.os.Message;
 import android.widget.Toast;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import cn.com.startai.socket.db.gen.CountElectricityDao;
 import cn.com.startai.socket.db.manager.DBManager;
@@ -16,6 +21,7 @@ import cn.com.startai.socket.debuger.impl.IRegDebugerProtocolStream;
 import cn.com.startai.socket.debuger.impl.ProductDetectionManager;
 import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.LooperManager;
+import cn.com.startai.socket.global.Utils.DateUtils;
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.mutual.js.bean.CountElectricity;
 import cn.com.startai.socket.mutual.js.bean.TimingSetResult;
@@ -26,6 +32,7 @@ import cn.com.startai.socket.sign.scm.bean.CountdownData;
 import cn.com.startai.socket.sign.scm.bean.CumuParams;
 import cn.com.startai.socket.sign.scm.bean.LanBindInfo;
 import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
+import cn.com.startai.socket.sign.scm.bean.PointReport;
 import cn.com.startai.socket.sign.scm.bean.PowerCountdown;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
 import cn.com.startai.socket.sign.scm.bean.RenameBean;
@@ -51,7 +58,6 @@ import cn.com.swain.support.protocolEngine.pack.ReceivesData;
 import cn.com.swain.support.protocolEngine.pack.ResponseData;
 import cn.com.swain.support.protocolEngine.resolve.AbsProtocolProcessor;
 import cn.com.swain.support.protocolEngine.task.FailTaskResult;
-import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -106,7 +112,7 @@ public class SocketScmManager extends AbsSocketScm
                 mScmDeviceUtils.getScmDevice(mResponseData.toID).recordSendMsg(mResponseData, timeout);
             }
 
-            if (Tlog.isDebug()) {
+            if (Debuger.isLogDebug) {
                 Tlog.w(TAG, " sendData  mac:" + mResponseData.toID + mResponseData.getRepeatMsgModel().toString());
             }
 
@@ -138,6 +144,7 @@ public class SocketScmManager extends AbsSocketScm
         mParams.setCustom(CustomManager.getInstance().getCustom());
         mParams.setProduct(CustomManager.getInstance().getProduct());
         mParams.setProtocolVersion(CustomManager.getInstance().getProtocolVersion());
+        mParams.setVirtualScm(this);
 
         MySocketDataCache.getInstance().init(mParams);
         MySocketDataCache.getInstance().onSCreate();
@@ -146,10 +153,14 @@ public class SocketScmManager extends AbsSocketScm
 
         int version = CustomManager.getInstance().getProtocolVersion();
 
-        pm = ProtocolProcessorFactory.newSingleTaskLargerPkg(
-                LooperManager.getInstance().getProtocolLooper(),
+//        pm = ProtocolProcessorFactory.newSingleTaskLargerPkg(
+//                LooperManager.getInstance().getProtocolLooper(),
+//                new ProtocolTaskImpl(this, this),
+//                version);
+
+        pm = ProtocolProcessorFactory.newMultiChannelSingleTask(LooperManager.getInstance().getProtocolLooper(),
                 new ProtocolTaskImpl(this, this),
-                version);
+                version, true);
     }
 
     @Override
@@ -239,6 +250,7 @@ public class SocketScmManager extends AbsSocketScm
         }
 
         queryScmTime(address);
+        setScmTimezone(address);
 
         if (productDetectionManager != null) {
             productDetectionManager.connected(address);
@@ -272,7 +284,7 @@ public class SocketScmManager extends AbsSocketScm
 
         ResponseData mResponseData = MySocketDataCache.getQueryUSBState(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " quickControlRelay " + mResponseData.toString());
+            Tlog.v(TAG, " queryUSBState " + mResponseData.toString());
         }
         onOutputDataToServer(mResponseData);
     }
@@ -288,12 +300,33 @@ public class SocketScmManager extends AbsSocketScm
     }
 
     @Override
+    public int getScmToken(String mac) {
+        int token = mScmDeviceUtils.getScmDevice(mac).getToken();
+        if (Debuger.isLogDebug) {
+            Tlog.d(TAG, " getScmToken mac:" + mac + " " + token);
+        }
+        if (token == -1 || token == 0) {
+            if (mScmResultCallBack != null) {
+                token = mScmResultCallBack.getTokenFromDB(mac);
+                if (Debuger.isLogDebug) {
+                    Tlog.d(TAG, " getScmToken From DB. mac:" + mac + " " + token);
+                }
+            }
+        }
+
+        return token;
+    }
+
+    @Override
     public void quickControlRelay(String mac, boolean on) {
         ResponseData mResponseData = MySocketDataCache.getQuickSetRelaySwitch(mac, on);
+
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " quickControlRelay status : " + on + mResponseData.toString());
         }
         onOutputDataToServer(mResponseData);
+
+
     }
 
     @Override
@@ -310,14 +343,31 @@ public class SocketScmManager extends AbsSocketScm
     @Override
     public void queryHistoryCount(QueryHistoryCount mQueryCount) {
 
+        ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mQueryCount.mac);
+        QueryHistoryCount queryHistoryCount = mQueryCount.cloneMyself();
+        scmDevice.putQueryHistoryCount(queryHistoryCount);
+
         long startTimestamp = mQueryCount.getStartTimestampFromStr();
         long endTimestamp = mQueryCount.getEndTimestampFromStr();
+
+        int lastMonth = DateUtils.getMonth(startTimestamp);
+        int lastYear = DateUtils.getYear(startTimestamp);
+
+        long curMillis = DateUtils.fastFormatTsToDayTs(System.currentTimeMillis());
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
 
         if (Debuger.isLogDebug) {
             Tlog.d(TAG, " queryHistoryCount startTimestamp:" + startTimestamp
                     + " " + mQueryCount.startTime
                     + " endTimestamp:" + endTimestamp
-                    + " " + mQueryCount.endTime);
+                    + " " + mQueryCount.endTime
+                    + " interval:" + mQueryCount.interval
+                    + " day:" + mQueryCount.day
+                    + " curMillis:" + curMillis
+                    + " lastMonth:" + lastMonth
+                    + " lastYear:" + lastYear
+            );
         }
 
         QueryHistoryCount mCount = new QueryHistoryCount();
@@ -330,86 +380,272 @@ public class SocketScmManager extends AbsSocketScm
         QueryHistoryCount.Day mDay;
         QueryHistoryCount.Data mData;
 
-
         CountElectricityDao countElectricityDao =
                 DBManager.getInstance().getDaoSession().getCountElectricityDao();
 
+        int oneLength = CountElectricity.ONE_PKG_LENGTH; // 一组数据大小
+        int oneDaySize = CountElectricity.SIZE_ONE_DAY; //一天数据个数
+        int oneDayBytes = CountElectricity.ONE_DAY_BYTES; // 一天数据长度
+        final byte[] countData = new byte[oneDaySize];
 
-        int oneLength = 8; // 一组数据大小
-        int oneDaySize = 60 / 5 * 24; //一天数据个数
-        final byte[] countData = new byte[oneLength];
+        StringBuilder sbLog = new StringBuilder();
+        StringBuilder sbJsLog = new StringBuilder();
 
+        while (startTimestamp < endTimestamp) {
 
-        final long oneDay = 24 * 60 * 60 * 1000;
-        while (startTimestamp <= endTimestamp) {
+            if (Debuger.isLogDebug) {
+                Tlog.v(TAG, " queryHistoryCount startTime: " + dateFormat.format(new Date(startTimestamp)));
+            }
 
             List<CountElectricity> listElectricitys = countElectricityDao.queryBuilder()
                     .where(CountElectricityDao.Properties.Mac.eq(mQueryCount.mac),
                             CountElectricityDao.Properties.Timestamp.eq(startTimestamp)).list();
 
+            mDay = new QueryHistoryCount.Day();
+
             if (listElectricitys != null && listElectricitys.size() > 0) {
                 CountElectricity countElectricity = listElectricitys.get(0);
-
-                mDay = new QueryHistoryCount.Day();
                 mDay.countData = countElectricity.getElectricity();
-                mDay.startTime = startTimestamp;
-                mCount.mDayArray.add(mDay);
 
-                for (int j = 0; j < oneDaySize; j++) {
+                if (Debuger.isLogDebug) {
+                    Tlog.v(TAG, " queryHistoryCount from DB ");
+                }
 
-                    try {
-                        System.arraycopy(mDay.countData, j * oneLength, countData, 0, oneLength);
+                if (startTimestamp == curMillis && mQueryCount.needQueryFromServer) {
 
-                    } catch (Exception e) {
-                        Tlog.e(TAG, " e ", e);
-                        break;
+                    Date mStartDate = new Date(startTimestamp);
+                    Date mEndDate = new Date(startTimestamp + DateUtils.ONE_DAY);
+                    ResponseData mResponseData = MySocketDataCache.getQueryHistoryCount(mQueryCount.mac,
+                            mStartDate, mEndDate);
+
+                    queryHistoryCount.msgSeq = mResponseData.getRepeatMsgModel().getMsgSeq();
+
+                    if (Debuger.isLogDebug) {
+                        Tlog.v(TAG, " queryHistoryCount from server " + mResponseData.toString());
+                    }
+                    onOutputDataToServer(mResponseData);
+                }
+
+            } else {
+
+                mDay.countData = new byte[oneDayBytes];
+
+                long diff = curMillis - startTimestamp;
+
+                if (diff < DateUtils.ONE_DAY * 7) {
+
+                    if (mQueryCount.needQueryFromServer) {
+                        Date mStartDate = new Date(startTimestamp);
+                        Date mEndDate = new Date(startTimestamp + DateUtils.ONE_DAY);
+                        ResponseData mResponseData = MySocketDataCache.getQueryHistoryCount(mQueryCount.mac,
+                                mStartDate, mEndDate);
+
+                        queryHistoryCount.msgSeq = mResponseData.getRepeatMsgModel().getMsgSeq();
+
+                        if (Debuger.isLogDebug) {
+                            Tlog.v(TAG, " queryHistoryCount from server:" + mResponseData.toString());
+                        }
+                        onOutputDataToServer(mResponseData);
+
+                    } else {
+                        if (Debuger.isLogDebug) {
+                            Tlog.w(TAG, " queryHistoryCount from server buf break:");
+                        }
                     }
 
-                    int e = (countData[0] & 0xFF) << 24 | (countData[1] & 0xFF) << 16
-                            | (countData[2] & 0xFF) << 8 | (countData[3] & 0xFF);
+                } else {
+                    if (Debuger.isLogDebug) {
+                        Tlog.w(TAG, " queryHistoryCount from server but out of 7 days ");
+                    }
+                }
 
-                    int s = (countData[4] & 0xFF) << 24 | (countData[5] & 0xFF) << 16
-                            | (countData[6] & 0xFF) << 8 | (countData[7] & 0xFF);
+            }
 
-                    mData = new QueryHistoryCount.Data();
+            mDay.startTime = startTimestamp;
+            QueryHistoryCount.Data mTmpData = new QueryHistoryCount.Data();
+
+            for (int j = 0; j < oneDaySize; j++) {
+
+                try {
+                    System.arraycopy(mDay.countData, j * oneLength, countData, 0, oneLength);
+
+                } catch (Exception e) {
+                    Tlog.e(TAG, " e ", e);
+                    break;
+                }
+
+                int ee = (countData[0] & 0xFF) << 24 | (countData[1] & 0xFF) << 16
+                        | (countData[2] & 0xFF) << 8 | (countData[3] & 0xFF);
+
+                int ss = (countData[4] & 0xFF) << 24 | (countData[5] & 0xFF) << 16
+                        | (countData[6] & 0xFF) << 8 | (countData[7] & 0xFF);
+
+                float e = ee / 1000F;
+                float s = ss / 1000F;
+
+                mData = new QueryHistoryCount.Data();
+
+                if (Debuger.isTest && e == 0) {
+//                    e = (int) ((Math.random() * 9 + 1) * 1000);
+                }
+
+                if (SocketSecureKey.Util.isIntervalMinute((byte) mQueryCount.interval)) {
                     mData.e = e;
                     mData.s = s;
 
                     if (Debuger.isLogDebug) {
-                        Tlog.d(TAG, " HistoryCountTask e:" + e + " s:" + s);
+                        sbJsLog.append(j).append("-e:").append(mData.e)
+                                .append(",s:").append(mData.s).append("; ");
+                    }
+
+                    mCount.mDataArray.add(mData);
+
+                } else if (SocketSecureKey.Util.isIntervalMonth((byte) mQueryCount.interval)) {
+
+                    int month = DateUtils.getMonth(startTimestamp);
+                    int year = DateUtils.getYear(startTimestamp);
+
+//                    Tlog.v(TAG, "--year:" + DateUtils.getYear(startTimestamp)
+//                            + " month:" + month
+//                            + " day:" + DateUtils.getDays(startTimestamp)
+//                            + " lastMonth:" + lastMonth);
+
+                    if (month - lastMonth == 1 || year - lastYear == 1) {
+                        Tlog.v(TAG, " year:" + DateUtils.getYear(startTimestamp)
+                                + " month:" + month
+                                + " day:" + DateUtils.getDays(startTimestamp)
+                                + " lastMonth:" + lastMonth);
+
+                        int daysOfMonth = DateUtils.getDaysOfMonth(lastYear, lastMonth);
+
+                        lastMonth = month;
+
+                        // 一个月一次的平均数据
+                        mData.e = mTmpData.e / daysOfMonth;
+                        mData.s = mTmpData.s / daysOfMonth;
+
+                        mTmpData.e = 0;
+                        mTmpData.s = 0;
+                        if (Debuger.isLogDebug) {
+                            sbJsLog.append(j).append("-e:").append(mData.e)
+                                    .append(",s:").append(mData.s).append("; ");
+
+                            Tlog.e(TAG, "isIntervalMonth days:" + daysOfMonth + " add e:" + mData.e + " s:" + mData.s);
+
+                        }
+
+                        mCount.mDataArray.add(mData);
+
+                    } else {
+                        mTmpData.e += e;
+                        mTmpData.s += s;
+                    }
+
+                } else if (SocketSecureKey.Util.isIntervalDay((byte) mQueryCount.interval)) {
+
+                    int countNumber = CountElectricity.SIZE_ONE_DAY;//一个数据一天
+
+                    if ((j == oneDaySize - 1)) {
+
+                        // 一天一次的平均数据
+                        mData.e = mTmpData.e / countNumber;
+                        mData.s = mTmpData.s / countNumber;
+
+                        mTmpData.e = 0;
+                        mTmpData.s = 0;
+
+                        if (Debuger.isLogDebug) {
+                            sbJsLog.append(j).append("-e:").append(mData.e)
+                                    .append(",s:").append(mData.s).append("; ");
+
+                            Tlog.e(TAG, "isIntervalDay add e:" + mData.e + " s:" + mData.s);
+
+                        }
+
+                        mCount.mDataArray.add(mData);
+
+                    } else {
+                        mTmpData.e += e;
+                        mTmpData.s += s;
+                    }
+
+                } else if (SocketSecureKey.Util.isIntervalHour((byte) mQueryCount.interval)) {
+
+                    int countNumber = 60 / 5; // 一个数据一小时
+
+                    if (j != 0 && j % countNumber == 0) {
+                        // 一小时一次的平均数据
+                        mData.e = mTmpData.e / countNumber;
+                        mData.s = mTmpData.s / countNumber;
+
+                        mTmpData.e = 0;
+                        mTmpData.s = 0;
+
+                        if (Debuger.isLogDebug) {
+                            sbJsLog.append(j).append("-e:").append(mData.e)
+                                    .append(",s:").append(mData.s).append("; ");
+                        }
+
+//                        Tlog.e(TAG, "add e:" + mData.e + " s:" + mData.s);
+                        mCount.mDataArray.add(mData);
+
+                    } else {
+                        mTmpData.e += e;
+                        mTmpData.s += s;
+                    }
+
+                } else {
+                    mData.e = e;
+                    mData.s = s;
+
+                    if (Debuger.isLogDebug) {
+                        sbJsLog.append(j).append("-e:").append(mData.e)
+                                .append(",s:").append(mData.s).append("; ");
                     }
 
                     mCount.mDataArray.add(mData);
                 }
 
 
-            } else {
-
-                byte[] params = new byte[7];
-
-                Date date = new Date(startTimestamp);
-                params[0] = (byte) (date.getYear() + 1990 - 2000);
-                params[1] = (byte) (date.getMonth() + 1);
-                params[2] = (byte) date.getDate();
-
-                date = new Date(startTimestamp + oneDay);
-                params[3] = (byte) (date.getYear() + 1990 - 2000);
-                params[4] = (byte) (date.getMonth() + 1);
-                params[5] = (byte) date.getDate();
-
-                params[6] = (byte) mQueryCount.interval;
-
-                ResponseData mResponseData = MySocketDataCache.getQueryHistoryCount(mQueryCount.mac, params);
                 if (Debuger.isLogDebug) {
-                    Tlog.v(TAG, " queryHistoryCount " + mResponseData.toString());
+                    sbLog.append(j).append("-e:").append(e).append(",s:").append(s).append(";");
+
+                    if (sbLog.length() >= 1024 * 5) {
+                        Tlog.d(TAG, mCount.interval + " QueryHistoryCount myLog: " + sbLog.toString());
+                        sbLog = new StringBuilder();
+                    }
+
+                    if (sbJsLog.length() >= 1024 * 5) {
+                        Tlog.d(TAG, mCount.interval + " QueryHistoryCount jsLog: " + sbJsLog.toString());
+                        sbJsLog = new StringBuilder();
+                    }
+
                 }
-                onOutputDataToServer(mResponseData);
 
             }
 
-            startTimestamp += oneDay;
+            mCount.mDayArray.add(mDay);
+
+            startTimestamp += DateUtils.ONE_DAY;
+
+            Tlog.e(TAG, " QueryHistoryCount startTimestamp += DateUtils.ONE_DAY: " + DateUtils.getMonth(startTimestamp));
+
+            mCount.day++;
+
         }
 
+        if (mScmResultCallBack != null) {
+            if (Debuger.isLogDebug) {
+                Tlog.d(TAG, mCount.interval + " QueryHistoryCount myLog: " + sbLog.toString());
+                Tlog.d(TAG, mCount.interval + " QueryHistoryCount jsLog: " + sbJsLog.toString());
+                Tlog.d(TAG, mCount.interval + " QueryHistoryCount jsData: " + mCount.toJsonArrayData());
+            }
+            mScmResultCallBack.onQueryHistoryCountResult(true, mCount);
+        }
+
+        if (Debuger.isTest) {
+            testReport(mCount.mac);
+        }
 
     }
 
@@ -417,56 +653,530 @@ public class SocketScmManager extends AbsSocketScm
     @Override
     public void onQueryHistoryCountResult(boolean result, QueryHistoryCount mCount) {
 
-        CountElectricityDao countElectricityDao =
-                DBManager.getInstance().getDaoSession().getCountElectricityDao();
+        if (!result) {
+
+            Tlog.e(TAG, " onQueryHistoryCountResult fail..");
+            return;
+        }
+
+        if (mCount == null) {
+
+            Tlog.e(TAG, " onQueryHistoryCountResult QueryHistoryCount=null..");
+            return;
+        }
+
+        updateHistory(mCount);
+
+        deleteOldHistory(mCount.mac);
+
+
+        ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mCount.mac);
+        QueryHistoryCount queryCount = scmDevice.getQueryCount();
+        if (queryCount != null && queryCount.msgSeq == mCount.msgSeq &&
+                SocketSecureKey.Util.isIntervalMinute((byte) queryCount.interval)) {
+            queryCount.needQueryFromServer = false;
+            Tlog.e(TAG, " queryHistoryCount again:");
+            queryHistoryCount(queryCount);
+        }
+
+//        if (mScmResultCallBack != null) {
+//            mScmResultCallBack.onQueryHistoryCountResult(result, mCount);
+//        }
+    }
+
+    private void updateHistory(QueryHistoryCount mCount) {
+
 
         ArrayList<QueryHistoryCount.Day> mDayArray = mCount.mDayArray;
 
-        if (mDayArray != null) {
+        if (mDayArray == null) {
+            return;
+        }
 
-            List<CountElectricity> list1 = countElectricityDao.queryBuilder()
-                    .where(CountElectricityDao.Properties.Mac.eq(mCount.mac),
-                            CountElectricityDao.Properties.Timestamp.eq(mCount.startTimeMillis)).list();
 
-            long sequence = 0L;
+        CountElectricityDao countElectricityDao =
+                DBManager.getInstance().getDaoSession().getCountElectricityDao();
 
-            if (list1.size() > 0) {
-                CountElectricity countElectricity = list1.get(0);
-                sequence = countElectricity.getSequence();
+        List<CountElectricity> list0 = countElectricityDao.queryBuilder()
+                .where(CountElectricityDao.Properties.Mac.eq(mCount.mac),
+                        CountElectricityDao.Properties.Timestamp.eq(
+                                mCount.startTimeMillis - DateUtils.ONE_DAY)).list();
 
+        long sequence = 0L;
+        if (list0.size() > 0) {
+            CountElectricity countElectricity = list0.get(0);
+            sequence = countElectricity.getSequence();
+        }
+
+
+        long curMillis = DateUtils.fastFormatTsToDayTs(System.currentTimeMillis());
+
+//        long startTimestampFromStr = mCount.getStartTimestampFromStr();
+
+        long startTimestampFromStr = DateUtils.fastFormatTsToDayTs(mCount.startTimeMillis);
+
+        Tlog.v(TAG, " updateHistory  curMillis:" + curMillis
+                + " startTimestampFromStr:" + startTimestampFromStr);
+
+        for (QueryHistoryCount.Day mData : mDayArray) {
+
+            if (mData.countData == null || mData.countData.length <= 0) {
+                Tlog.v(TAG, " QueryHistoryCount.Day.countData ==null ");
+                continue;
             }
 
-            for (QueryHistoryCount.Day mData : mDayArray) {
+            List<CountElectricity> list = countElectricityDao.queryBuilder()
+                    .where(CountElectricityDao.Properties.Mac.eq(mCount.mac),
+                            CountElectricityDao.Properties.Timestamp.eq(mData.startTime)).list();
 
-                List<CountElectricity> list = countElectricityDao.queryBuilder()
-                        .where(CountElectricityDao.Properties.Mac.eq(mCount.mac),
-                                CountElectricityDao.Properties.Timestamp.eq(mData.startTime)).list();
+            CountElectricity countElectricity = null;
+            if (list.size() > 0) {
+                countElectricity = list.get(0);
+            }
 
-                CountElectricity countElectricity = null;
-                if (list.size() > 0) {
-                    countElectricity = list.get(0);
+            if (countElectricity == null) {
+                CountElectricity mCountElectricity = new CountElectricity();
+                mCountElectricity.setMac(mCount.mac);
+                mCountElectricity.setElectricity(mData.countData);
+                mCountElectricity.setTimestamp(mData.startTime);
+                mCountElectricity.setSequence(++sequence);
+                long insert = countElectricityDao.insert(mCountElectricity);
+                Tlog.v(TAG, " HistoryCount insert:" + insert);
+            } else {
+
+
+                if (curMillis == startTimestampFromStr) {
+
+                    byte[] electricity = countElectricity.getElectricity();
+                    int length = electricity.length;
+
+                    if (length < CountElectricity.ONE_DAY_BYTES) {
+
+                        byte[] cache = new byte[CountElectricity.ONE_DAY_BYTES];
+
+                        System.arraycopy(electricity, 0, cache, 0, length);
+
+                        byte[] countData = mData.countData;
+
+                        int length1 = countData.length;
+
+                        if (length1 > CountElectricity.ONE_DAY_BYTES) {
+                            length1 = CountElectricity.ONE_DAY_BYTES;
+                        }
+
+                        System.arraycopy(countData, 0, cache, 0, length1);
+
+                        countElectricity.setElectricity(cache);
+
+                        Tlog.v(TAG, " HistoryCount update oldLength:" + length + " newLength:" + length1);
+
+                    } else {
+
+                        byte[] countData = mData.countData;
+
+                        int length1 = countData.length;
+
+                        if (length1 > CountElectricity.ONE_DAY_BYTES) {
+                            length1 = CountElectricity.ONE_DAY_BYTES;
+                        }
+
+                        System.arraycopy(countData, 0, electricity, 0, length1);
+
+                        countElectricity.setElectricity(electricity);
+
+                        Tlog.v(TAG, " HistoryCount update oldLength:" + length + " newLength:" + length1);
+
+                    }
+
                 }
 
-                if (countElectricity == null) {
-                    CountElectricity mCountElectricity = new CountElectricity();
-                    mCountElectricity.setMac(mCount.mac);
-                    mCountElectricity.setElectricity(mData.countData);
-                    mCountElectricity.setTimestamp(mData.startTime);
-                    mCountElectricity.setSequence(++sequence);
-                    long insert = countElectricityDao.insert(mCountElectricity);
-                    Tlog.v(SocketResponseTask.TAG, " HistoryCount insert:" + insert);
-                } else {
-                    countElectricity.setElectricity(mData.countData);
-                    countElectricityDao.update(countElectricity);
-                    Tlog.v(SocketResponseTask.TAG, " HistoryCount update:" + countElectricity.getId());
-                }
+                countElectricityDao.update(countElectricity);
+                Tlog.v(TAG, " HistoryCount update:" + countElectricity.getId());
+            }
+        }
+    }
+
+    private void deleteOldHistory(String mac) {
+
+        CountElectricityDao countElectricityDao =
+                DBManager.getInstance().getDaoSession().getCountElectricityDao();
+
+        long currentTimeMillis = System.currentTimeMillis();
+
+        long l = DateUtils.fastFormatTsToDayTs(currentTimeMillis - DateUtils.ONE_DAY * 31 * 8);
+
+        List<CountElectricity> list = countElectricityDao.queryBuilder()
+                .where(CountElectricityDao.Properties.Mac.eq(mac),
+                        CountElectricityDao.Properties.Timestamp.lt(l)).list();
+
+        if (list != null && list.size() > 0) {
+            for (CountElectricity mCountElectricity : list) {
+                countElectricityDao.delete(mCountElectricity);
             }
         }
 
+
+    }
+
+    private boolean testReportRun;
+    private String testMac;
+    private Handler mRepeatHandler;
+
+    private void testReport(String mac) {
+        testMac = mac;
+
+        if (Debuger.isTest && !testReportRun) {
+            testReportRun = true;
+
+            if (mRepeatHandler == null) {
+                mRepeatHandler = new Handler(LooperManager.getInstance().getWorkLooper()) {
+                    @Override
+                    public void handleMessage(Message msg) {
+                        super.handleMessage(msg);
+                        repeatSend();
+                    }
+                };
+            }
+
+            repeatSend();
+
+        }
+    }
+
+    private void repeatSend() {
+        PointReport mPointReport = new PointReport();
+        mPointReport.mac = testMac;
+        mPointReport.ts = System.currentTimeMillis();
+        mPointReport.electricity = (float) ((Math.random() * 9 + 1) * 1000);
 
         if (mScmResultCallBack != null) {
-            mScmResultCallBack.onQueryHistoryCountResult(result, mCount);
+            mScmResultCallBack.onElectricityReportResult(true, mPointReport);
         }
+        if (mRepeatHandler != null) {
+            mRepeatHandler.sendEmptyMessageDelayed(0, 1000 * 60 * 5);
+        }
+    }
+
+
+    public void onElectricityReportResultOld(boolean result, PointReport mElectricity) {
+
+        if (!result) {
+            Tlog.e(TAG, " onElectricityReportResult fail ");
+            return;
+        }
+
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onElectricityReportResult(result, mElectricity);
+        }
+
+        CountElectricityDao countElectricityDao =
+                DBManager.getInstance().getDaoSession().getCountElectricityDao();
+
+        long startTimeOriginal = mElectricity.ts;
+        long startTime = startTimeOriginal; // startTime  yyyy/mm//dd
+        SimpleDateFormat mFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
+        String format = mFormat.format(new Date(startTime));
+        try {
+            Date parse = mFormat.parse(format);
+            startTime = parse.getTime();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+
+        List<CountElectricity> list = countElectricityDao.queryBuilder()
+                .where(CountElectricityDao.Properties.Mac.eq(mElectricity.mac),
+                        CountElectricityDao.Properties.Timestamp.eq(startTime)).list();
+
+        CountElectricity countElectricity = null;
+        if (list.size() > 0) {
+            countElectricity = list.get(0);
+        }
+
+        if (countElectricity == null) {
+            CountElectricity mCountElectricity = new CountElectricity();
+            mCountElectricity.setMac(mElectricity.mac);
+
+
+            Date date = new Date(startTimeOriginal);
+            int hours = date.getHours();
+            int minutes = date.getMinutes();
+
+            int d = minutes % 5;
+            minutes -= d;
+            if (minutes <= 0) {
+                minutes = 0;
+            }
+
+            int index = (hours * 60 + minutes) / 5 - 1;
+
+            if (index < 0) {
+                Tlog.e(TAG, " insert " + hours + ":" + minutes + " index < 0 ");
+
+
+                List<CountElectricity> listL = countElectricityDao.queryBuilder()
+                        .where(CountElectricityDao.Properties.Mac.eq(mElectricity.mac),
+                                CountElectricityDao.Properties.Timestamp.eq(startTime - DateUtils.ONE_DAY)).list();
+
+                if (listL.size() > 0) {
+                    CountElectricity countElectricity1 = listL.get(0);
+
+                    byte[] electricityLast = countElectricity1.getElectricity();
+
+                    if (electricityLast != null) {
+
+                        int point = (60 * 24 / 5 - 1) * 8;
+
+                        if (electricityLast.length >= (point + 4)) {
+                            electricityLast[point] = mElectricity.data[0];
+                            electricityLast[point + 1] = mElectricity.data[1];
+                            electricityLast[point + 2] = mElectricity.data[2];
+                            electricityLast[point + 3] = mElectricity.data[3];
+
+                            countElectricity1.setElectricity(electricityLast);
+
+                            countElectricityDao.update(countElectricity1);
+
+                        }
+
+
+                    }
+                }
+
+            } else {
+
+
+                int oneDayBytes = CountElectricity.ONE_DAY_BYTES; // 一天数据长度
+
+                byte[] electricity = new byte[oneDayBytes];
+
+                int point = index * 8;
+
+                Tlog.d(TAG, " insert " + hours + ":" + minutes + " point:" + point);
+
+                if (point <= electricity.length && mElectricity.data != null) {
+                    electricity[point] = mElectricity.data[0];
+                    electricity[point + 1] = mElectricity.data[1];
+                    electricity[point + 2] = mElectricity.data[2];
+                    electricity[point + 3] = mElectricity.data[3];
+                }
+
+
+                mCountElectricity.setElectricity(electricity);
+                mCountElectricity.setTimestamp(startTime);
+                long insert = countElectricityDao.insert(mCountElectricity);
+
+                Tlog.v(TAG, " PointCount insert:" + insert);
+
+            }
+
+        } else {
+            int oneDayBytes = CountElectricity.ONE_DAY_BYTES; // 一天数据长度
+
+//            Date date = new Date(startTimeOriginal);
+//            int hours = date.getHours();
+//            int minutes = date.getMinutes();
+//
+//            int d = minutes % 5;
+//            minutes -= d;
+//            if (minutes <= 0) {
+//                minutes = 0;
+//            }
+//
+//            int index = (hours * 60 + minutes) / 5 - 1;
+
+            int minuteOfDay = DateUtils.getMinuteOfDay(startTimeOriginal, 5);
+            int index = (minuteOfDay / 5 - 1);
+            Tlog.e(TAG, " history query buf index:" + index);
+
+            if (index < 0) {
+
+                List<CountElectricity> listL = countElectricityDao.queryBuilder()
+                        .where(CountElectricityDao.Properties.Mac.eq(mElectricity.mac),
+                                CountElectricityDao.Properties.Timestamp.eq(startTime - DateUtils.ONE_DAY)).list();
+
+                if (listL.size() > 0) {
+                    CountElectricity countElectricity1 = listL.get(0);
+
+                    byte[] electricityLast = countElectricity1.getElectricity();
+
+                    if (electricityLast != null) {
+
+                        int point = (60 * 24 / 5 - 1) * 8;
+
+                        if (electricityLast.length >= (point + 4)) {
+                            electricityLast[point] = mElectricity.data[0];
+                            electricityLast[point + 1] = mElectricity.data[1];
+                            electricityLast[point + 2] = mElectricity.data[2];
+                            electricityLast[point + 3] = mElectricity.data[3];
+
+                            countElectricity1.setElectricity(electricityLast);
+
+                            countElectricityDao.update(countElectricity1);
+
+                        }
+
+                    }
+                }
+
+
+            } else {
+
+                byte[] electricity = countElectricity.getElectricity();
+                if (electricity == null) {
+                    electricity = new byte[oneDayBytes];
+                }
+
+                int point = index * 8;
+
+                if (mElectricity.data != null) {
+                    int length = electricity.length;
+
+                    Tlog.v(TAG, " PointCount update  oldLength:" + length);
+
+                    if (point <= length) {
+                        electricity[point] = mElectricity.data[0];
+                        electricity[point + 1] = mElectricity.data[1];
+                        electricity[point + 2] = mElectricity.data[2];
+                        electricity[point + 3] = mElectricity.data[3];
+
+                        Tlog.v(TAG, " PointCount update direct insert :");
+
+                    } else if (point < oneDayBytes) {
+
+                        byte[] cache = new byte[oneDayBytes];
+
+                        System.arraycopy(electricity, 0, cache, 0, length);
+
+                        electricity = cache;
+
+                        electricity[point] = mElectricity.data[0];
+                        electricity[point + 1] = mElectricity.data[1];
+                        electricity[point + 2] = mElectricity.data[2];
+                        electricity[point + 3] = mElectricity.data[3];
+
+                        Tlog.v(TAG, " PointCount update copy insert :");
+
+                    }
+
+
+                }
+
+                countElectricity.setElectricity(electricity);
+                countElectricityDao.update(countElectricity);
+                Tlog.v(TAG, " PointCount update:" + countElectricity.getId());
+            }
+
+        }
+
+    }
+
+    @Override
+    public void onElectricityReportResult(boolean result, PointReport mElectricity) {
+
+        if (!result) {
+            Tlog.e(TAG, " onElectricityReportResult fail ");
+            return;
+        }
+
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onElectricityReportResult(result, mElectricity);
+        }
+
+        CountElectricityDao countElectricityDao =
+                DBManager.getInstance().getDaoSession().getCountElectricityDao();
+
+        long startTimeOriginal = mElectricity.ts;
+        long startTime = DateUtils.fastFormatTsToDayTs(startTimeOriginal); // startTime  yyyy/mm//dd
+
+        SimpleDateFormat mFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault());
+
+        Tlog.e(TAG, " onElectricityReportResult startTime:"
+                + startTime
+                + " " + mFormat.format(new Date(startTime))
+                + " " + mElectricity.ts
+                + " " + mFormat.format(new Date(mElectricity.ts)));
+
+        List<CountElectricity> list = countElectricityDao.queryBuilder()
+                .where(CountElectricityDao.Properties.Mac.eq(mElectricity.mac),
+                        CountElectricityDao.Properties.Timestamp.eq(startTime)).list();
+
+        CountElectricity countElectricity = null;
+        if (list.size() > 0) {
+            countElectricity = list.get(0);
+        }
+
+        if (countElectricity == null) {
+            countElectricity = new CountElectricity();
+        }
+        countElectricity.setMac(mElectricity.mac);
+        byte[] electricity = countElectricity.getElectricity();
+        int oneDayBytes = CountElectricity.ONE_DAY_BYTES; // 一天数据长度
+        if (electricity == null) {
+            electricity = new byte[oneDayBytes];
+        } else {
+            if (electricity.length < oneDayBytes) {
+                byte[] cache = new byte[oneDayBytes];
+                System.arraycopy(electricity, 0, cache, 0, electricity.length);
+                electricity = cache;
+            }
+        }
+
+        countElectricity.setElectricity(electricity);
+        countElectricity.setTimestamp(startTime);
+
+        int minuteOfDay = DateUtils.getMinuteOfDay(startTimeOriginal, 5);
+        int index = (minuteOfDay / 5 - 1);
+        Tlog.e(TAG, " point report insert buf index:" + index);
+
+        if (index < 0) {
+
+            List<CountElectricity> listL = countElectricityDao.queryBuilder()
+                    .where(CountElectricityDao.Properties.Mac.eq(mElectricity.mac),
+                            CountElectricityDao.Properties.Timestamp.eq(startTime - DateUtils.ONE_DAY)).list();
+
+            if (listL.size() > 0) {
+                CountElectricity countElectricity1 = listL.get(0);
+
+                byte[] electricityLast = countElectricity1.getElectricity();
+
+                if (electricityLast != null) {
+
+                    int point = (60 * 24 / 5 - 1) * 8;
+
+                    if (electricityLast.length >= (point + 4)) {
+                        electricityLast[point] = mElectricity.data[0];
+                        electricityLast[point + 1] = mElectricity.data[1];
+                        electricityLast[point + 2] = mElectricity.data[2];
+                        electricityLast[point + 3] = mElectricity.data[3];
+
+                        countElectricity1.setElectricity(electricityLast);
+                        countElectricityDao.update(countElectricity1);
+
+                    }
+
+                }
+            }
+
+        } else {
+            int point = index * 8;
+            if (point <= electricity.length && mElectricity.data != null) {
+                electricity[point] = mElectricity.data[0];
+                electricity[point + 1] = mElectricity.data[1];
+                electricity[point + 2] = mElectricity.data[2];
+                electricity[point + 3] = mElectricity.data[3];
+            }
+
+            if (countElectricity.getId() == null) {
+                long insertIndex = countElectricityDao.insert(countElectricity);
+                Tlog.v(TAG, " PointCount insert:" + insertIndex);
+            } else {
+                countElectricityDao.update(countElectricity);
+                Tlog.v(TAG, " update insert:" + countElectricity.getId());
+            }
+
+        }
+
     }
 
 
@@ -703,6 +1413,7 @@ public class SocketScmManager extends AbsSocketScm
         Tlog.v(TAG, " controlDevice  " + userID + " token:" + Integer.toHexString(token));
 
         mScmDeviceUtils.getScmDevice(mac).setToken(token);
+        MySocketDataCache.putToken(mac, token);
 
         byte[] bytes = userID != null ? userID.getBytes() : null;
         ResponseData mResponseData = MySocketDataCache.getControlDevice(mac, bytes, token);
@@ -781,7 +1492,8 @@ public class SocketScmManager extends AbsSocketScm
 
         if (Debuger.isLogDebug) {
 
-            Tlog.v(TAG, " setTempHumidityAlarm  float:" + mAlarm.getOriginalAlarmValue() + " int:" + mAlarm.getAlarmValue() + " deci:" + mAlarm.getAlarmValueDeci());
+            Tlog.v(TAG, " setTempHumidityAlarm  float:" + mAlarm.getOriginalAlarmValue()
+                    + " int:" + mAlarm.getAlarmValue() + " deci:" + mAlarm.getAlarmValueDeci());
 
             Tlog.v(TAG, " setTempHumidityAlarm  data: " + mResponseData.toString());
         }
@@ -847,6 +1559,57 @@ public class SocketScmManager extends AbsSocketScm
     }
 
     @Override
+    public void queryScmTimezone(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getQueryTimezone(mac);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryScmTimezone  data:" + mResponseData.toString());
+        }
+        onOutputDataToServer(mResponseData);
+    }
+
+    @Override
+    public void setScmTimezone(String mac) {
+
+        byte zone = getTimezone();
+
+        Tlog.v(TAG, " setScmTimezone  zoneByte:" + zone + " zoneInt:" + (zone & 0xFF));
+
+        ResponseData mResponseData = MySocketDataCache.getSetTimezone(mac, zone);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " setScmTimezone  data:" + mResponseData.toString());
+        }
+        onOutputDataToServer(mResponseData);
+    }
+
+
+    public static byte getTimezone() {
+
+        java.util.TimeZone aDefault = java.util.TimeZone.getDefault();
+
+        String timezone = aDefault.getDisplayName(false, java.util.TimeZone.SHORT);
+
+        int i = timezone.indexOf("+");
+
+        boolean isA = i > 0;
+
+        if (!isA) {
+            i = timezone.indexOf("-");
+        }
+
+        int i1 = timezone.indexOf(":");
+
+        String substring = timezone.substring(i + 1, i1);
+
+        int i2 = Integer.parseInt(substring);
+
+        int timezoneInt = isA ? i2 : -i2;
+
+        return (byte) (timezoneInt & 0xFF);
+
+
+    }
+
+    @Override
     public void queryScmTime(String mac) {
         ResponseData mResponseData = MySocketDataCache.getQueryTime(mac);
         if (Debuger.isLogDebug) {
@@ -895,11 +1658,7 @@ public class SocketScmManager extends AbsSocketScm
     public void setSetCurrentAlarmValue(String mac, int value) {
         ResponseData mResponseData;
         synchronized (syncObj) {
-
-//            mResponseData = MySocketDataCache.getCurrentAlarmValue(mac, (byte)value);
-
-
-            mResponseData = MySocketDataCache.getCurrentAlarmValue2(mac, value * 100);
+            mResponseData = MySocketDataCache.getCurrentAlarmValue(mac, value * 100);
         }
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setSetCurrentAlarmValue  data:" + mResponseData.toString());
@@ -923,7 +1682,14 @@ public class SocketScmManager extends AbsSocketScm
     public void setSetTemperatureUnit(String mac, int value) {
         ResponseData mResponseData;
         synchronized (syncObj) {
-            mResponseData = MySocketDataCache.getTempUnit(mac, (byte) value);
+
+            if (CustomManager.getInstance().isTriggerBle()) {
+                mResponseData = MySocketDataCache.getTempUnitBle(mac, (byte) value);
+            } else {
+
+                mResponseData = MySocketDataCache.getTempUnit(mac, (byte) value);
+            }
+
         }
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setSetTemperatureUnit  data:" + mResponseData.toString());
@@ -984,7 +1750,12 @@ public class SocketScmManager extends AbsSocketScm
 
     @Override
     public void queryTemperatureUnit(String mac) {
-        ResponseData mResponseData = MySocketDataCache.getQueryTemperatureUnit(mac);
+        ResponseData mResponseData;
+        if (CustomManager.getInstance().isTriggerBle()) {
+            mResponseData = MySocketDataCache.getQueryTemperatureUnitBle(mac);
+        } else {
+            mResponseData = MySocketDataCache.getQueryTemperatureUnit(mac);
+        }
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryTemperatureUnit  data:" + mResponseData.toString());
         }
@@ -1152,6 +1923,8 @@ public class SocketScmManager extends AbsSocketScm
 
         ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mac);
 
+        Tlog.d(TAG, " onTempHumiResult:" + mac + " temp:" + temp + " humi:" + humi);
+
         final SensorData mSensorData = scmDevice.getSensorData();
         mSensorData.mTemperature.value = temp;
         mSensorData.mHumidity.value = humi;
@@ -1165,6 +1938,7 @@ public class SocketScmManager extends AbsSocketScm
         if (mScmResultCallBack != null) {
             final TempHumidityData mTempHumi = scmDevice.getTempHumidityData();
             mTempHumi.mTemperature.currentValue = temp;
+            mTempHumi.mHumidity.currentValue = humi;
 
             Tlog.e(TAG, " onTempHumiResult:" + mTempHumi.toJsonStr());
 
@@ -1418,6 +2192,7 @@ public class SocketScmManager extends AbsSocketScm
                 if (requestRandom == random - 1) {
                     scmDevice.setToken(token);
                     mScmResultCallBack.onResultRequestToken(mac, token);
+                    MySocketDataCache.putToken(mac, token);
                 }
             }
         }
@@ -1640,6 +2415,21 @@ public class SocketScmManager extends AbsSocketScm
 
         if (productDetectionManager != null) {
             productDetectionManager.receiveProtocolAnalysisResult(protocolParams);
+        }
+
+    }
+
+    @Override
+    public void onSetTimezoneResult(boolean result, String id, byte zone) {
+
+    }
+
+    @Override
+    public void onQueryTimezoneResult(boolean result, String id, byte zone) {
+
+
+        if (zone != getTimezone()) {
+            setScmTimezone(id);
         }
 
     }

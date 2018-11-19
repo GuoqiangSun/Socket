@@ -48,6 +48,10 @@ public class SocketSecureKey {
          */
         public static final byte TYPE_REPORT = 0x03;
 
+        /**
+         * 设置
+         */
+        public static final byte TYPE_SETTING = 0x04;
 
     }
 
@@ -96,36 +100,6 @@ public class SocketSecureKey {
         public static final byte CMD_RENAME = 0x0B;
         public static final byte CMD_RENAME_RESPONSE = 0x0C;
 
-        public static final byte CMD_SET_VOLTAGE_ALARM_VALUE = 0x0F;
-        public static final byte CMD_SET_VOLTAGE_ALARM_VALUE_RESPONSE = 0x10;
-        public static final byte CMD_QUERY_VOLTAGE_ALARM_VALUE = 0x11;
-        public static final byte CMD_QUERY_VOLTAGE_ALARM_VALUE_RESPONSE = 0x12;
-
-        public static final byte CMD_SET_CURRENT_ALARM_VALUE = 0x13;
-        public static final byte CMD_SET_CURRENT_ALARM_VALUE_RESPONSE = 0x14;
-        public static final byte CMD_QUERY_CURRENT_ALARM_VALUE = 0x15;
-        public static final byte CMD_QUERY_CURRENT_ALARM_VALUE_RESPONSE = 0x16;
-
-        public static final byte CMD_SET_POWER_ALARM_VALUE = 0x17;
-        public static final byte CMD_SET_POWER_ALARM_VALUE_RESPONSE = 0x18;
-        public static final byte CMD_QUERY_POWER_ALARM_VALUE = 0x19;
-        public static final byte CMD_QUERY_POWER_ALARM_VALUE_RESPONSE = 0x1A;
-
-        public static final byte CMD_SET_UNIT_TEMPERATURE = 0x1B;
-        public static final byte CMD_SET_UNIT_TEMPERATURE_RESPONSE = 0x1C;
-        public static final byte CMD_QUERY_UNIT_TEMPERATURE = 0x1D;
-        public static final byte CMD_QUERY_UNIT_TEMPERATURE_RESPONSE = 0x1E;
-
-        public static final byte CMD_SET_UNIT_MONETARY = 0x1F;
-        public static final byte CMD_SET_UNIT_MONETARY_RESPONSE = 0x20;
-        public static final byte CMD_QUERY_UNIT_MONETARY = 0x21;
-        public static final byte CMD_QUERY_UNIT_MONETARY_RESPONSE = 0x22;
-
-        public static final byte CMD_SET_PRICES_ELECTRICITY = 0x23;
-        public static final byte CMD_SET_PRICES_ELECTRICITY_RESPONSE = 0x24;
-        public static final byte CMD_QUERY_PRICES_ELECTRICITY = 0x25;
-        public static final byte CMD_QUERY_PRICES_ELECTRICITY_RESPONSE = 0x26;
-
         public static final byte CMD_SET_RECOVERY_SCM = 0x27;
         public static final byte CMD_SET_RECOVERY_SCM_RESPONSE = 0x28;
 
@@ -144,6 +118,19 @@ public class SocketSecureKey {
 
         public static final byte CMD_DISCONTROL_TOKEN = 0x33;
         public static final byte CMD_DISCONTROL_TOKEN_RESPONSE = 0x34;
+
+        public static final byte CMD_QUICK_CONTROL_SWITCH = 0x35;
+        public static final byte CMD_WUICK_CONTROL_SWITCH_RESPONSE = 0x36;
+
+        public static final byte CMD_QUICK_QUERY_SWITCH = 0x37;
+        public static final byte CMD_WUICK_QUERY_SWITCH_RESPONSE = 0x38;
+
+        public static final byte CMD_SET_TIMEZONE = 0x39;
+        public static final byte CMD_SET_TIMEZONE_RESPONSE = 0x3A;
+
+        public static final byte CMD_QUERY_TIMEZONE = 0x3B;
+        public static final byte CMD_QUERY_TIMEZONE_RESPONSE = 0x3C;
+
 
         /**********0x02control**************/
 
@@ -260,7 +247,6 @@ public class SocketSecureKey {
         public static final byte CMD_SET_LIGHT_COLOR_RESPONSE = 0x26;
 
 
-
         /**********report0x03**************/
 
         /**
@@ -300,6 +286,39 @@ public class SocketSecureKey {
          */
         public static final byte CMD_ELECTRICITY_REPORT = 0x0B;
         public static final byte CMD_ELECTRICITY_REPORT_RESPONSE = 0x0C;
+
+
+        /**********Setting0x04**************/
+
+        public static final byte CMD_SET_VOLTAGE_ALARM_VALUE = 0x0F;
+        public static final byte CMD_SET_VOLTAGE_ALARM_VALUE_RESPONSE = 0x10;
+        public static final byte CMD_QUERY_VOLTAGE_ALARM_VALUE = 0x11;
+        public static final byte CMD_QUERY_VOLTAGE_ALARM_VALUE_RESPONSE = 0x12;
+
+        public static final byte CMD_SET_CURRENT_ALARM_VALUE = 0x13;
+        public static final byte CMD_SET_CURRENT_ALARM_VALUE_RESPONSE = 0x14;
+        public static final byte CMD_QUERY_CURRENT_ALARM_VALUE = 0x15;
+        public static final byte CMD_QUERY_CURRENT_ALARM_VALUE_RESPONSE = 0x16;
+
+        public static final byte CMD_SET_POWER_ALARM_VALUE = 0x17;
+        public static final byte CMD_SET_POWER_ALARM_VALUE_RESPONSE = 0x18;
+        public static final byte CMD_QUERY_POWER_ALARM_VALUE = 0x19;
+        public static final byte CMD_QUERY_POWER_ALARM_VALUE_RESPONSE = 0x1A;
+
+        public static final byte CMD_SET_UNIT_TEMPERATURE = 0x1B;
+        public static final byte CMD_SET_UNIT_TEMPERATURE_RESPONSE = 0x1C;
+        public static final byte CMD_QUERY_UNIT_TEMPERATURE = 0x1D;
+        public static final byte CMD_QUERY_UNIT_TEMPERATURE_RESPONSE = 0x1E;
+
+        public static final byte CMD_SET_UNIT_MONETARY = 0x1F;
+        public static final byte CMD_SET_UNIT_MONETARY_RESPONSE = 0x20;
+        public static final byte CMD_QUERY_UNIT_MONETARY = 0x21;
+        public static final byte CMD_QUERY_UNIT_MONETARY_RESPONSE = 0x22;
+
+        public static final byte CMD_SET_PRICES_ELECTRICITY = 0x23;
+        public static final byte CMD_SET_PRICES_ELECTRICITY_RESPONSE = 0x24;
+        public static final byte CMD_QUERY_PRICES_ELECTRICITY = 0x25;
+        public static final byte CMD_QUERY_PRICES_ELECTRICITY_RESPONSE = 0x26;
 
 
     }
@@ -354,8 +373,6 @@ public class SocketSecureKey {
         public static final byte MODEL_FALSE = 0x00;
 
 
-
-
         /**
          * 继电器
          */
@@ -375,8 +392,6 @@ public class SocketSecureKey {
          * usb开关
          */
         public static final byte MODEL_USB = 0x04;
-
-
 
 
         /**
@@ -433,10 +448,58 @@ public class SocketSecureKey {
          */
         public static final byte MODEL_FORCE_UPDATE = 0x03;
 
+
+        /**
+         * 五分钟
+         */
+        public static final byte MODEL_INTERVAL_MINUTE = 0x01;
+        /**
+         * 小时
+         */
+        public static final byte MODEL_INTERVAL_HOUR = 0x02;
+        /**
+         * 天
+         */
+        public static final byte MODEL_INTERVAL_DAY = 0x03;
+        /**
+         * 周
+         */
+        public static final byte MODEL_INTERVAL_WEEK = 0x04;
+        /**
+         * 月
+         */
+        public static final byte MODEL_INTERVAL_MONTH = 0x05;
+        /**
+         * 年
+         */
+        public static final byte MODEL_INTERVAL_YEAR = 0x06;
     }
 
     public static class Util {
 
+        public static boolean isIntervalMinute(byte interval) {
+            return interval == Model.MODEL_INTERVAL_MINUTE;
+        }
+
+        public static boolean isIntervalHour(byte interval) {
+            return interval == Model.MODEL_INTERVAL_HOUR;
+        }
+
+        public static boolean isIntervalDay(byte interval) {
+            return interval == Model.MODEL_INTERVAL_DAY;
+        }
+
+        public static boolean isIntervalWeek(byte interval) {
+            return interval == Model.MODEL_INTERVAL_WEEK;
+        }
+
+        public static boolean isIntervalMonth(byte interval) {
+            return interval == Model.MODEL_INTERVAL_MONTH;
+        }
+
+        public static boolean isIntervalYear(byte interval) {
+            return interval == Model.MODEL_INTERVAL_YEAR;
+        }
 
         public static boolean isTrue(byte flag) {
             return (flag == Model.MODEL_TRUE);

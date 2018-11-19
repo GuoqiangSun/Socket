@@ -1,4 +1,4 @@
-package cn.com.startai.socket.sign.scm.receivetask.impl.system;
+package cn.com.startai.socket.sign.scm.receivetask.impl.setting;
 
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
@@ -11,12 +11,12 @@ import cn.com.swain169.log.Tlog;
  * date : 2018/4/26 0026
  * desc :
  */
-public class ElectricityPricesSettingReceiveTask extends SocketResponseTask {
+public class MonetaryUnitQueryReceiveTask extends SocketResponseTask {
 
     private OnTaskCallBack mTaskCallBack;
 
-    public ElectricityPricesSettingReceiveTask(OnTaskCallBack mTaskCallBack) {
-        Tlog.e(TAG, " new ElectricityPricesSettingReceiveTask() ");
+    public MonetaryUnitQueryReceiveTask(OnTaskCallBack mTaskCallBack) {
+        Tlog.e(TAG, " new MonetaryUnitSettingReceiveTask() ");
         this.mTaskCallBack = mTaskCallBack;
     }
 
@@ -26,21 +26,21 @@ public class ElectricityPricesSettingReceiveTask extends SocketResponseTask {
 
         byte[] protocolParams = mSocketDataArray.getProtocolParams();
 
-        if (protocolParams == null || protocolParams.length < 3) {
+        if (protocolParams == null || protocolParams.length < 2) {
             Tlog.e(TAG, " protocolParams == null");
             if (mTaskCallBack != null) {
-                mTaskCallBack.onSettingElectricityPriceResult(mSocketDataArray.getID(), false, 0);
+                mTaskCallBack.onQueryMonetaryUnitResult(mSocketDataArray.getID(), false, 0);
             }
             return;
         }
 
         boolean result = SocketSecureKey.Util.resultIsOk(protocolParams[0]);
-        int mElectricityPrices = (protocolParams[1] & 0xFF) << 8 | (protocolParams[2] & 0xFF);
+        int mMonetaryUnit = (protocolParams[1] & 0xFF);
 
-        Tlog.v(TAG, "CurrentSetting result : " + result + " mElectricityPrice:" + mElectricityPrices);
+        Tlog.v(TAG, "MonetaryUnit  result : " + result + " mMonetaryUnit:" + mMonetaryUnit);
 
         if (mTaskCallBack != null) {
-            mTaskCallBack.onSettingElectricityPriceResult(mSocketDataArray.getID(), result, mElectricityPrices);
+            mTaskCallBack.onQueryMonetaryUnitResult(mSocketDataArray.getID(), result, mMonetaryUnit);
         }
 
     }

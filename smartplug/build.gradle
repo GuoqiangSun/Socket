@@ -12,8 +12,8 @@ android {
         applicationId "cn.com.startai.smartplug"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 16006
-        versionName "1.6.006"
+        versionCode 16009
+        versionName "1.6.009"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }

@@ -45,10 +45,10 @@ public class DeviceBindTask extends SocketResponseTask {
         mLanBindingDevice.setIsAdmin(admin);
 
         String deviceUserID = new String(protocolParams, 2, 32); // userID
-        mLanBindingDevice.setOid(deviceUserID);
+        mLanBindingDevice.setOid(deviceUserID.trim());
 
         String userID = new String(protocolParams, 2 + 32, 32); // userID
-        mLanBindingDevice.setMid(userID);
+        mLanBindingDevice.setMid(userID.trim());
 
         String mac = MacUtil.byteToMacStr(protocolParams, 2 + 32 + 32);
         mLanBindingDevice.setOmac(mac);

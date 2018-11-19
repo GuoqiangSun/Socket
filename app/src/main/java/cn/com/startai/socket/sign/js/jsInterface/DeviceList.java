@@ -44,19 +44,22 @@ public class DeviceList extends AbsHandlerJsInterface {
         private static final String DEVICE_CONTROL = "javascript:controlDeviceResponse($result,'$data')";
 
         public static String callJsDeviceControl(boolean result, String data) {
-            return DEVICE_CONTROL.replace("$result", String.valueOf(result)).replace("$data", String.valueOf(data));
+            return DEVICE_CONTROL.replace("$result", String.valueOf(result))
+                    .replace("$data", String.valueOf(data));
         }
 
         private static final String DEVICE_UNBIND_RESULT = "javascript:unbundlingDeviceResponse($result,'$mac')";
 
         public static String callJsUnbindDevice(boolean result, String mac) {
-            return DEVICE_UNBIND_RESULT.replace("$result", String.valueOf(result)).replace("$mac", String.valueOf(mac));
+            return DEVICE_UNBIND_RESULT.replace("$result", String.valueOf(result))
+                    .replace("$mac", String.valueOf(mac));
         }
 
         private static final String WIFI_POWER_SWITCH_RESULT = "javascript:wifiPowerSwitchResponse('$mac',$state)";
 
         public static String callJsStateQuicControlRelay(String mac, boolean state) {
-            return WIFI_POWER_SWITCH_RESULT.replace("$state", String.valueOf(state)).replace("$mac", String.valueOf(mac));
+            return WIFI_POWER_SWITCH_RESULT.replace("$state", String.valueOf(state))
+                    .replace("$mac", String.valueOf(mac));
         }
     }
 

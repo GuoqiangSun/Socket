@@ -107,8 +107,7 @@ public interface IControlWiFi {
 
     void wxLogin();
 
-    void onDeviceUpdateResult(UpdateVersion mVersion);
-
+    void onDeviceUpdateResult(boolean result,UpdateVersion mVersion);
 
     interface IWiFiResultCallBack {
 

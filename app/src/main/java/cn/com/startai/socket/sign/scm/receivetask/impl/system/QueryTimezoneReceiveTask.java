@@ -1,9 +1,9 @@
 package cn.com.startai.socket.sign.scm.receivetask.impl.system;
 
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -11,12 +11,12 @@ import cn.com.swain169.log.Tlog;
  * date : 2018/4/26 0026
  * desc :
  */
-public class TemperatureUnitQueryReceiveTask extends SocketResponseTask {
+public class QueryTimezoneReceiveTask extends SocketResponseTask {
 
     private OnTaskCallBack mTaskCallBack;
 
-    public TemperatureUnitQueryReceiveTask(OnTaskCallBack mTaskCallBack) {
-        Tlog.e(TAG, " new TemperatureUnitQueryReceiveTask() ");
+    public QueryTimezoneReceiveTask(OnTaskCallBack mTaskCallBack) {
+        Tlog.e(TAG, " new QueryTimezoneReceiveTask() ");
         this.mTaskCallBack = mTaskCallBack;
     }
 
@@ -26,20 +26,16 @@ public class TemperatureUnitQueryReceiveTask extends SocketResponseTask {
         byte[] protocolParams = mSocketDataArray.getProtocolParams();
 
         if (protocolParams == null || protocolParams.length < 2) {
-            Tlog.e(TAG, " protocolParams == null");
-            if (mTaskCallBack != null) {
-                mTaskCallBack.onQueryTemperatureUnitResult(mSocketDataArray.getID(), false, 0);
-            }
+            Tlog.e(TAG, " QueryTimezoneReceiveTask error:" + mSocketDataArray.toString());
             return;
         }
 
         boolean result = SocketSecureKey.Util.resultIsOk(protocolParams[0]);
-        int mTemperatureUnit = (protocolParams[1] & 0xFF);
 
-        Tlog.v(TAG, "TemperatureQuery result : " + result + " mTemperatureUnit:" + mTemperatureUnit);
+        Tlog.e(TAG, " QueryTimezoneReceiveTask result:" + result + " params:" + protocolParams[0] + " zone:" + protocolParams[1]);
 
         if (mTaskCallBack != null) {
-            mTaskCallBack.onQueryTemperatureUnitResult(mSocketDataArray.getID(), result, mTemperatureUnit);
+            mTaskCallBack.onQueryTimezoneResult(result, mSocketDataArray.getID(), protocolParams[1]);
         }
 
     }

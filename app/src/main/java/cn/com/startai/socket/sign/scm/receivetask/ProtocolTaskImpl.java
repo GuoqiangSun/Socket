@@ -26,28 +26,30 @@ import cn.com.startai.socket.sign.scm.receivetask.impl.report.PointReportReceive
 import cn.com.startai.socket.sign.scm.receivetask.impl.report.TempHumiRelayReportReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.report.TempHumiReportReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.report.TimingExecuteReportReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.setting.CurrentQueryReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.setting.CurrentSettingReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.setting.ElectricityPricesQueryReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.setting.ElectricityPricesSettingReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.setting.HeartbeatReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.setting.MonetaryUnitQueryReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.setting.MonetaryUnitSettingReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.setting.PowerQueryReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.setting.PowerSettingReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.setting.TemperatureUnitQueryReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.setting.TemperatureUnitSettingReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.setting.VoltageQueryReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.setting.VoltageSettingReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.ControlReceiveTask;
-import cn.com.startai.socket.sign.scm.receivetask.impl.system.CurrentQueryReceiveTask;
-import cn.com.startai.socket.sign.scm.receivetask.impl.system.CurrentSettingReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.DeviceBindTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.DeviceDiscoveryTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.DisControlReceiveTask;
-import cn.com.startai.socket.sign.scm.receivetask.impl.system.ElectricityPricesQueryReceiveTask;
-import cn.com.startai.socket.sign.scm.receivetask.impl.system.ElectricityPricesSettingReceiveTask;
-import cn.com.startai.socket.sign.scm.receivetask.impl.system.HeartbeatReceiveTask;
-import cn.com.startai.socket.sign.scm.receivetask.impl.system.MonetaryUnitQueryReceiveTask;
-import cn.com.startai.socket.sign.scm.receivetask.impl.system.MonetaryUnitSettingReceiveTask;
-import cn.com.startai.socket.sign.scm.receivetask.impl.system.PowerQueryReceiveTask;
-import cn.com.startai.socket.sign.scm.receivetask.impl.system.PowerSettingReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.system.QueryTimezoneReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.RecoverySettingReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.RenameReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.RequestTokenReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.system.SetTimezoneReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.SleepReceiveTask;
-import cn.com.startai.socket.sign.scm.receivetask.impl.system.TemperatureUnitQueryReceiveTask;
-import cn.com.startai.socket.sign.scm.receivetask.impl.system.TemperatureUnitSettingReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.UpdateReceiveTask;
-import cn.com.startai.socket.sign.scm.receivetask.impl.system.VoltageQueryReceiveTask;
-import cn.com.startai.socket.sign.scm.receivetask.impl.system.VoltageSettingReceiveTask;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolOutput;
 import cn.com.swain.support.protocolEngine.ProtocolCode;
@@ -182,39 +184,7 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                     case SocketSecureKey.Cmd.CMD_RENAME_RESPONSE:
                         new RenameReceiveTask(mTaskCallBack).execute(mParam);
                         break;
-                    case SocketSecureKey.Cmd.CMD_QUERY_VOLTAGE_ALARM_VALUE_RESPONSE:
-                        new VoltageQueryReceiveTask(mTaskCallBack).execute(mParam);
-                        break;
-                    case SocketSecureKey.Cmd.CMD_SET_CURRENT_ALARM_VALUE_RESPONSE:
-                        new CurrentSettingReceiveTask(mTaskCallBack).execute(mParam);
-                        break;
-                    case SocketSecureKey.Cmd.CMD_QUERY_CURRENT_ALARM_VALUE_RESPONSE:
-                        new CurrentQueryReceiveTask(mTaskCallBack).execute(mParam);
-                        break;
-                    case SocketSecureKey.Cmd.CMD_SET_POWER_ALARM_VALUE_RESPONSE:
-                        new PowerSettingReceiveTask(mTaskCallBack).execute(mParam);
-                        break;
-                    case SocketSecureKey.Cmd.CMD_QUERY_POWER_ALARM_VALUE_RESPONSE:
-                        new PowerQueryReceiveTask(mTaskCallBack).execute(mParam);
-                        break;
-                    case SocketSecureKey.Cmd.CMD_SET_UNIT_TEMPERATURE_RESPONSE:
-                        new TemperatureUnitSettingReceiveTask(mTaskCallBack).execute(mParam);
-                        break;
-                    case SocketSecureKey.Cmd.CMD_QUERY_UNIT_TEMPERATURE_RESPONSE:
-                        new TemperatureUnitQueryReceiveTask(mTaskCallBack).execute(mParam);
-                        break;
-                    case SocketSecureKey.Cmd.CMD_SET_UNIT_MONETARY_RESPONSE:
-                        new MonetaryUnitSettingReceiveTask(mTaskCallBack).execute(mParam);
-                        break;
-                    case SocketSecureKey.Cmd.CMD_QUERY_UNIT_MONETARY_RESPONSE:
-                        new MonetaryUnitQueryReceiveTask(mTaskCallBack).execute(mParam);
-                        break;
-                    case SocketSecureKey.Cmd.CMD_SET_PRICES_ELECTRICITY_RESPONSE:
-                        new ElectricityPricesSettingReceiveTask(mTaskCallBack).execute(mParam);
-                        break;
-                    case SocketSecureKey.Cmd.CMD_QUERY_PRICES_ELECTRICITY_RESPONSE:
-                        new ElectricityPricesQueryReceiveTask(mTaskCallBack).execute(mParam);
-                        break;
+
                     case SocketSecureKey.Cmd.CMD_SET_RECOVERY_SCM_RESPONSE:
                         new RecoverySettingReceiveTask(mTaskCallBack).execute(mParam);
                         break;
@@ -232,6 +202,27 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                         break;
                     case SocketSecureKey.Cmd.CMD_DISCONTROL_TOKEN_RESPONSE:
                         new DisControlReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+
+                    case SocketSecureKey.Cmd.CMD_WUICK_CONTROL_SWITCH_RESPONSE:
+                        new SwitchControllerReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_WUICK_QUERY_SWITCH_RESPONSE:
+                        new SwitchQueryResponseTask(mTaskCallBack).execute(mParam);
+                        break;
+
+                    case SocketSecureKey.Cmd.CMD_SET_TIMEZONE_RESPONSE:
+                        new SetTimezoneReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_QUERY_TIMEZONE_RESPONSE:
+                        new QueryTimezoneReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+
+                    case SocketSecureKey.Cmd.CMD_SET_UNIT_TEMPERATURE_RESPONSE:
+                        new TemperatureUnitSettingReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_QUERY_UNIT_TEMPERATURE_RESPONSE:
+                        new TemperatureUnitQueryReceiveTask(mTaskCallBack).execute(mParam);
                         break;
 
                     default:
@@ -326,6 +317,46 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                         new ScmErrorTask(ProtocolCode.ERROR_CODE_RESOLVE_CMD, mTaskCallBack).execute(mParam);
                         break;
                 }
+                break;
+
+            case SocketSecureKey.Type.TYPE_SETTING:
+
+                switch (protocolCmd) {
+                    case SocketSecureKey.Cmd.CMD_QUERY_VOLTAGE_ALARM_VALUE_RESPONSE:
+                        new VoltageQueryReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_SET_CURRENT_ALARM_VALUE_RESPONSE:
+                        new CurrentSettingReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_QUERY_CURRENT_ALARM_VALUE_RESPONSE:
+                        new CurrentQueryReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_SET_POWER_ALARM_VALUE_RESPONSE:
+                        new PowerSettingReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_QUERY_POWER_ALARM_VALUE_RESPONSE:
+                        new PowerQueryReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_SET_UNIT_TEMPERATURE_RESPONSE:
+                        new TemperatureUnitSettingReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_QUERY_UNIT_TEMPERATURE_RESPONSE:
+                        new TemperatureUnitQueryReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_SET_UNIT_MONETARY_RESPONSE:
+                        new MonetaryUnitSettingReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_QUERY_UNIT_MONETARY_RESPONSE:
+                        new MonetaryUnitQueryReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_SET_PRICES_ELECTRICITY_RESPONSE:
+                        new ElectricityPricesSettingReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_QUERY_PRICES_ELECTRICITY_RESPONSE:
+                        new ElectricityPricesQueryReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                }
+
                 break;
 
             default:

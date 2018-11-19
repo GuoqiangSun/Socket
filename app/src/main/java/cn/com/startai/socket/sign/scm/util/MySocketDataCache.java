@@ -1,9 +1,12 @@
 package cn.com.startai.socket.sign.scm.util;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import cn.com.startai.socket.sign.scm.IVirtualSocketScm;
+import cn.com.startai.socket.sign.scm.impl.SocketScmManager;
 import cn.com.swain.baselib.app.IApp.IService;
 import cn.com.swain.support.protocolEngine.ProtocolBuild;
 import cn.com.swain.support.protocolEngine.Repeat.RepeatMsgModel;
@@ -33,6 +36,7 @@ public class MySocketDataCache implements IService {
         int mProtocolVersion;
         byte mCustom;
         byte mProduct;
+        IVirtualSocketScm mScm;
 
         void release() {
 
@@ -50,6 +54,9 @@ public class MySocketDataCache implements IService {
             this.mProtocolVersion = protocolVersion;
         }
 
+        public void setVirtualScm(SocketScmManager socketScmManager) {
+            mScm = socketScmManager;
+        }
     }
 
 
@@ -66,6 +73,8 @@ public class MySocketDataCache implements IService {
         return protocolVersion;
     }
 
+    private static IVirtualSocketScm mScm;
+
     public static final String TAG = "ProtocolDataCache";
 
     public void init(BuildParams mParams) {
@@ -73,6 +82,7 @@ public class MySocketDataCache implements IService {
             custom = mParams.mCustom;
             product = mParams.mProduct;
             protocolVersion = mParams.mProtocolVersion;
+            mScm = mParams.mScm;
         }
     }
 
@@ -103,6 +113,10 @@ public class MySocketDataCache implements IService {
             mDeviceMap.clear();
         }
 
+        if (mTokenMap != null) {
+            mTokenMap.clear();
+        }
+
         if (mSocketDataProducer != null) {
             mSocketDataProducer.clear();
             mSocketDataProducer = null;
@@ -112,12 +126,12 @@ public class MySocketDataCache implements IService {
 
     @Override
     public void onSFinish() {
-
+        mScm = null;
     }
 
-    private static final Map<String, SEQ> mDeviceMap = Collections.synchronizedMap(new HashMap<>());
-
     private static final Object synObj = new byte[1];
+
+    private static final Map<String, SEQ> mDeviceMap = Collections.synchronizedMap(new HashMap<>());
 
     protected static SEQ getDevice(String mac) {
         SEQ device = mDeviceMap.get(mac);
@@ -132,6 +146,34 @@ public class MySocketDataCache implements IService {
         }
         return device;
     }
+
+    private static final Map<String, Integer> mTokenMap = Collections.synchronizedMap(new HashMap<>());
+
+    protected static int getToken(String mac) {
+        int token2 = getToken2(mac);
+        if (token2 == -1) { // token =-1 单片机有问题
+            token2 = 0;
+        }
+        return token2;
+    }
+
+    protected static int getToken2(String mac) {
+        Integer integer = mTokenMap.get(mac);
+        if (integer == null) {
+
+            if (null != mScm) {
+                return mScm.getScmToken(mac);
+            }
+
+            return 0;
+        }
+        return integer;
+    }
+
+    public static void putToken(String mac, int token) {
+        mTokenMap.put(mac, token);
+    }
+
 
     private ISocketDataProducer mSocketDataProducer;
 
@@ -151,17 +193,20 @@ public class MySocketDataCache implements IService {
     }
 
     protected synchronized SocketDataArray produceSocketDataArray(String mac) {
-        final SocketDataArray mSecureDataPack = produceSocketDataArrayNoSeq();
+        final SocketDataArray mSecureDataPack = produceSocketDataArrayNoSeq(mac, -1);
         mSecureDataPack.setSeq((byte) (getDevice(mac).getSelfAddSeq() & 0xFF));
         return mSecureDataPack;
     }
 
-    protected synchronized SocketDataArray produceSocketDataArrayNoSeq() {
+    protected synchronized SocketDataArray produceSocketDataArrayNoSeq(String mac, int token) {
         final SocketDataArray mSecureDataPack = getSocketDataProducer().produceSocketDataArray();
         mSecureDataPack.setISUsed();
-        mSecureDataPack.setParams(null);
         mSecureDataPack.reset();
         mSecureDataPack.changeStateToEscape();
+        if (token == -1 || token == 0) {
+            token = getToken(mac);
+        }
+        mSecureDataPack.setToken(token);
         mSecureDataPack.setCustom(custom);
         mSecureDataPack.setProduct(product);
         return mSecureDataPack;
@@ -197,12 +242,44 @@ public class MySocketDataCache implements IService {
 
 
     /**
+     * 查询继电器开关的数据包
+     *
+     * @return ResponseData
+     */
+    public static ResponseData getQuickQueryRelayStatus(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUICK_QUERY_SWITCH);
+
+//        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+//        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_RELAY_STATUS);
+
+        mSecureDataPack.setParams(new byte[]{SocketSecureKey.Model.MODEL_RELAY});
+        ResponseData responseData = newResponseDataNoRecord(mac, mSecureDataPack);
+        responseData.getSendModel().setSendModelIsLan();
+        responseData.getSendModel().setSendModelIsWan();
+        return responseData;
+    }
+
+    /**
      * 继电器开关的数据包
      *
      * @return ResponseData ResponseData
      */
     public static ResponseData getQuickSetRelaySwitch(String mac, boolean on) {
-        ResponseData responseData = getSetRelaySwitch(mac, on, false);
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUICK_CONTROL_SWITCH);
+
+//        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+//        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_RELAY_SWITCH);
+
+        final byte[] params = new byte[2];
+        params[0] = SocketSecureKey.Model.MODEL_RELAY;
+        params[1] = SocketSecureKey.Util.on(on);
+        mSecureDataPack.setParams(params);
+        ResponseData responseData = newResponseData(mac, mSecureDataPack, true);
+//        responseData.getSendModel().setSendModelIsLan();
         responseData.getSendModel().setSendModelIsWan();
         return responseData;
     }
@@ -342,21 +419,6 @@ public class MySocketDataCache implements IService {
      *
      * @return ResponseData
      */
-    public static ResponseData getQuickQueryRelayStatus(String mac) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
-        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_RELAY_STATUS);
-        mSecureDataPack.setParams(new byte[]{SocketSecureKey.Model.MODEL_RELAY});
-        ResponseData responseData = newResponseDataNoRecord(mac, mSecureDataPack);
-        responseData.getSendModel().setSendModelIsWan();
-        return responseData;
-    }
-
-    /**
-     * 查询继电器开关的数据包
-     *
-     * @return ResponseData
-     */
     public static ResponseData getQueryRelayStatus(String mac) {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
@@ -429,10 +491,24 @@ public class MySocketDataCache implements IService {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
         mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_TIME);
-
         return newResponseDataRecord(mac, mSecureDataPack);
     }
 
+    public static ResponseData getSetTimezone(String mac, byte zone) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_TIMEZONE);
+        mSecureDataPack.setParams(new byte[]{zone});
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+
+    public static ResponseData getQueryTimezone(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_TIME);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
 
     /**
      * 查询定电量
@@ -491,7 +567,7 @@ public class MySocketDataCache implements IService {
      * @return ResponseData
      */
     public static ResponseData getTempHumiValueReport(String mac, boolean success, byte seq) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArrayNoSeq();
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArrayNoSeq(mac, -1);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_REPORT);
         mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_TEMP_HUMI_REPORT_RESPONSE);
         mSecureDataPack.setSeq(seq);
@@ -508,7 +584,7 @@ public class MySocketDataCache implements IService {
      * @return ResponseData
      */
     public static ResponseData getTempHumidityExecuteReport(String mac, boolean success, byte seq) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArrayNoSeq();
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArrayNoSeq(mac, -1);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_REPORT);
         mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_TEMPERATURE_HUMIDITY_REPORT_RESPONSE);
         mSecureDataPack.setSeq(seq);
@@ -525,7 +601,7 @@ public class MySocketDataCache implements IService {
      * @return ResponseData
      */
     public static ResponseData getElectricValueReport(String mac, boolean success, byte seq) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArrayNoSeq();
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArrayNoSeq(mac, -1);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_REPORT);
         mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_POWER_FREQ_REPORT_RESPONSE);
         mSecureDataPack.setSeq(seq);
@@ -535,7 +611,7 @@ public class MySocketDataCache implements IService {
     }
 
     public static ResponseData getTimingExecuteReport(String mac, boolean success, byte seq) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArrayNoSeq();
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArrayNoSeq(mac, -1);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_REPORT);
         mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_TIMING_REPORT_RESPONSE);
         mSecureDataPack.setSeq(seq);
@@ -545,7 +621,7 @@ public class MySocketDataCache implements IService {
     }
 
     public static ResponseData getCountdownExecuteReport(String mac, boolean success, byte seq) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArrayNoSeq();
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArrayNoSeq(mac, -1);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_REPORT);
         mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_COUNTDOWN_REPORT_RESPONSE);
         mSecureDataPack.setSeq(seq);
@@ -563,7 +639,7 @@ public class MySocketDataCache implements IService {
      * @return ResponseData
      */
     public static ResponseData getHeartbeat(String mac, int token, int seq) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArrayNoSeq();
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArrayNoSeq(mac, token);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
         mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_HEARTBEAT);
         mSecureDataPack.setSeq((byte) (seq & 0xFF));
@@ -577,124 +653,10 @@ public class MySocketDataCache implements IService {
     }
 
 
-    public static ResponseData getVoltageAlarmValue(String mac, int value) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
-        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_VOLTAGE_ALARM_VALUE);
-
-        final byte[] params = new byte[2];
-        params[0] = (byte) ((value >> 8) & 0xFF);
-        params[1] = (byte) (value & 0xFF);
-        mSecureDataPack.setParams(params);
-        return newResponseDataRecord(mac, mSecureDataPack);
-    }
-
-    public static ResponseData getCurrentAlarmValue(String mac, byte value) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
-        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_CURRENT_ALARM_VALUE);
-
-        final byte[] params = new byte[]{(byte) (value & 0xFF)};
-        mSecureDataPack.setParams(params);
-        return newResponseDataRecord(mac, mSecureDataPack);
-    }
-
-    public static ResponseData getPowerAlarmValue(String mac, int value) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
-        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_POWER_ALARM_VALUE);
-
-        final byte[] params = new byte[2];
-        params[0] = (byte) ((value >> 8) & 0xFF);
-        params[1] = (byte) (value & 0xFF);
-        mSecureDataPack.setParams(params);
-        return newResponseDataRecord(mac, mSecureDataPack);
-    }
-
-    public static ResponseData getTempUnit(String mac, byte unit) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
-        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_UNIT_TEMPERATURE);
-
-        final byte[] params = new byte[]{(byte) (unit & 0xFF)};
-        mSecureDataPack.setParams(params);
-        return newResponseDataRecord(mac, mSecureDataPack);
-    }
-
-    public static ResponseData getMonetaryUnit(String mac, byte unit) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
-        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_UNIT_MONETARY);
-
-        final byte[] params = new byte[]{(byte) (unit & 0xFF)};
-        mSecureDataPack.setParams(params);
-        return newResponseDataRecord(mac, mSecureDataPack);
-    }
-
-    public static ResponseData getElectricityPrice(String mac, int prices) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
-        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_PRICES_ELECTRICITY);
-
-        final byte[] params = new byte[2];
-        params[0] = (byte) ((prices >> 8) & 0xFF);
-        params[1] = (byte) (prices & 0xFF);
-        mSecureDataPack.setParams(params);
-        return newResponseDataRecord(mac, mSecureDataPack);
-    }
-
     public static ResponseData getRecovery(String mac) {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
         mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_RECOVERY_SCM);
-
-        return newResponseDataRecord(mac, mSecureDataPack);
-    }
-
-    public static ResponseData getQueryVoltageAlarmValue(String mac) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
-        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_VOLTAGE_ALARM_VALUE);
-
-        return newResponseDataRecord(mac, mSecureDataPack);
-    }
-
-    public static ResponseData getQueryCurrentAlarmValue(String mac) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
-        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_CURRENT_ALARM_VALUE);
-
-        return newResponseDataRecord(mac, mSecureDataPack);
-    }
-
-    public static ResponseData getQueryPowerAlarmValue(String mac) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
-        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_POWER_ALARM_VALUE);
-
-        return newResponseDataRecord(mac, mSecureDataPack);
-    }
-
-    public static ResponseData getQueryTemperatureUnit(String mac) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
-        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_UNIT_TEMPERATURE);
-
-        return newResponseDataRecord(mac, mSecureDataPack);
-    }
-
-    public static ResponseData getQueryMonetaryUnit(String mac) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
-        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_UNIT_MONETARY);
-
-        return newResponseDataRecord(mac, mSecureDataPack);
-    }
-
-    public static ResponseData getQueryElectricityPrices(String mac) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
-        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_PRICES_ELECTRICITY);
 
         return newResponseDataRecord(mac, mSecureDataPack);
     }
@@ -914,76 +876,6 @@ public class MySocketDataCache implements IService {
     }
 
 
-    public static ResponseData getQueryHistoryCount(String mac, byte[] params) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
-        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_HISTORY_COUNT);
-        mSecureDataPack.setParams(params);
-        return newResponseDataNoRecord(mac, mSecureDataPack);
-    }
-
-    public static ResponseData getCurrentAlarmValue2(String mac, int value) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
-        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_CURRENT_ALARM_VALUE);
-
-        final byte[] params = new byte[2];
-        params[0] = (byte) ((value >> 8) & 0xFF);
-        params[1] = (byte) (value & 0xFF);
-
-        mSecureDataPack.setParams(params);
-        return newResponseDataRecord(mac, mSecureDataPack);
-    }
-
-    /**
-     * 设置费率
-     */
-    public static ResponseData getSetConstRate(String mac, byte model, byte hour, byte minute, short price) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
-        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_COST_RATE);
-
-        final byte[] params = new byte[5];
-        params[0] = model;
-        params[1] = hour;
-        params[2] = minute;
-        params[3] = (byte) ((price >> 8) & 0xFF);
-        params[4] = (byte) (model & 0xFF);
-
-        mSecureDataPack.setParams(params);
-        return newResponseDataRecord(mac, mSecureDataPack);
-    }
-
-    /**
-     * 查询费率
-     */
-    public static ResponseData getQueryConstRate(String mac) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
-        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_COST_RATE);
-        return newResponseDataRecord(mac, mSecureDataPack);
-    }
-
-    /**
-     * 查询积累参数
-     */
-    public static ResponseData getQueryCumuParam(String mac) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
-        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_CUMU_PARAM);
-        return newResponseDataRecord(mac, mSecureDataPack);
-    }
-
-    /**
-     * 查询最大输出
-     */
-    public static ResponseData getQueryMaxOutput(String mac) {
-        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
-        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_MAX_OUTPUT);
-        return newResponseDataRecord(mac, mSecureDataPack);
-    }
-
     /**
      * 查询版本号
      */
@@ -1005,6 +897,221 @@ public class MySocketDataCache implements IService {
         mSecureDataPack.setParams(new byte[]{SocketSecureKey.Model.MODEL_UPDATE});
         return newResponseDataRecord(mac, mSecureDataPack);
     }
+
+    //
+
+
+    public static ResponseData getVoltageAlarmValue(String mac, int value) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SETTING);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_VOLTAGE_ALARM_VALUE);
+
+        final byte[] params = new byte[2];
+        params[0] = (byte) ((value >> 8) & 0xFF);
+        params[1] = (byte) (value & 0xFF);
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getQueryVoltageAlarmValue(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SETTING);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_VOLTAGE_ALARM_VALUE);
+
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getCurrentAlarmValue(String mac, int value) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SETTING);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_CURRENT_ALARM_VALUE);
+
+        final byte[] params = new byte[2];
+        params[0] = (byte) ((value >> 8) & 0xFF);
+        params[1] = (byte) (value & 0xFF);
+
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+
+    public static ResponseData getQueryCurrentAlarmValue(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SETTING);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_CURRENT_ALARM_VALUE);
+
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+
+    public static ResponseData getPowerAlarmValue(String mac, int value) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SETTING);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_POWER_ALARM_VALUE);
+
+        final byte[] params = new byte[2];
+        params[0] = (byte) ((value >> 8) & 0xFF);
+        params[1] = (byte) (value & 0xFF);
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+
+    public static ResponseData getQueryPowerAlarmValue(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SETTING);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_POWER_ALARM_VALUE);
+
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+
+    public static ResponseData getTempUnitBle(String mac, byte unit) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_UNIT_TEMPERATURE);
+
+        final byte[] params = new byte[]{(byte) (unit & 0xFF)};
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+
+    public static ResponseData getTempUnit(String mac, byte unit) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SETTING);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_UNIT_TEMPERATURE);
+
+        final byte[] params = new byte[]{(byte) (unit & 0xFF)};
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getMonetaryUnit(String mac, byte unit) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SETTING);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_UNIT_MONETARY);
+
+        final byte[] params = new byte[]{(byte) (unit & 0xFF)};
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getElectricityPrice(String mac, int prices) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SETTING);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_PRICES_ELECTRICITY);
+
+        final byte[] params = new byte[2];
+        params[0] = (byte) ((prices >> 8) & 0xFF);
+        params[1] = (byte) (prices & 0xFF);
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getQueryTemperatureUnitBle(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_UNIT_TEMPERATURE);
+
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getQueryTemperatureUnit(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SETTING);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_UNIT_TEMPERATURE);
+
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getQueryMonetaryUnit(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SETTING);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_UNIT_MONETARY);
+
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getQueryElectricityPrices(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SETTING);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_PRICES_ELECTRICITY);
+
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+
+    public static ResponseData getQueryHistoryCount(String mac, Date mStart, Date mEnd) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_HISTORY_COUNT);
+
+        byte[] params = new byte[7];
+        params[0] = (byte) (mStart.getYear() + 1900 - 2000);
+        params[1] = (byte) (mStart.getMonth() + 1);
+        params[2] = (byte) mStart.getDate();
+
+        params[3] = (byte) (mEnd.getYear() + 1900 - 2000);
+        params[4] = (byte) (mEnd.getMonth() + 1);
+        params[5] = (byte) mEnd.getDate();
+
+//                params[6] = (byte) mQueryCount.interval;
+        params[6] = (byte) 0x01; // 始终查询五分钟间隔
+
+        mSecureDataPack.setParams(params);
+        return newResponseDataNoRecord(mac, mSecureDataPack);
+    }
+
+    /**
+     * 设置费率
+     */
+    public static ResponseData getSetConstRate(String mac, byte model, byte hour, byte minute, short price) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_COST_RATE);
+
+        final byte[] params = new byte[5];
+        params[0] = model;
+        params[1] = hour;
+        params[2] = minute;
+        params[3] = (byte) ((price >> 8) & 0xFF);
+        params[4] = (byte) (model & 0xFF);
+
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    /**
+     * 查询费率
+     */
+    public static ResponseData getQueryConstRate(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_COST_RATE);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    /**
+     * 查询积累参数
+     */
+    public static ResponseData getQueryCumuParam(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_CUMU_PARAM);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    /**
+     * 查询最大输出
+     */
+    public static ResponseData getQueryMaxOutput(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_MAX_OUTPUT);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
 
     public static ResponseData getLightColor(String mac, int seq, int r, int g, int b) {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);

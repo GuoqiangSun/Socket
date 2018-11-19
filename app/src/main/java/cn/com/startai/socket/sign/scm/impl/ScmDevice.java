@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import cn.com.startai.socket.global.LooperManager;
+import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
 import cn.com.startai.socket.sign.scm.bean.SpendingElectricityData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingListData;
 import cn.com.startai.socket.sign.scm.bean.sensor.SensorData;
@@ -96,6 +97,15 @@ class ScmDevice implements Heartbeat.OnHeartbeatCallBack {
         }
     }
 
+    private QueryHistoryCount mQueryCount;
+
+    public void putQueryHistoryCount(QueryHistoryCount mQueryCount) {
+        this.mQueryCount = mQueryCount;
+    }
+
+    public QueryHistoryCount getQueryCount() {
+        return mQueryCount;
+    }
 
     public interface OnHeartbeatCallBack {
         void onStartSendHeartbeat(ScmDevice mScmDevice);

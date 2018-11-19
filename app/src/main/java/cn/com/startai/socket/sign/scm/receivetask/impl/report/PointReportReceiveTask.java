@@ -2,11 +2,10 @@ package cn.com.startai.socket.sign.scm.receivetask.impl.report;
 
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
+import cn.com.startai.socket.sign.scm.bean.PointReport;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolOutput;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
@@ -40,6 +39,8 @@ public class PointReportReceiveTask extends SocketResponseTask {
             return;
         }
 
+        PointReport mPointReport = new PointReport();
+
         byte[] buf2 = new byte[8];
         buf2[0] = 0x00;
         buf2[1] = 0x00;
@@ -53,30 +54,29 @@ public class PointReportReceiveTask extends SocketResponseTask {
 
         long tsl = ts * 1000;
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault());
         String format = dateFormat.format(new Date(tsl));
 
 
-        int electricityInt = ((protocolParams[4] << 24) & 0xFF) | ((protocolParams[5] << 16) & 0xFF)
-                | ((protocolParams[6] << 8) & 0xFF) | (protocolParams[7] & 0xFF);
+        int electricityInt = ((protocolParams[4] & 0xFF) << 24)  | ((protocolParams[5] & 0xFF)<< 16)
+                | ((protocolParams[6] & 0xFF) << 8) | (protocolParams[7] & 0xFF);
 
-        float electricity = electricityInt / 1000;
+        float electricity = electricityInt / 1000F;
 
-        Tlog.e(TAG, " PointReportReceiveTask ts. " + ts + " " + format + " electricityInt:" + electricityInt);
+        Tlog.e(TAG, " PointReportReceiveTask ts. " + ts + " " + format
+                + " electricityInt:" + electricityInt + " electricity:" + electricity);
 
-        QueryHistoryCount mCount = new QueryHistoryCount();
-        mCount.mac = mSocketDataArray.getID();
-        mCount.startTime = format;
-        mCount.day = 1;
-        mCount.mDataArray = new ArrayList<>(1);
-        QueryHistoryCount.Data mData = new QueryHistoryCount.Data();
-        mData.e = electricity;
-        mData.s = 0f;
-        mCount.mDataArray.add(mData);
-        mCount.interval = 1;
+        mPointReport.mac = mSocketDataArray.getID();
+        mPointReport.ts = tsl;
+        mPointReport.electricity = electricity;
+        mPointReport.data = new byte[4];
+        mPointReport.data[0] = protocolParams[4];
+        mPointReport.data[1] = protocolParams[5];
+        mPointReport.data[2] = protocolParams[6];
+        mPointReport.data[3] = protocolParams[7];
 
         if (mCallBack != null) {
-            mCallBack.onQueryHistoryCountResult(true, mCount);
+            mCallBack.onElectricityReportResult(true, mPointReport);
         }
 
     }

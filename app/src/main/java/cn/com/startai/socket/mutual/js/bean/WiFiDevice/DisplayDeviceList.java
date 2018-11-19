@@ -219,4 +219,21 @@ public class DisplayDeviceList {
 
     }
 
+    public void updateVersion(String mac, int version) {
+        LanDeviceInfo displayDeviceByMac = getDisplayDeviceByMac(mac);
+        if (displayDeviceByMac != null) {
+            displayDeviceByMac.setMainVersion((version >> 8) & 0xFF);
+            displayDeviceByMac.setSubVersion(version & 0xFF);
+
+            if(displayDeviceByMac.getDeviceID()!=null){
+                LanDeviceInfo displayDeviceById = getDisplayDeviceById(displayDeviceByMac.getDeviceID());
+                if (displayDeviceById != null) {
+                    displayDeviceById.setMainVersion((version >> 8) & 0xFF);
+                    displayDeviceById.setSubVersion(version & 0xFF);
+                }
+            }
+
+        }
+    }
+
 }

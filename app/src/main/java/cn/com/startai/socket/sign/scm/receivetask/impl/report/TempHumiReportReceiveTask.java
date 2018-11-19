@@ -46,7 +46,7 @@ public class TempHumiReportReceiveTask extends SocketResponseTask {
         float humiF = Float.valueOf(humi_int + "." + humi_deci);
         float humi = (float) (Math.round(humiF * 100)) / 100;
 
-        Tlog.v(TAG, "tempF: " + tempF + " temp: " + temp + " humi: " + humi);
+        Tlog.v(TAG, "tempF: " + tempF + " temp: " + temp + " humiF: " + humiF + " humi: " + humi);
 
         if (mCallBack != null) {
             mCallBack.onTempHumiResult(mSocketDataArray.getID(), temp, humi);

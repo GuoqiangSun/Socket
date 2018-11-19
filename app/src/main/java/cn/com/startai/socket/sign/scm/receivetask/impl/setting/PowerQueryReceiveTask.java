@@ -1,4 +1,4 @@
-package cn.com.startai.socket.sign.scm.receivetask.impl.system;
+package cn.com.startai.socket.sign.scm.receivetask.impl.setting;
 
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
@@ -11,12 +11,12 @@ import cn.com.swain169.log.Tlog;
  * date : 2018/4/26 0026
  * desc :
  */
-public class MonetaryUnitSettingReceiveTask extends SocketResponseTask {
+public class PowerQueryReceiveTask extends SocketResponseTask {
 
     private OnTaskCallBack mTaskCallBack;
 
-    public MonetaryUnitSettingReceiveTask(OnTaskCallBack mTaskCallBack) {
-        Tlog.e(TAG, " new MonetaryUnitSettingReceiveTask() ");
+    public PowerQueryReceiveTask(OnTaskCallBack mTaskCallBack) {
+        Tlog.e(TAG, " new PowerQueryReceiveTask() ");
         this.mTaskCallBack = mTaskCallBack;
     }
 
@@ -26,21 +26,21 @@ public class MonetaryUnitSettingReceiveTask extends SocketResponseTask {
 
         byte[] protocolParams = mSocketDataArray.getProtocolParams();
 
-        if (protocolParams == null || protocolParams.length < 2) {
+        if (protocolParams == null || protocolParams.length < 3) {
             Tlog.e(TAG, " protocolParams == null");
             if (mTaskCallBack != null) {
-                mTaskCallBack.onSettingMonetaryUnitResult(mSocketDataArray.getID(), false, 0);
+                mTaskCallBack.onQueryPowerResult(mSocketDataArray.getID(), false, 0);
             }
             return;
         }
 
         boolean result = SocketSecureKey.Util.resultIsOk(protocolParams[0]);
-        int mMonetaryUnit = (protocolParams[1] & 0xFF);
+        int mAlarmPowerValue = (protocolParams[1] & 0xFF) << 8 | (protocolParams[2] & 0xFF);
 
-        Tlog.v(TAG, "MonetaryUnit result : " + result + " mMonetaryUnit:" + mMonetaryUnit);
+        Tlog.v(TAG, "PowerQuery result : " + result + " mAlarmPowerValue:" + mAlarmPowerValue);
 
         if (mTaskCallBack != null) {
-            mTaskCallBack.onSettingMonetaryUnitResult(mSocketDataArray.getID(), result, mMonetaryUnit);
+            mTaskCallBack.onQueryPowerResult(mSocketDataArray.getID(), result, mAlarmPowerValue);
         }
 
     }

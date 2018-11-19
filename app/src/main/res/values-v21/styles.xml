@@ -6,7 +6,15 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
         <item name="android:statusBarColor">@android:color/transparent</item>
+
+     <!--   &lt;!&ndash;设置窗口的背景为透明，设置透明背景必须要设置此项&ndash;&gt;
+        <item name="android:windowBackground">@android:color/transparent</item>
+        &lt;!&ndash;设置窗口的背景是否为半透明，设置透明背景必须要设置此项&ndash;&gt;
+        <item name="android:windowIsTranslucent">true</item>
+        &lt;!&ndash;设置状态栏的背景为半透明&ndash;&gt;
+        <item name="android:windowTranslucentStatus">true</item>-->
 
         <!--        <item name="android:windowFullscreen">true</item>
                 <item name="android:windowDrawsSystemBarBackgrounds" tools:targetApi="lollipop">true</item>

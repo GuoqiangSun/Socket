@@ -132,7 +132,7 @@ public class ControlDevice {
     public void onTokenInvalid(int token, String loginUserID) {
         Tlog.d(TAG, " onTokenInvalid() token " + token + " userID:" + loginUserID + " setCanNotLanCom() ");
         setCanNotLanCom();
-        checkComModel(token, loginUserID);
+        checkComModel(-1, loginUserID);
     }
 
     public void lanDeviceDiscovery(int token, String loginUserID) {

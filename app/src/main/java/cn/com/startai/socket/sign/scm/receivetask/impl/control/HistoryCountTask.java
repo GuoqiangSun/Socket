@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
+import cn.com.startai.socket.debuger.Debuger;
+import cn.com.startai.socket.global.Utils.DateUtils;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
@@ -52,20 +54,13 @@ public class HistoryCountTask extends SocketResponseTask {
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
 
-
         long startTimeMillis;
 
         try {
-            Date parse = dateFormat.parse(startTime);
-
-            startTimeMillis = parse.getTime();
-
+            startTimeMillis= dateFormat.parse(startTime).getTime();
         } catch (ParseException e) {
             e.printStackTrace();
-
-            long remain = System.currentTimeMillis() % ONE_DAY;
-            startTimeMillis = System.currentTimeMillis() - remain - ONE_DAY * (day - 1);
-
+            startTimeMillis = DateUtils.fastFormatTsToDayOfOffset(day-1);
         }
 
 
@@ -93,13 +88,16 @@ public class HistoryCountTask extends SocketResponseTask {
         int oneDayBytes = oneDaySize * oneLength; // 一天数据长度
 
         int oneDayRemainBytes = dataLength % oneDayBytes;// 剩下多少数据
+        if (Debuger.isLogDebug) {
+            Tlog.w(TAG, " HistoryCountTask result:" + result + " startTime:" + startTime
+                    + " startTimeMillis:" + startTimeMillis + " " + dateFormat.format(new Date(startTimeMillis))
+                    + "\n day:" + day
+                    + " dataLength:" + dataLength + " oneDaySize:" + oneDaySize
+                    + " oneDayBytes:" + oneDayBytes + " oneDayRemainBytes:" + oneDayRemainBytes
+            );
+        }
 
-        Tlog.w(TAG, " HistoryCountTask result:" + result + " startTime:" + startTime
-                + " startTimeMillis:" + startTimeMillis + " " + dateFormat.format(new Date(startTimeMillis))
-                + "\n day:" + day
-                + " dataLength:" + dataLength + " oneDaySize:" + oneDaySize
-                + " oneDayBytes:" + oneDayBytes + " oneDayRemainBytes:" + oneDayRemainBytes
-        );
+        StringBuilder sbLog = new StringBuilder();
 
         for (int k = 0; k < day; k++) {
 
@@ -118,7 +116,7 @@ public class HistoryCountTask extends SocketResponseTask {
             mCount.mDayArray.add(mDay);
 
             String format = dateFormat.format(mDay.startTime);
-            if (Tlog.isDebug()) {
+            if (Debuger.isLogDebug) {
                 Tlog.d(TAG, " HistoryCountTask  startTime:" + startTime + " " + format);
             }
 
@@ -133,42 +131,25 @@ public class HistoryCountTask extends SocketResponseTask {
                         | (countData[6] & 0xFF) << 8 | (countData[7] & 0xFF);
 
                 mData = new QueryHistoryCount.Data();
-                mData.e = e;
-                mData.s = s;
 
-                if (Tlog.isDebug()) {
-                    Tlog.d(TAG, " HistoryCountTask e:" + e + " s:" + s);
+                mData.e = e / 1000F;
+                mData.s = s / 1000F;
+
+                if (Debuger.isLogDebug) {
+                    sbLog.append(" ").append(j).append(". e:").append(e).append(" s:").append(s);
                 }
 
                 mCount.mDataArray.add(mData);
             }
 
-
         }
 
-
-//        for (int i = 0; i < mo; i++) {
-//
-//            byte[] countData = new byte[oneLength];
-//
-//            System.arraycopy(protocolParams, i * oneLength + 5, countData, 0, oneLength);
-//            int e = (countData[0] & 0xFF) << 24 | (countData[1] & 0xFF) << 16
-//                    | (countData[2] & 0xFF) << 8 | (countData[3] & 0xFF);
-//            int s = (countData[4] & 0xFF) << 24 | (countData[5] & 0xFF) << 16
-//                    | (countData[6] & 0xFF) << 8 | (countData[7] & 0xFF);
-//
-//            mData = new QueryHistoryCount.Data();
-//            mData.e = e;
-//            mData.s = s;
-//
-//            if (Tlog.isDebug()) {
-//                Tlog.d(TAG, " HistoryCountTask e:" + e + " s:" + s);
-//            }
-//
-//            mCount.mDataArray.add(mData);
-//        }
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " HistoryCountTask:" + sbLog.toString());
+        }
 
         mCount.interval = protocolParams[protocolParams.length - 1];
+        mCount.msgSeq = mSocketDataArray.getProtocolSequence();
 
         if (mTaskCallBack != null) {
             mTaskCallBack.onQueryHistoryCountResult(result, mCount);
