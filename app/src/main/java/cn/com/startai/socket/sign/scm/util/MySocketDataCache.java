@@ -256,8 +256,8 @@ public class MySocketDataCache implements IService {
 
         mSecureDataPack.setParams(new byte[]{SocketSecureKey.Model.MODEL_RELAY});
         ResponseData responseData = newResponseDataNoRecord(mac, mSecureDataPack);
-        responseData.getSendModel().setSendModelIsLan();
-        responseData.getSendModel().setSendModelIsWan();
+        responseData.getSendModel().setModelIsLan();
+        responseData.getSendModel().setModelIsWan();
         return responseData;
     }
 
@@ -280,7 +280,7 @@ public class MySocketDataCache implements IService {
         mSecureDataPack.setParams(params);
         ResponseData responseData = newResponseData(mac, mSecureDataPack, true);
 //        responseData.getSendModel().setSendModelIsLan();
-        responseData.getSendModel().setSendModelIsWan();
+        responseData.getSendModel().setModelIsWan();
         return responseData;
     }
 
@@ -697,7 +697,7 @@ public class MySocketDataCache implements IService {
 
         mSecureDataPack.setParams(params);
         ResponseData responseData = newResponseDataRecord(mac, mSecureDataPack);
-        responseData.getSendModel().setSendModelIsLan();
+        responseData.getSendModel().setModelIsLan();
         return responseData;
     }
 
@@ -778,7 +778,7 @@ public class MySocketDataCache implements IService {
 
         mSecureDataPack.setParams(params);
         ResponseData responseData = newResponseDataRecord(mac, mSecureDataPack);
-        responseData.getSendModel().setSendModelIsLan();
+        responseData.getSendModel().setModelIsLan();
         return responseData;
     }
 
@@ -810,7 +810,7 @@ public class MySocketDataCache implements IService {
         mSecureDataPack.setParams(params);
 
         ResponseData responseData = newResponseDataRecord(mac, mSecureDataPack);
-        responseData.getSendModel().setSendModelIsLan();
+        responseData.getSendModel().setModelIsLan();
         return responseData;
     }
 
@@ -841,7 +841,7 @@ public class MySocketDataCache implements IService {
 
         mSecureDataPack.setParams(params);
         ResponseData responseData = newResponseDataRecord(mac, mSecureDataPack);
-        responseData.getSendModel().setSendModelIsLan();
+        responseData.getSendModel().setModelIsLan();
         return responseData;
     }
 

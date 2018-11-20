@@ -5,7 +5,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.widget.Toast;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -353,7 +352,7 @@ public class SocketScmManager extends AbsSocketScm
         int lastMonth = DateUtils.getMonth(startTimestamp);
         int lastYear = DateUtils.getYear(startTimestamp);
 
-        long curMillis = DateUtils.fastFormatTsToDayTs(System.currentTimeMillis());
+        final long curMillis = DateUtils.fastFormatTsToDayTs(System.currentTimeMillis());
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
 
@@ -379,6 +378,7 @@ public class SocketScmManager extends AbsSocketScm
 
         QueryHistoryCount.Day mDay;
         QueryHistoryCount.Data mData;
+        QueryHistoryCount.Data mTmpData = new QueryHistoryCount.Data();
 
         CountElectricityDao countElectricityDao =
                 DBManager.getInstance().getDaoSession().getCountElectricityDao();
@@ -394,7 +394,10 @@ public class SocketScmManager extends AbsSocketScm
         while (startTimestamp < endTimestamp) {
 
             if (Debuger.isLogDebug) {
-                Tlog.v(TAG, " queryHistoryCount startTime: " + dateFormat.format(new Date(startTimestamp)));
+                Tlog.v(TAG, " queryHistoryCount startTime: "
+                        + dateFormat.format(new Date(startTimestamp))
+                        + "  curMillis:"
+                        + dateFormat.format(new Date(curMillis)));
             }
 
             List<CountElectricity> listElectricitys = countElectricityDao.queryBuilder()
@@ -402,6 +405,8 @@ public class SocketScmManager extends AbsSocketScm
                             CountElectricityDao.Properties.Timestamp.eq(startTimestamp)).list();
 
             mDay = new QueryHistoryCount.Day();
+            mDay.startTime = startTimestamp;
+            mCount.mDayArray.add(mDay);
 
             if (listElectricitys != null && listElectricitys.size() > 0) {
                 CountElectricity countElectricity = listElectricitys.get(0);
@@ -421,7 +426,7 @@ public class SocketScmManager extends AbsSocketScm
                     queryHistoryCount.msgSeq = mResponseData.getRepeatMsgModel().getMsgSeq();
 
                     if (Debuger.isLogDebug) {
-                        Tlog.v(TAG, " queryHistoryCount from server " + mResponseData.toString());
+                        Tlog.v(TAG, " queryCurDayHistoryCount from server ;" + mResponseData.toString());
                     }
                     onOutputDataToServer(mResponseData);
                 }
@@ -430,9 +435,13 @@ public class SocketScmManager extends AbsSocketScm
 
                 mDay.countData = new byte[oneDayBytes];
 
+                if (Debuger.isLogDebug) {
+                    Tlog.w(TAG, " queryHistoryCount from DB is null ; new null byte[]");
+                }
+
                 long diff = curMillis - startTimestamp;
 
-                if (diff < DateUtils.ONE_DAY * 7) {
+                if (diff < DateUtils.ONE_DAY * 7 && diff > 0) {
 
                     if (mQueryCount.needQueryFromServer) {
                         Date mStartDate = new Date(startTimestamp);
@@ -461,9 +470,6 @@ public class SocketScmManager extends AbsSocketScm
 
             }
 
-            mDay.startTime = startTimestamp;
-            QueryHistoryCount.Data mTmpData = new QueryHistoryCount.Data();
-
             for (int j = 0; j < oneDaySize; j++) {
 
                 try {
@@ -483,24 +489,12 @@ public class SocketScmManager extends AbsSocketScm
                 float e = ee / 1000F;
                 float s = ss / 1000F;
 
-                mData = new QueryHistoryCount.Data();
 
-                if (Debuger.isTest && e == 0) {
+//                if (Debuger.isTest && e == 0) {
 //                    e = (int) ((Math.random() * 9 + 1) * 1000);
-                }
+//                }
 
-                if (SocketSecureKey.Util.isIntervalMinute((byte) mQueryCount.interval)) {
-                    mData.e = e;
-                    mData.s = s;
-
-                    if (Debuger.isLogDebug) {
-                        sbJsLog.append(j).append("-e:").append(mData.e)
-                                .append(",s:").append(mData.s).append("; ");
-                    }
-
-                    mCount.mDataArray.add(mData);
-
-                } else if (SocketSecureKey.Util.isIntervalMonth((byte) mQueryCount.interval)) {
+                if (SocketSecureKey.Util.isIntervalMonth((byte) mQueryCount.interval)) {
 
                     int month = DateUtils.getMonth(startTimestamp);
                     int year = DateUtils.getYear(startTimestamp);
@@ -510,10 +504,18 @@ public class SocketScmManager extends AbsSocketScm
 //                            + " day:" + DateUtils.getDays(startTimestamp)
 //                            + " lastMonth:" + lastMonth);
 
-                    if (month - lastMonth == 1 || year - lastYear == 1) {
-                        Tlog.v(TAG, " year:" + DateUtils.getYear(startTimestamp)
-                                + " month:" + month
-                                + " day:" + DateUtils.getDays(startTimestamp)
+                    mTmpData.e += e;
+                    mTmpData.s += s;
+
+//                    if (month == 11) {
+//                        Tlog.e(" e : " + e + " s:" + s);
+//                    }
+
+                    if (month - lastMonth == 1 || year - lastYear == 1 ||
+                            ((startTimestamp == endTimestamp - DateUtils.ONE_DAY) && (j == oneDaySize - 1))) {
+                        Tlog.v(TAG, " startYear:" + DateUtils.getYear(startTimestamp)
+                                + " startMonth:" + month
+                                + " startDay:" + DateUtils.getDays(startTimestamp)
                                 + " lastMonth:" + lastMonth);
 
                         int daysOfMonth = DateUtils.getDaysOfMonth(lastYear, lastMonth);
@@ -521,89 +523,145 @@ public class SocketScmManager extends AbsSocketScm
                         lastMonth = month;
 
                         // 一个月一次的平均数据
+                        mData = new QueryHistoryCount.Data();
                         mData.e = mTmpData.e / daysOfMonth;
                         mData.s = mTmpData.s / daysOfMonth;
+                        mCount.mDataArray.add(mData);
+                        mCount.day++;
 
-                        mTmpData.e = 0;
-                        mTmpData.s = 0;
                         if (Debuger.isLogDebug) {
+
+                            Tlog.e(TAG, "isIntervalMonth tmpData.e:" + mTmpData.e + " tmpData.s:" + mTmpData.s
+                                    + " days:" + daysOfMonth + " add e:" + mData.e + " s:" + mData.s);
+
                             sbJsLog.append(j).append("-e:").append(mData.e)
                                     .append(",s:").append(mData.s).append("; ");
 
-                            Tlog.e(TAG, "isIntervalMonth days:" + daysOfMonth + " add e:" + mData.e + " s:" + mData.s);
+                        }
+
+                        mTmpData.e = 0;
+                        mTmpData.s = 0;
+
+                    }
+
+                } else if (SocketSecureKey.Util.isIntervalWeek((byte) mQueryCount.interval)) {
+
+                    int curWeek = DateUtils.getWeek(startTimestamp);
+
+                    mTmpData.e += e;
+                    mTmpData.s += s;
+
+                    if ((curWeek == 0 || (startTimestamp == endTimestamp - DateUtils.ONE_DAY)) && (j == oneDaySize - 1)) {
+
+                        Tlog.v(TAG, " curWeek: " + curWeek + " " + dateFormat.format(new Date(startTimestamp)));
+
+                        int countNumber = curWeek;
+                        if (curWeek == 0) {
+                            countNumber = 7;
+                        }
+
+                        mData = new QueryHistoryCount.Data();
+                        mData.e = mTmpData.e / countNumber;
+                        mData.s = mTmpData.s / countNumber;
+                        mCount.mDataArray.add(mData);
+                        mCount.day++;
+
+                        if (Debuger.isLogDebug) {
+
+                            Tlog.e(TAG, "isIntervalWeek tmpData.e:" + mTmpData.e + " tmpData.s:" + mTmpData.s
+                                    + " days:" + 7 + " add e:" + mData.e + " s:" + mData.s);
+
+                            sbJsLog.append(j).append("-e:").append(mData.e)
+                                    .append(",s:").append(mData.s).append("; ");
 
                         }
 
-                        mCount.mDataArray.add(mData);
 
-                    } else {
-                        mTmpData.e += e;
-                        mTmpData.s += s;
+                        mTmpData.e = 0;
+                        mTmpData.s = 0;
+
                     }
+
 
                 } else if (SocketSecureKey.Util.isIntervalDay((byte) mQueryCount.interval)) {
 
-                    int countNumber = CountElectricity.SIZE_ONE_DAY;//一个数据一天
+                    mTmpData.e += e;
+                    mTmpData.s += s;
 
-                    if ((j == oneDaySize - 1)) {
+                    if (j == oneDaySize - 1) {
 
+                        int countNumber = CountElectricity.SIZE_ONE_DAY;//一个数据一天
                         // 一天一次的平均数据
+                        mData = new QueryHistoryCount.Data();
                         mData.e = mTmpData.e / countNumber;
                         mData.s = mTmpData.s / countNumber;
+                        mCount.mDataArray.add(mData);
+                        mCount.day++;
+
+                        if (Debuger.isLogDebug) {
+
+                            Tlog.e(TAG, "isIntervalDay tmpData.e:" + mTmpData.e + " tmpData.s:" + mTmpData.s
+                                    + " days:" + countNumber + " add e:" + mData.e + " s:" + mData.s);
+
+                            sbJsLog.append(j).append("-e:").append(mData.e)
+                                    .append(",s:").append(mData.s).append("; ");
+
+                        }
 
                         mTmpData.e = 0;
                         mTmpData.s = 0;
 
-                        if (Debuger.isLogDebug) {
-                            sbJsLog.append(j).append("-e:").append(mData.e)
-                                    .append(",s:").append(mData.s).append("; ");
-
-                            Tlog.e(TAG, "isIntervalDay add e:" + mData.e + " s:" + mData.s);
-
-                        }
-
-                        mCount.mDataArray.add(mData);
-
-                    } else {
-                        mTmpData.e += e;
-                        mTmpData.s += s;
                     }
 
                 } else if (SocketSecureKey.Util.isIntervalHour((byte) mQueryCount.interval)) {
 
                     int countNumber = 60 / 5; // 一个数据一小时
+                    mTmpData.e += e;
+                    mTmpData.s += s;
 
                     if (j != 0 && j % countNumber == 0) {
                         // 一小时一次的平均数据
+
+                        mData = new QueryHistoryCount.Data();
                         mData.e = mTmpData.e / countNumber;
                         mData.s = mTmpData.s / countNumber;
-
-                        mTmpData.e = 0;
-                        mTmpData.s = 0;
+                        mCount.mDataArray.add(mData);
+                        mCount.day++;
 
                         if (Debuger.isLogDebug) {
+
+                            Tlog.e(TAG, "isIntervalHour tmpData.e:" + mTmpData.e + " tmpData.s:" + mTmpData.s
+                                    + " days:" + countNumber + " add e:" + mData.e + " s:" + mData.s);
+
                             sbJsLog.append(j).append("-e:").append(mData.e)
                                     .append(",s:").append(mData.s).append("; ");
                         }
 
-//                        Tlog.e(TAG, "add e:" + mData.e + " s:" + mData.s);
-                        mCount.mDataArray.add(mData);
+                        mTmpData.e = 0;
+                        mTmpData.s = 0;
 
-                    } else {
-                        mTmpData.e += e;
-                        mTmpData.s += s;
                     }
 
-                } else {
-                    mData.e = e;
-                    mData.s = s;
+                } else if (SocketSecureKey.Util.isIntervalMinute((byte) mQueryCount.interval)) {
+                    mData = new QueryHistoryCount.Data(e, s);
+                    mCount.mDataArray.add(mData);
+                    mCount.day++;
 
                     if (Debuger.isLogDebug) {
                         sbJsLog.append(j).append("-e:").append(mData.e)
                                 .append(",s:").append(mData.s).append("; ");
                     }
 
+                } else {
+                    mData = new QueryHistoryCount.Data(e, s);
                     mCount.mDataArray.add(mData);
+                    mCount.day++;
+
+                    if (Debuger.isLogDebug) {
+                        sbJsLog.append(j).append("-e:").append(mData.e)
+                                .append(",s:").append(mData.s).append("; ");
+                    }
+
                 }
 
 
@@ -624,13 +682,20 @@ public class SocketScmManager extends AbsSocketScm
 
             }
 
-            mCount.mDayArray.add(mDay);
-
             startTimestamp += DateUtils.ONE_DAY;
 
-            Tlog.e(TAG, " QueryHistoryCount startTimestamp += DateUtils.ONE_DAY: " + DateUtils.getMonth(startTimestamp));
 
-            mCount.day++;
+            if (Debuger.isLogDebug) {
+                Tlog.e(TAG, " QueryHistoryCount one circle finish ,next day: "
+                        + dateFormat.format(new Date(startTimestamp)));
+            }
+
+
+            if (startTimestamp >= endTimestamp) {
+                Tlog.e(TAG, " QueryHistoryCount break; startTimestamp >= endTimestamp "
+                        + dateFormat.format(new Date(startTimestamp)));
+                break;
+            }
 
         }
 
@@ -857,219 +922,6 @@ public class SocketScmManager extends AbsSocketScm
         }
     }
 
-
-    public void onElectricityReportResultOld(boolean result, PointReport mElectricity) {
-
-        if (!result) {
-            Tlog.e(TAG, " onElectricityReportResult fail ");
-            return;
-        }
-
-        if (mScmResultCallBack != null) {
-            mScmResultCallBack.onElectricityReportResult(result, mElectricity);
-        }
-
-        CountElectricityDao countElectricityDao =
-                DBManager.getInstance().getDaoSession().getCountElectricityDao();
-
-        long startTimeOriginal = mElectricity.ts;
-        long startTime = startTimeOriginal; // startTime  yyyy/mm//dd
-        SimpleDateFormat mFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
-        String format = mFormat.format(new Date(startTime));
-        try {
-            Date parse = mFormat.parse(format);
-            startTime = parse.getTime();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-
-        List<CountElectricity> list = countElectricityDao.queryBuilder()
-                .where(CountElectricityDao.Properties.Mac.eq(mElectricity.mac),
-                        CountElectricityDao.Properties.Timestamp.eq(startTime)).list();
-
-        CountElectricity countElectricity = null;
-        if (list.size() > 0) {
-            countElectricity = list.get(0);
-        }
-
-        if (countElectricity == null) {
-            CountElectricity mCountElectricity = new CountElectricity();
-            mCountElectricity.setMac(mElectricity.mac);
-
-
-            Date date = new Date(startTimeOriginal);
-            int hours = date.getHours();
-            int minutes = date.getMinutes();
-
-            int d = minutes % 5;
-            minutes -= d;
-            if (minutes <= 0) {
-                minutes = 0;
-            }
-
-            int index = (hours * 60 + minutes) / 5 - 1;
-
-            if (index < 0) {
-                Tlog.e(TAG, " insert " + hours + ":" + minutes + " index < 0 ");
-
-
-                List<CountElectricity> listL = countElectricityDao.queryBuilder()
-                        .where(CountElectricityDao.Properties.Mac.eq(mElectricity.mac),
-                                CountElectricityDao.Properties.Timestamp.eq(startTime - DateUtils.ONE_DAY)).list();
-
-                if (listL.size() > 0) {
-                    CountElectricity countElectricity1 = listL.get(0);
-
-                    byte[] electricityLast = countElectricity1.getElectricity();
-
-                    if (electricityLast != null) {
-
-                        int point = (60 * 24 / 5 - 1) * 8;
-
-                        if (electricityLast.length >= (point + 4)) {
-                            electricityLast[point] = mElectricity.data[0];
-                            electricityLast[point + 1] = mElectricity.data[1];
-                            electricityLast[point + 2] = mElectricity.data[2];
-                            electricityLast[point + 3] = mElectricity.data[3];
-
-                            countElectricity1.setElectricity(electricityLast);
-
-                            countElectricityDao.update(countElectricity1);
-
-                        }
-
-
-                    }
-                }
-
-            } else {
-
-
-                int oneDayBytes = CountElectricity.ONE_DAY_BYTES; // 一天数据长度
-
-                byte[] electricity = new byte[oneDayBytes];
-
-                int point = index * 8;
-
-                Tlog.d(TAG, " insert " + hours + ":" + minutes + " point:" + point);
-
-                if (point <= electricity.length && mElectricity.data != null) {
-                    electricity[point] = mElectricity.data[0];
-                    electricity[point + 1] = mElectricity.data[1];
-                    electricity[point + 2] = mElectricity.data[2];
-                    electricity[point + 3] = mElectricity.data[3];
-                }
-
-
-                mCountElectricity.setElectricity(electricity);
-                mCountElectricity.setTimestamp(startTime);
-                long insert = countElectricityDao.insert(mCountElectricity);
-
-                Tlog.v(TAG, " PointCount insert:" + insert);
-
-            }
-
-        } else {
-            int oneDayBytes = CountElectricity.ONE_DAY_BYTES; // 一天数据长度
-
-//            Date date = new Date(startTimeOriginal);
-//            int hours = date.getHours();
-//            int minutes = date.getMinutes();
-//
-//            int d = minutes % 5;
-//            minutes -= d;
-//            if (minutes <= 0) {
-//                minutes = 0;
-//            }
-//
-//            int index = (hours * 60 + minutes) / 5 - 1;
-
-            int minuteOfDay = DateUtils.getMinuteOfDay(startTimeOriginal, 5);
-            int index = (minuteOfDay / 5 - 1);
-            Tlog.e(TAG, " history query buf index:" + index);
-
-            if (index < 0) {
-
-                List<CountElectricity> listL = countElectricityDao.queryBuilder()
-                        .where(CountElectricityDao.Properties.Mac.eq(mElectricity.mac),
-                                CountElectricityDao.Properties.Timestamp.eq(startTime - DateUtils.ONE_DAY)).list();
-
-                if (listL.size() > 0) {
-                    CountElectricity countElectricity1 = listL.get(0);
-
-                    byte[] electricityLast = countElectricity1.getElectricity();
-
-                    if (electricityLast != null) {
-
-                        int point = (60 * 24 / 5 - 1) * 8;
-
-                        if (electricityLast.length >= (point + 4)) {
-                            electricityLast[point] = mElectricity.data[0];
-                            electricityLast[point + 1] = mElectricity.data[1];
-                            electricityLast[point + 2] = mElectricity.data[2];
-                            electricityLast[point + 3] = mElectricity.data[3];
-
-                            countElectricity1.setElectricity(electricityLast);
-
-                            countElectricityDao.update(countElectricity1);
-
-                        }
-
-                    }
-                }
-
-
-            } else {
-
-                byte[] electricity = countElectricity.getElectricity();
-                if (electricity == null) {
-                    electricity = new byte[oneDayBytes];
-                }
-
-                int point = index * 8;
-
-                if (mElectricity.data != null) {
-                    int length = electricity.length;
-
-                    Tlog.v(TAG, " PointCount update  oldLength:" + length);
-
-                    if (point <= length) {
-                        electricity[point] = mElectricity.data[0];
-                        electricity[point + 1] = mElectricity.data[1];
-                        electricity[point + 2] = mElectricity.data[2];
-                        electricity[point + 3] = mElectricity.data[3];
-
-                        Tlog.v(TAG, " PointCount update direct insert :");
-
-                    } else if (point < oneDayBytes) {
-
-                        byte[] cache = new byte[oneDayBytes];
-
-                        System.arraycopy(electricity, 0, cache, 0, length);
-
-                        electricity = cache;
-
-                        electricity[point] = mElectricity.data[0];
-                        electricity[point + 1] = mElectricity.data[1];
-                        electricity[point + 2] = mElectricity.data[2];
-                        electricity[point + 3] = mElectricity.data[3];
-
-                        Tlog.v(TAG, " PointCount update copy insert :");
-
-                    }
-
-
-                }
-
-                countElectricity.setElectricity(electricity);
-                countElectricityDao.update(countElectricity);
-                Tlog.v(TAG, " PointCount update:" + countElectricity.getId());
-            }
-
-        }
-
-    }
 
     @Override
     public void onElectricityReportResult(boolean result, PointReport mElectricity) {

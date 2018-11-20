@@ -80,7 +80,7 @@ import cn.com.swain.baselib.util.WiFiUtil;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolInput;
 import cn.com.swain.support.protocolEngine.pack.ReceivesData;
 import cn.com.swain.support.protocolEngine.pack.ResponseData;
-import cn.com.swain.support.protocolEngine.pack.SendModel;
+import cn.com.swain.support.protocolEngine.pack.SecondModel;
 import cn.com.swain.support.udp.ISocketResult;
 import cn.com.swain.support.udp.UdpLanCom;
 import cn.com.swain.support.udp.UdpResponseMsg;
@@ -1014,8 +1014,8 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
 
     @Override
     public void onOutputDataToServer(ResponseData mResponseData) {
-        SendModel sendModel = mResponseData.getSendModel();
-        if (sendModel.isSendModelOnlyLan()) {
+        SecondModel sendModel = mResponseData.getSendModel();
+        if (sendModel.isModelOnlyLan()) {
 
             if (Debuger.isLogDebug) {
                 Tlog.i(TAG, "mResponseData.getSendModel().isSendModelOnlyLan()");
@@ -1026,7 +1026,7 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
             return;
         }
 
-        if (sendModel.isSendModelOnlyWan()) {
+        if (sendModel.isModelOnlyWan()) {
 
             if (Debuger.isLogDebug) {
                 Tlog.i(TAG, "mResponseData.getSendModel().isSendModelOnlyWan()");
@@ -1037,7 +1037,7 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
             return;
         }
 
-        if (sendModel.isSendModelIsLan() && sendModel.isSendModelIsWan()) {
+        if (sendModel.isModelIsLan() && sendModel.isModelIsWan()) {
 
             if (Debuger.isLogDebug) {
                 Tlog.i(TAG, "mResponseData.getSendModel().isSendModelWaAndLan()");
@@ -1210,7 +1210,7 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
             }
 
             ReceivesData mReceiveData = new ReceivesData(mac, data);
-            mReceiveData.getReceiveModel().setReceiveModelIsLan();
+            mReceiveData.getReceiveModel().setModelIsLan();
             mReceiveData.obj = ip;
             mReceiveData.arg = port;
             mReceives.onInputServerData(mReceiveData);
@@ -1234,7 +1234,7 @@ public class NetworkManager extends AbsWiFi implements ISocketResult {
             }
 
             ReceivesData mReceiveData = new ReceivesData(mac, data);
-            mReceiveData.getReceiveModel().setReceiveModelIsWan();
+            mReceiveData.getReceiveModel().setModelIsWan();
             mReceiveData.obj = fromId;
             mReceives.onInputServerData(mReceiveData);
 

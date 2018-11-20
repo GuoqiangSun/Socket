@@ -106,6 +106,15 @@ public class QueryHistoryCount {
     }
 
     public static class Data {
+
+        public Data() {
+        }
+
+        public Data(float e, float s) {
+            this.e = e;
+            this.s = s;
+        }
+
         public float e;
         public float s;
 
