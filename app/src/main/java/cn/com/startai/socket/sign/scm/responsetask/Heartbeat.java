@@ -32,7 +32,9 @@ public class Heartbeat {
 
     private final SEQ mSeq;
 
-    public Heartbeat(Looper mWorkLooper, IDataProtocolOutput mProtocolDataOutput, OnHeartbeatCallBack mCallBack, String mac) {
+    public Heartbeat(Looper mWorkLooper,
+                     IDataProtocolOutput mProtocolDataOutput,
+                     OnHeartbeatCallBack mCallBack, String mac) {
 
         this.mCallBack = mCallBack;
         this.mProtocolDataOutput = mProtocolDataOutput;

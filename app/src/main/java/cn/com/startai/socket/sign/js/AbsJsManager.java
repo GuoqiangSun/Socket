@@ -37,6 +37,7 @@ import cn.com.startai.socket.sign.scm.bean.SpendingElectricityData;
 import cn.com.startai.socket.sign.scm.bean.TempHumidityAlarmData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingCommonData;
+import cn.com.startai.socket.sign.scm.bean.TimingTempHumiData;
 
 /**
  * author: Guoqiang_Sun
@@ -238,6 +239,14 @@ public abstract class AbsJsManager implements Device.IJSDeviceCallBack,//
         void onJSQueryUSBState(String mac);
 
         void onJSSetUSBState(String mac, boolean state);
+
+        void onJSTHSetTemperatureTimingAlarm(TimingTempHumiData obj);
+
+        void onJSTHQueryTemperatureTimingAlarm(String mac,int model);
+
+        void onJSQueryColourLampRGB(String mac);
+
+        void onJSTurnColourLamp(String mac, boolean state);
     }
 
 }

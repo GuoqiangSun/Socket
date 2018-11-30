@@ -1,5 +1,7 @@
 package cn.com.startai.socket.sign.scm.receivetask.impl.system;
 
+import android.app.Application;
+
 import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
@@ -7,6 +9,7 @@ import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.baselib.util.MacUtil;
 import cn.com.swain.baselib.util.StrUtil;
+import cn.com.swain.baselib.util.WiFiUtil;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
 import cn.com.swain169.log.Tlog;
@@ -20,8 +23,11 @@ public class DeviceDiscoveryTask extends SocketResponseTask {
 
     private OnTaskCallBack mOnTaskCallBack;
 
-    public DeviceDiscoveryTask(OnTaskCallBack mOnTaskCallBack) {
+    private  Application app;
+
+    public DeviceDiscoveryTask(OnTaskCallBack mOnTaskCallBack, Application app) {
         this.mOnTaskCallBack = mOnTaskCallBack;
+        this.app = app;
         Tlog.e(TAG, " new DeviceDiscoveryTask ");
     }
 
@@ -42,11 +48,12 @@ public class DeviceDiscoveryTask extends SocketResponseTask {
 
         LanDeviceInfo mWiFiDevice = new LanDeviceInfo();
         mWiFiDevice.ip = (String) mSocketDataArray.getObj();
+        mWiFiDevice.port = mSocketDataArray.getArg();
+
         mWiFiDevice.state = true;
 
         mWiFiDevice.model = protocolParams[1];
         mWiFiDevice.mac = MacUtil.byteToMacStr(protocolParams, 2);
-        mWiFiDevice.port = mSocketDataArray.getArg();
 
         String name = new String(protocolParams, 8, 32);
         mWiFiDevice.name = name.trim().replaceAll("\\s*", "");
@@ -89,6 +96,13 @@ public class DeviceDiscoveryTask extends SocketResponseTask {
         }
         mWiFiDevice.rssi = rssi;
 
+        if (protocolParams.length >= (46 + 16)) {
+            String ssid = new String(protocolParams, 46, 16);
+            mWiFiDevice.ssid = ssid.trim().replaceAll("\\s*", "");
+        }else {
+            mWiFiDevice.ssid = WiFiUtil.getConnectedWiFiSSID(app);
+        }
+
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, "discovery:" + String.valueOf(mWiFiDevice));
 
@@ -105,6 +119,8 @@ public class DeviceDiscoveryTask extends SocketResponseTask {
                 mOnTaskCallBack.onDeviceDiscoveryResult(mSocketDataArray.getID(), result, mWiFiDevice);
             }
 
+        } else {
+            Tlog.e(TAG, " find one device ,but not match custom");
         }
 
 

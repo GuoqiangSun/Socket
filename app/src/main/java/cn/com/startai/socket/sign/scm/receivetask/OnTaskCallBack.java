@@ -1,6 +1,9 @@
 package cn.com.startai.socket.sign.scm.receivetask;
 
+import java.util.ArrayList;
+
 import cn.com.startai.socket.debuger.impl.IDebugerProtocolStream;
+import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.mutual.js.bean.TimingSetResult;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
 import cn.com.startai.socket.sign.scm.bean.CostRate;
@@ -13,6 +16,7 @@ import cn.com.startai.socket.sign.scm.bean.SpendingElectricityData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingCommonData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingListData;
+import cn.com.startai.socket.sign.scm.bean.TimingTempHumiData;
 import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.Humidity;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.Temperature;
@@ -191,10 +195,21 @@ public interface OnTaskCallBack {
 
     void onUSBResult(String id, boolean on);
 
+    void onSetTimezoneResult(boolean result, String id, byte zone);
+
+    void onQueryTimezoneResult(boolean result, String id, byte zone);
+
+    void onRGBSetResult(boolean result, ColorLampRGB mColorLampRGB);
+
+    void onRGBQueryResult(boolean result, ColorLampRGB mColorLampRGB);
+
+    void onSetTimingTempHumiResult(boolean result,String id, TimingTempHumiData mAdvanceData);
+
+    void onQueryTimingTempHumiResult(boolean result, String id, ArrayList<TimingTempHumiData> mDataLst);
+
+
+    void onRemoveCmd(String id, byte paramType, byte paramCmd, int seq);
+
     void onTestResult(byte[] protocolParams);
-
-    void onSetTimezoneResult(boolean result, String id,byte zone);
-
-    void onQueryTimezoneResult(boolean result, String id,byte zone);
 
 }

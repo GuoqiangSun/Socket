@@ -40,10 +40,11 @@ public class RenameReceiveTask extends SocketResponseTask {
         deviceName = new String(protocolParams, 1, 32);
         deviceName = deviceName.trim().replaceAll("\\s*", "");
         Tlog.v(TAG, " deviceName :" + deviceName);
-        if (StrUtil.isSpecialName(deviceName)) {
-            int random = (int) ((Math.random() * 9 + 1) * 100000);
-            deviceName = "UNKNOWN" + random;
-        }
+
+//        if (StrUtil.isSpecialName(deviceName)) {
+//            int random = (int) ((Math.random() * 9 + 1) * 100000);
+//            deviceName = "UNKNOWN" + random;
+//        }
 
         if (mOnTaskCallBack != null) {
             mOnTaskCallBack.onDeviceRenameResult(mSocketDataArray.getID(), result, deviceName);

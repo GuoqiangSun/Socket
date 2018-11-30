@@ -95,7 +95,7 @@ public class Countdown extends AbsHandlerJsInterface {
      */
     @JavascriptInterface
     public void powerSwitchCountdownRequest(String mac, int hour, int minute, boolean startup, boolean on) {
-        Tlog.v(TAG, " powerSwitchCountdownRequest mac: " + mac + " on:" + on + " startup:" + startup + " hour:" + hour + " minute:" + minute);
+        Tlog.v(TAG, " powerSwitchCountdownRequest mac: " + mac + " startup:" + on + " startup:" + startup + " hour:" + hour + " minute:" + minute);
 
 
         PowerCountdown mPowerCountDown = new PowerCountdown();

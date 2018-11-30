@@ -23,11 +23,12 @@ public class MyTestTask extends SocketResponseTask {
     @Override
     protected void doTask(SocketDataArray mSocketDataArray) {
 
-        Tlog.e(TAG, " MyTestTask:" + mSocketDataArray.toString());
+        Tlog.d(TAG, " MyTestTask:" + mSocketDataArray.toString());
 
         if (mTaskCallBack != null) {
             mTaskCallBack.onTestResult(mSocketDataArray.getProtocolParams());
         }
 
+        Tlog.d(TAG, " MyTestTask success ");
     }
 }

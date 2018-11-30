@@ -258,7 +258,7 @@ public class TestActivity extends AppCompatActivity {
 //        ProtocolProcessorFactory.newSingleThreadAnalysisMutilTask(LooperManager.getInstance().getProtocolLooper(), new ProtocolTaskImpl(null, null),2);
 
         pm = new ProtocolProcessor(LooperManager.getInstance().getProtocolLooper(),
-                new ProtocolTaskImpl(null, null),
+                new ProtocolTaskImpl(null, null,getApplication()),
                 new SocketDataQueueProducer(0),
                 3);
 

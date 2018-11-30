@@ -61,7 +61,8 @@ public class TempHumiRelayReportReceiveTask extends SocketResponseTask {
         float curValue = Float.valueOf(value_int + "." + value_deci);
         curValue = (float) (Math.round(curValue * 100)) / 100;
 
-        Tlog.v(TAG, " model:" + model + " relayOn:" + on + " startup:" + startup + " limit:" + limit + " alarmValue:" + alarmValue + " curValue:" + curValue);
+        Tlog.v(TAG, " model:" + model + " relayOn:" + on + " startup:" + startup
+                + " limit:" + limit + " alarmValue:" + alarmValue + " curValue:" + curValue);
 
         if (mCallBack != null) {
 

@@ -22,8 +22,43 @@ public class UpdateVersion {
         return SocketSecureKey.Util.isUpdateModel(action);
     }
 
+
+    public byte curVersionMain;
+    public byte curVersionSub;
+
+    public double getDoubleCurVersion() {
+        int m = (curVersionMain & 0xFF);
+        int s = (curVersionSub & 0xFF);
+        String v = m + "." + s;
+        double v1;
+        try {
+            v1 = Double.parseDouble(v);
+        } catch (Exception e) {
+            v1 = curVersion;
+        }
+        return v1;
+    }
+
     public int curVersion;
+
     public int newVersion;
+
+    public byte newVersionMain;
+    public byte newVersionSub;
+
+
+    public double getDoubleNewVersion() {
+        int m = (newVersionMain & 0xFF);
+        int s = (newVersionSub & 0xFF);
+        String v = m + "." + s;
+        double v1;
+        try {
+            v1 = Double.parseDouble(v);
+        } catch (Exception e) {
+            v1 = newVersion;
+        }
+        return v1;
+    }
 
     @Override
     public String toString() {

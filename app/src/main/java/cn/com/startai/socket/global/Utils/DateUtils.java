@@ -33,6 +33,49 @@ public class DateUtils {
      */
     public static final long ONE_DAY = ONE_HOUR * 24;
 
+    /**
+     * @param timestamp 时间戳
+     * @return 精确到月的时间戳
+     * @throws ParseException
+     */
+    public static long formatTsToMonthTs(long timestamp) throws ParseException {
+        SimpleDateFormat mFormat = new SimpleDateFormat("yyyy/MM", Locale.getDefault());
+        Date startData = new Date(timestamp);
+        String format = mFormat.format(startData);
+        Date parse = mFormat.parse(format);
+        return parse.getTime();
+    }
+
+    /**
+     * @param timestamp 时间戳
+     * @return 精确到月的时间戳
+     */
+    public static long fastFormatTsToMonthTs(long timestamp) {
+        try {
+            return formatTsToMonthTs(timestamp);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return fastFormatTsToDayTs(timestamp);
+        }
+    }
+
+    public static long getLastMonth(long timestamp) {
+        Calendar cl = Calendar.getInstance();
+        Date mDate = new Date(timestamp);
+        cl.set(Calendar.YEAR, mDate.getYear() + 1900);
+        cl.set(Calendar.MONTH, mDate.getMonth() - 1);
+        long timeInMillis = cl.getTimeInMillis();
+        return fastFormatTsToMonthTs(timeInMillis);
+    }
+
+    public static long getNextMonth(long timestamp) {
+        Calendar cl = Calendar.getInstance();
+        Date mDate = new Date(timestamp);
+        cl.set(Calendar.YEAR, mDate.getYear() + 1900);
+        cl.set(Calendar.MONTH, mDate.getMonth() + 1);
+        long timeInMillis = cl.getTimeInMillis();
+        return fastFormatTsToMonthTs(timeInMillis);
+    }
 
     /**
      * @param timestamp 时间戳
@@ -116,54 +159,28 @@ public class DateUtils {
      * @return 精确到天的时间戳
      */
     public static long fastFormatTsToDayTs(long timestamp) {
-        int timezoneOffset = Calendar.getInstance().get(Calendar.ZONE_OFFSET);
-        return timestamp / ONE_DAY * ONE_DAY - timezoneOffset;
+//        int timezoneOffset = Calendar.getInstance().get(Calendar.ZONE_OFFSET);
+//        return timestamp / ONE_DAY * ONE_DAY - timezoneOffset;
+        Date mDate = new Date(timestamp);
+        int hours = mDate.getHours();
+        long l = timestamp - hours * ONE_HOUR;
+        return fastFormatTsToHourTs(l);
     }
 
-    /**
-     * @param timestamp 时间戳
-     * @return 精确到天的时间戳
-     */
-    public static long fastFormatTsToDayTs(long timestamp, int timezoneDiff) {
-        return timestamp / ONE_DAY * ONE_DAY - timezoneDiff;
-    }
 
     /**
      * 根据偏移的天数算出去精确天数的时间戳
-     *
-     * @param offDay
-     * @return
      */
     public static long fastFormatTsToDayOfOffset(int offDay) {
-        int timezoneOffset = Calendar.getInstance().get(Calendar.ZONE_OFFSET);
-        return fastFormatTsToDayOfOffset(System.currentTimeMillis(), offDay, timezoneOffset);
+        return fastFormatTsToDayOfOffset(System.currentTimeMillis(), offDay);
     }
 
     /**
      * 根据偏移的天数算出去精确天数的时间戳
-     *
-     * @param offDay
-     * @return
      */
-    public static long fastFormatTsToDayOfOffset(int offDay, int timezoneDiff) {
-        return fastFormatTsToDayOfOffset(System.currentTimeMillis(), offDay, timezoneDiff);
+    public static long fastFormatTsToDayOfOffset(long startMillis, int offDay) {
+        return fastFormatTsToDayTs(startMillis - offDay * ONE_DAY);
     }
-
-    /**
-     * 根据偏移的天数算出去精确天数的时间戳
-     *
-     * @param startMillis
-     * @param offDay
-     * @return
-     */
-    public static long fastFormatTsToDayOfOffset(long startMillis, int offDay, int timezoneDiff) {
-        long remain = startMillis % ONE_DAY;
-        if (offDay < 0) {
-            offDay = 0;
-        }
-        return startMillis - remain - ONE_DAY * offDay - timezoneDiff;
-    }
-
 
     /**
      * 获取一天有多少分钟
@@ -198,23 +215,23 @@ public class DateUtils {
 
     /**
      * 一个月有多少天
-     *
-     * @param mDate
-     * @return
+     */
+    public static int getDaysOfMonth(long mMillis) {
+        return getDaysOfMonth(new Date(mMillis));
+    }
+
+    /**
+     * 一个月有多少天
      */
     public static int getDaysOfMonth(Date mDate) {
         Calendar cl = Calendar.getInstance();
-        cl.set(Calendar.YEAR, mDate.getYear());
+        cl.set(Calendar.YEAR, mDate.getYear() + 1900);
         cl.set(Calendar.MONTH, mDate.getMonth());
         return cl.getActualMaximum(Calendar.DATE);
     }
 
     /**
      * 一个月有多少天
-     *
-     * @param year
-     * @param month
-     * @return
      */
     public static int getDaysOfMonth(int year, int month) {
         Calendar cl = Calendar.getInstance();
@@ -231,6 +248,9 @@ public class DateUtils {
         return getYear(new Date(millis));
     }
 
+    /**
+     * 几几年  比如  2018
+     */
     public static int getYear(Date mDate) {
         return mDate.getYear() + 1900;
     }
@@ -243,6 +263,9 @@ public class DateUtils {
         return getMonth(new Date(millis));
     }
 
+    /**
+     * 几月  比如 6月
+     */
     public static int getMonth(Date mDate) {
         return mDate.getMonth() + 1;
     }
@@ -255,6 +278,9 @@ public class DateUtils {
         return getDays(new Date(millis));
     }
 
+    /**
+     * 几号 比如5号
+     */
     public static int getDays(Date mDate) {
         return mDate.getDate();
     }
@@ -267,6 +293,9 @@ public class DateUtils {
         return getWeek(new Date(millis));
     }
 
+    /**
+     * 星期几 比如 星期一, 星期日是0
+     */
     public static int getWeek(Date mDate) {
         return mDate.getDay();
     }
@@ -322,30 +351,67 @@ public class DateUtils {
             e.printStackTrace();
         }
 
-        int i = Calendar.getInstance().get(Calendar.ZONE_OFFSET);
 
-        l = fastFormatTsToDayTs(currentTimeMillis, i);
+        long tc = currentTimeMillis - 11 * ONE_HOUR;
+        System.out.println(" fastFormatTsToDayTs: " + tc + " " + mFormat.format(new Date(tc)));
+
+        l = fastFormatTsToDayTs(currentTimeMillis);
+        System.out.println(" fastFormatTsToDayTs2: " + l + " " + mFormat.format(new Date(l)));
+
+        l = fastFormatTsToDayOfOffset(currentTimeMillis - 11 * ONE_HOUR, 1);
+        System.out.println(" fastFormatTsToDayOfOffset2: " + l + " " + mFormat.format(new Date(l)));
+
+
+        l = fastFormatTsToDayTs(l);
         System.out.println(" fastFormatTsToDayTs: " + l + " " + mFormat.format(new Date(l)));
 
-        l = fastFormatTsToDayOfOffset(currentTimeMillis, 1, i);
+        try {
+            l = formatTsToMonthTs(currentTimeMillis);
+            System.out.println(" formatTsToMonthTs: " + l + " " + mFormat.format(new Date(l)));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
-        System.out.println(" fastFormatTsToDayOfOffset: " + l + " " + mFormat.format(new Date(l)));
+
+        try {
+            l = formatTsToMonthTs(currentTimeMillis - ONE_DAY * 30 * 6);
+            System.out.println(" formatTsToMonthTs: " + l + " " + mFormat.format(new Date(l)));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+
+        l = fastFormatTsToMonthTs(l);
+        System.out.println(" fastFormatTsToMonthTs1: " + l + " " + mFormat.format(new Date(l)));
+
+        l = fastFormatTsToMonthTs(l);
+        System.out.println(" fastFormatTsToMonthTs2: " + l + " " + mFormat.format(new Date(l)));
+
+
+        l = l - getDaysOfMonth(new Date(l)) * ONE_DAY;
+        System.out.println(" fastFormatTsToMonthTs nextMonth: " + l + " " + mFormat.format(new Date(l)));
+
+        l = getNextMonth(l);
+        System.out.println(" getNextMonth : " + l + " " + mFormat.format(new Date(l)));
+
+        l = getLastMonth(l);
+        System.out.println(" getLastMonth : " + l + " " + mFormat.format(new Date(l)));
 
 
         long minuteOfDay = getMinuteOfDay(currentTimeMillis, 7);
         System.out.println(" getMinuteOfDay: " + minuteOfDay);
 
         int daysOfMonth = getDaysOfMonth(new Date(System.currentTimeMillis()));
-        System.out.println(" daysOfMonth: " + daysOfMonth);
+        System.out.println(" getDaysOfMonth: " + daysOfMonth);
 
         int month1 = new Date(System.currentTimeMillis()).getMonth();
         System.out.println(" month1: " + month1);
 
-        for (int j = 0; j < 12; j++) {
-            int month = j + 1;
-            daysOfMonth = getDaysOfMonth(2018, month);
-            System.out.println(" daysOfMonth: " + month + " " + daysOfMonth);
-        }
+//        for (int j = 0; j < 12; j++) {
+//            int month = j + 1;
+//            daysOfMonth = getDaysOfMonth(2018, month);
+//            System.out.println(" getDaysOfMonth: " + month + " " + daysOfMonth);
+//        }
 
         int curYear = getCurYear();
         System.out.println(" curYear: " + curYear);
@@ -358,24 +424,24 @@ public class DateUtils {
         System.out.println(" diffMonth: " + diffMonth + " " + mFormat.format(new Date(diffMonth)));
 
 
-        for (int d = 0; d < 10; d++) {
-            Calendar instance = Calendar.getInstance();
-            long l1 = System.currentTimeMillis() - ONE_DAY * d;
-            instance.setTimeInMillis(l1);
-            Date date = instance.getTime();
-            byte year = (byte) (date.getYear() + 1900 - 2000);
-            byte month = (byte) (date.getMonth() + 1);
-            byte day = (byte) date.getDate();
-            byte hours = (byte) date.getHours();
-            byte minutes = (byte) date.getMinutes();
-            byte seconds = (byte) date.getSeconds();
-            byte week = (byte) date.getDay();
-            System.out.println(d + " - " + year + " : " + month + " : " + day + " : " + hours
-                    + " : " + minutes + " : " + seconds + " : " + week);
-
-
-            System.out.println(getWeek(l1));
-        }
+//        for (int d = 0; d < 10; d++) {
+//            Calendar instance = Calendar.getInstance();
+//            long l1 = System.currentTimeMillis() - ONE_DAY * d;
+//            instance.setTimeInMillis(l1);
+//            Date date = instance.getTime();
+//            byte year = (byte) (date.getYear() + 1900 - 2000);
+//            byte month = (byte) (date.getMonth() + 1);
+//            byte day = (byte) date.getDate();
+//            byte hours = (byte) date.getHours();
+//            byte minutes = (byte) date.getMinutes();
+//            byte seconds = (byte) date.getSeconds();
+//            byte week = (byte) date.getDay();
+//            System.out.println(d + " - " + year + " : " + month + " : " + day + " : " + hours
+//                    + " : " + minutes + " : " + seconds + " : " + week);
+//
+//
+//            System.out.println(getWeek(l1));
+//        }
 
 
     }

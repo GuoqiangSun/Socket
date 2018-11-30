@@ -9,7 +9,7 @@ public class TimingSetResult {
 
     public String mac;
     public boolean result;
-    public boolean on;
+    public boolean startup;
     public int id;
     public int model;
 
@@ -23,7 +23,7 @@ public class TimingSetResult {
         return "TimingSetResult{" +
                 "mac='" + mac + '\'' +
                 ", result=" + result +
-                ", on=" + on +
+                ", startup=" + startup +
                 ", id=" + id +
                 ", model=" + model +
                 ", state=" + state +

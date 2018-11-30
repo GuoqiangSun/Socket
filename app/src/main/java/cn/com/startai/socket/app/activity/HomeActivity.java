@@ -28,6 +28,7 @@ import cn.com.startai.socket.app.fragment.WebFragment;
 import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.global.FileManager;
 import cn.com.startai.socket.global.LoginHelp;
+import cn.com.startai.socket.global.Utils.DateUtils;
 import cn.com.startai.socket.mutual.Controller;
 import cn.com.startai.socket.mutual.js.IAndJSCallBack;
 import cn.com.startai.socket.mutual.js.bean.StatusBarBean;
@@ -111,7 +112,7 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         per[0] = Manifest.permission.WRITE_EXTERNAL_STORAGE;
         per[1] = Manifest.permission.ACCESS_COARSE_LOCATION; // 开启蓝牙,wifi配网 需要此权限
 
-        mPermissionRequest.requestAllPermission(() -> {
+        mPermissionRequest.requestPermissions(() -> {
             Tlog.v(TAG, "HomeActivity onPermissionRequestFinish() ");
             FileManager.getInstance().recreate(getApplication());
             Debuger.getInstance().reCheckLogRecord(HomeActivity.this);
@@ -432,7 +433,7 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
     @Override
     public void onWebLoadFinish() {
         mWebLoaded = true;
-        showWeb(500);
+        showWeb(1200);
     }
 
     @Override

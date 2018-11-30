@@ -131,7 +131,7 @@ public interface IControlWiFi {
 
         void onResultEmailLogin(boolean result, String errorCode);
 
-        void onResultBindDevice(boolean result);
+        void onResultBindDevice(boolean result,String mac);
 
         void onResultGetMobileLoginCode(boolean result);
 

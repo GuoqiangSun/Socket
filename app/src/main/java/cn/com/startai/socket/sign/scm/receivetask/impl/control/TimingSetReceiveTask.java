@@ -36,18 +36,34 @@ public class TimingSetReceiveTask extends SocketResponseTask {
         }
 
         TimingSetResult mResult = new TimingSetResult();
-        mResult.mac = mSocketDataArray.getID();
-        mResult.result = SocketSecureKey.Util.resultIsOk(protocolParams[0]);
-        mResult.model = protocolParams[1]; // 0x01 普通模式 0x02进阶模式
-        mResult.id = protocolParams[2];//id
-        mResult.state = protocolParams[3];//保存删除
-        mResult.on = SocketSecureKey.Util.on(protocolParams[4]);//onOff
-        mResult.week = (byte) (protocolParams[5] & 0xFF);//week
-        mResult.hour = protocolParams[6];//hour
-        mResult.minute = protocolParams[7];//minute
-//        byte startup = protocolParams[8];//minute
 
-        Tlog.v(TAG, String.valueOf(mResult));
+        if (SocketSecureKey.Util.isAdvanceTiming(protocolParams[1])) {
+
+            mResult.mac = mSocketDataArray.getID();
+            mResult.result = SocketSecureKey.Util.resultIsOk(protocolParams[0]);
+            mResult.model = protocolParams[1]; // 0x01 普通模式 0x02进阶模式
+
+            mResult.id = protocolParams[2];//id
+            mResult.state = protocolParams[3];//保存删除
+            mResult.startup = SocketSecureKey.Util.on(protocolParams[8]);//onOff
+
+            if (protocolParams.length >= 14) {
+                mResult.week = (byte) (protocolParams[14] & 0xFF);//week
+            }
+
+        } else if (SocketSecureKey.Util.isCommonTiming(protocolParams[1])) {
+            mResult.mac = mSocketDataArray.getID();
+            mResult.result = SocketSecureKey.Util.resultIsOk(protocolParams[0]);
+            mResult.model = protocolParams[1]; // 0x01 普通模式 0x02进阶模式
+            mResult.id = protocolParams[2];//id
+            mResult.state = protocolParams[3];//保存删除
+            mResult.startup = SocketSecureKey.Util.startup(protocolParams[4]);//onOff
+            mResult.week = (byte) (protocolParams[5] & 0xFF);//week
+            mResult.hour = protocolParams[6];//hour
+            mResult.minute = protocolParams[7];//minute
+        }
+
+        Tlog.v(TAG, " TimingSetReceiveTask : " + String.valueOf(mResult));
 
         if (mCallBack != null) {
 

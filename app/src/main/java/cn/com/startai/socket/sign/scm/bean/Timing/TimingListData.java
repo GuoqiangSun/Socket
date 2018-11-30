@@ -65,8 +65,9 @@ public class TimingListData {
 
     }
 
-    public void putCommonData(int id, boolean on, byte week, String time, boolean startup) {
+    public void putCommonData(String mac, int id, boolean on, byte week, String time, boolean startup) {
         TimingCommonData mData = new TimingCommonData();
+        mData.setMac(mac);
         mData.setOn(on);
         mData.setId((byte) id);
         mData.setWeek(week & 0xFF);

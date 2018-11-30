@@ -49,6 +49,7 @@ import cn.com.startai.socket.sign.scm.bean.SpendingElectricityData;
 import cn.com.startai.socket.sign.scm.bean.TempHumidityAlarmData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingCommonData;
+import cn.com.startai.socket.sign.scm.bean.TimingTempHumiData;
 import cn.com.swain.baselib.app.IApp.IService;
 import cn.com.swain.baselib.jsInterface.AbsJsInterface;
 import cn.com.swain169.log.Tlog;
@@ -343,6 +344,20 @@ public class JsManager extends AbsJsManager implements IService {
     public void onJSTHSetHumidityAlarmValue(TempHumidityAlarmData obj) {
         if (mJSManagerCallBack != null) {
             mJSManagerCallBack.onJSSetTempHumidityAlarm(obj);
+        }
+    }
+
+    @Override
+    public void onJSTHSetTemperatureTimingAlarm(TimingTempHumiData obj) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSTHSetTemperatureTimingAlarm(obj);
+        }
+    }
+
+    @Override
+    public void onJSTHQueryTemperatureTimingAlarm(String mac, int model) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSTHQueryTemperatureTimingAlarm(mac, model);
         }
     }
 
@@ -784,6 +799,20 @@ public class JsManager extends AbsJsManager implements IService {
     public void onJSSetColourLampRGB(ColorLampRGB obj) {
         if (mJSManagerCallBack != null) {
             mJSManagerCallBack.onJSSetColourLampRGB(obj);
+        }
+    }
+
+    @Override
+    public void onJSQueryColourLampRGB(String mac) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSQueryColourLampRGB(mac);
+        }
+    }
+
+    @Override
+    public void onJSTurnColourLamp(String mac, boolean state) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSTurnColourLamp(mac, state);
         }
     }
 

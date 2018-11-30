@@ -5,10 +5,8 @@ import android.os.Message;
 
 import org.xwalk.core.JavascriptInterface;
 
-import cn.com.startai.socket.global.Utils.DateUtils;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
-import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.baselib.jsInterface.AbsHandlerJsInterface;
 import cn.com.swain169.log.Tlog;
 
@@ -116,7 +114,8 @@ public class State extends AbsHandlerJsInterface {
         mQueryCount.endTime = endTime;
         mQueryCount.interval = interval;
         mQueryCount.needQueryFromServer = true;
-        getHandler().obtainMessage(MSG_HISTORY, mQueryCount).sendToTarget();
+        Message message = getHandler().obtainMessage(MSG_HISTORY, mQueryCount);
+        getHandler().sendMessageDelayed(message, 1000);
 
     }
 

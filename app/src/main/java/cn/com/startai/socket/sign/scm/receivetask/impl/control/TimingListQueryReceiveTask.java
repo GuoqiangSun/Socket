@@ -34,6 +34,7 @@ public class TimingListQueryReceiveTask extends SocketResponseTask {
             return;
         }
 
+        String mac = mSocketDataArray.getID();
         boolean result = SocketSecureKey.Util.resultIsOk(protocolParams[0]);
         byte model = protocolParams[1]; // 0x01 普通模式 0x02进阶模式
 
@@ -74,8 +75,8 @@ public class TimingListQueryReceiveTask extends SocketResponseTask {
                     int minute = buf[4] & 0xFF;
                     String time = hour + ":" + minute;
                     boolean startup = SocketSecureKey.Util.startup(buf[5]);
-                    Tlog.v(TAG, "  common ArrayCopy id:" + id + " on:" + on + " time:" + time + " week:" + week + " startup:" + startup);
-                    mData.putCommonData(id, on, week, time, startup);
+                    Tlog.v(TAG, "  common ArrayCopy id:" + id + " startup:" + on + " time:" + time + " week:" + week + " startup:" + startup);
+                    mData.putCommonData(mac,id, on, week, time, startup);
                 }
             }
         } else if (mData.isAdvanceModel()) {
@@ -97,6 +98,7 @@ public class TimingListQueryReceiveTask extends SocketResponseTask {
                     System.arraycopy(protocolParams, 2 + i * onePkgLength, buf, 0, onePkgLength);
 
                     TimingAdvanceData mAdvanceData = new TimingAdvanceData();
+                    mAdvanceData.mac = mac;
                     mAdvanceData.id = buf[0];
                     mAdvanceData.startHour = buf[1] & 0xFF;
                     mAdvanceData.startMinute = buf[2] & 0xFF;

@@ -246,6 +246,24 @@ public class SocketSecureKey {
         public static final byte CMD_SET_LIGHT_COLOR = 0x25;
         public static final byte CMD_SET_LIGHT_COLOR_RESPONSE = 0x26;
 
+        /**
+         * 查询灯的颜色
+         */
+        public static final byte CMD_QUERY_LIGHT_COLOR = 0x29;
+        public static final byte CMD_QUERY_LIGHT_COLOR_RESPONSE = 0x2A;
+
+
+        /**
+         * 温度湿度进阶模式设置
+         */
+        public static final byte CMD_SET_TEMP_HUMI_ALARM = 0x2B;
+        public static final byte CMD_SET_TEMP_HUMI_ALARM_RESPONSE = 0x2C;
+
+        /**
+         * 温度湿度进阶模式查询
+         */
+        public static final byte CMD_QUERY_TEMP_HUMI_ALARM = 0x2D;
+        public static final byte CMD_QUERY_TEMP_HUMI_ALARM_RESPONSE = 0x2E;
 
         /**********report0x03**************/
 

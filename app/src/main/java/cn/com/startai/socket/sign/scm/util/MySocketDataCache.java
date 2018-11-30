@@ -234,7 +234,7 @@ public class MySocketDataCache implements IService {
 
 
     protected static ResponseData newResponseDataReport(String mac, SocketDataArray mPack) {
-        return newResponseData(mac, mPack, false);
+        return newResponseDataNoRecord(mac, mPack);
     }
 
 
@@ -278,8 +278,8 @@ public class MySocketDataCache implements IService {
         params[0] = SocketSecureKey.Model.MODEL_RELAY;
         params[1] = SocketSecureKey.Util.on(on);
         mSecureDataPack.setParams(params);
-        ResponseData responseData = newResponseData(mac, mSecureDataPack, true);
-//        responseData.getSendModel().setSendModelIsLan();
+        ResponseData responseData = newResponseDataRecord(mac, mSecureDataPack);
+        responseData.getSendModel().setModelIsLan();
         responseData.getSendModel().setModelIsWan();
         return responseData;
     }
@@ -292,11 +292,6 @@ public class MySocketDataCache implements IService {
      */
     public static ResponseData getSetRelaySwitch(String mac, boolean on) {
 
-        return getSetRelaySwitch(mac, on, true);
-    }
-
-
-    public static ResponseData getSetRelaySwitch(String mac, boolean on, boolean record) {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
         mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_RELAY_SWITCH);
@@ -304,8 +299,9 @@ public class MySocketDataCache implements IService {
         params[0] = SocketSecureKey.Model.MODEL_RELAY;
         params[1] = SocketSecureKey.Util.on(on);
         mSecureDataPack.setParams(params);
-        return newResponseData(mac, mSecureDataPack, record);
+        return newResponseDataRecord(mac, mSecureDataPack);
     }
+
 
     /**
      * 倒计时
@@ -390,6 +386,48 @@ public class MySocketDataCache implements IService {
         params[11] = offIntervalMinute;
         params[12] = SocketSecureKey.Util.startup(startup);
         params[13] = week;
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+
+    public static ResponseData getSetTimingTemp(String mac, byte id, byte state, byte startHour, byte startMinute,
+                                                byte stopHour, byte stopMinute, boolean on, byte onIntervalHour,
+                                                byte onIntervalMinute, byte offIntervalHour,
+                                                byte offIntervalMinute, boolean startup, byte week, byte value, byte hotCode) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_TEMP_HUMI_ALARM);
+
+        final byte[] params = new byte[16];
+        params[0] = SocketSecureKey.Model.ALARM_MODEL_TEMPERATURE;//model 定温度模式
+        params[1] = id;
+        params[2] = state;
+        params[3] = startHour;
+        params[4] = startMinute;
+        params[5] = stopHour;
+        params[6] = stopMinute;
+        params[7] = SocketSecureKey.Util.on(on);
+        params[8] = onIntervalHour;
+        params[9] = onIntervalMinute;
+        params[10] = offIntervalHour;
+        params[11] = offIntervalMinute;
+        params[12] = SocketSecureKey.Util.startup(startup);
+        params[13] = week;
+        params[14] = value;
+        params[15] = hotCode;
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getQueryTimingTemp(String mac, int model) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_TEMP_HUMI_ALARM);
+
+        final byte[] params = new byte[2];
+        params[0] = SocketSecureKey.Model.ALARM_MODEL_TEMPERATURE;
+        params[1] = (byte) model;
         mSecureDataPack.setParams(params);
         return newResponseDataRecord(mac, mSecureDataPack);
     }
@@ -1112,8 +1150,17 @@ public class MySocketDataCache implements IService {
         return newResponseDataRecord(mac, mSecureDataPack);
     }
 
+    public static ResponseData getQueryLightColor(String mac, int seq) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_LIGHT_COLOR);
+        byte[] params = new byte[1];
+        params[0] = (byte) seq;
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
 
-    public static ResponseData getLightColor(String mac, int seq, int r, int g, int b) {
+    public static ResponseData getSetLightColor(String mac, int seq, int r, int g, int b) {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
         mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_LIGHT_COLOR);
@@ -1134,7 +1181,7 @@ public class MySocketDataCache implements IService {
         params[0] = SocketSecureKey.Model.MODEL_FLASHLIGHT;
         params[1] = SocketSecureKey.Util.on(status);
         mSecureDataPack.setParams(params);
-        return newResponseData(mac, mSecureDataPack, true);
+        return newResponseDataRecord(mac, mSecureDataPack);
     }
 
     public static ResponseData getSwitchBackLight(String mac, boolean status) {
@@ -1145,7 +1192,7 @@ public class MySocketDataCache implements IService {
         params[0] = SocketSecureKey.Model.MODEL_BACKLIGHT;
         params[1] = SocketSecureKey.Util.on(status);
         mSecureDataPack.setParams(params);
-        return newResponseData(mac, mSecureDataPack, true);
+        return newResponseDataRecord(mac, mSecureDataPack);
     }
 
     public static ResponseData getSwitchUSB(String mac, boolean status) {
@@ -1156,7 +1203,7 @@ public class MySocketDataCache implements IService {
         params[0] = SocketSecureKey.Model.MODEL_USB;
         params[1] = SocketSecureKey.Util.on(status);
         mSecureDataPack.setParams(params);
-        return newResponseData(mac, mSecureDataPack, true);
+        return newResponseDataRecord(mac, mSecureDataPack);
     }
 
     public static ResponseData getQueryFlashState(String mac) {

@@ -168,7 +168,6 @@ public class LoginHelp {
             String personEmail = acct.getEmail();
             String personId = acct.getId();
             Uri personPhoto = acct.getPhotoUrl();
-            Tlog.v(TAG, " GoogleSignInAccount: " + acct.toJson());
             Tlog.v(TAG, " personName : " + personName);
             Tlog.v(TAG, " personGivenName : " + personGivenName);
             Tlog.v(TAG, " personFamilyName : " + personFamilyName);
@@ -451,8 +450,6 @@ public class LoginHelp {
             }
         }
 
-        Tlog.v(TAG, " google login in :" + account.toJson());
-
         String personName = account.getDisplayName();
         String personGivenName = account.getGivenName();
         String personFamilyName = account.getFamilyName();
@@ -468,10 +465,10 @@ public class LoginHelp {
             mUser.linkURL = personPhoto.toString();
         }
 
-        long expirationTimeSecs = account.getExpirationTimeSecs();
-        SimpleDateFormat mDataFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date d = new Date(expirationTimeSecs);
-        mUser.refreshDate = mDataFormat.format(d);
+//        long expirationTimeSecs = account.getExpirationTimeSecs();
+//        SimpleDateFormat mDataFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//        Date d = new Date(expirationTimeSecs);
+//        mUser.refreshDate = mDataFormat.format(d);
 
         if (mOnLoginResult != null) {
             mOnLoginResult.onResult(true, mUser);

@@ -1,6 +1,8 @@
 package cn.com.startai.socket.sign.scm.impl;
 
+import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -24,25 +26,78 @@ import cn.com.swain169.log.Tlog;
  */
 class ScmDevice implements Heartbeat.OnHeartbeatCallBack {
 
+
+    public void removeQueryHistory() {
+        if (mWorkHandler != null && mWorkHandler.hasMessages(1)) {
+            mWorkHandler.removeMessages(1);
+        }
+    }
+
+    public void removeQueryHistoryCountResult() {
+        if (mWorkHandler != null && mWorkHandler.hasMessages(0)) {
+            mWorkHandler.removeMessages(0);
+        }
+    }
+
+    public void sendQueryHistoryCountResult(long delay, QueryHistoryCount mCount) {
+
+        if (mWorkHandler != null) {
+            Message message = mWorkHandler.obtainMessage(0, mCount);
+            mWorkHandler.sendMessageDelayed(message, delay);
+        }
+    }
+
+    public void sendQueryHistory(long delay, QueryHistoryCount mCount) {
+        if (mWorkHandler != null) {
+            Message message = mWorkHandler.obtainMessage(1, mCount);
+            mWorkHandler.sendMessageDelayed(message, delay);
+        }
+    }
+
+    public interface OnScmCallBack {
+        void onStartSendHeartbeat(ScmDevice mScmDevice);
+
+        void onHeartbeatLose(String mac, int diff);
+
+        void onDelaySend(int what, Object obj);
+    }
+
+
     public static final String DEFAULT_MAC = "00:00:00:00:00:00";
 
     private String address;
 
-    private ScmDevice.OnHeartbeatCallBack mHeartbeatCallBack;
+    private ScmDevice.OnScmCallBack mScmCallBack;
 
     private RepeatMsg mRepeatMsg;
 
-    ScmDevice(String address, IDataProtocolOutput mResponse, ScmDevice.OnHeartbeatCallBack mHeartbeatCallBack) {
+
+    private Handler mWorkHandler;
+
+    ScmDevice(String address, IDataProtocolOutput mResponse, ScmDevice.OnScmCallBack mHeartbeatCallBack) {
 
         this.address = address;
         this.createTimestamp = System.currentTimeMillis();
-        this.mHeartbeatCallBack = mHeartbeatCallBack;
+        this.mScmCallBack = mHeartbeatCallBack;
         Looper mRepeatLooper = LooperManager.getInstance().getRepeatLooper();
         this.mHeartbeat = new Heartbeat(mRepeatLooper, mResponse, this, address);
         this.mRepeatMsg = new RepeatMsg(address, mRepeatLooper, mResponse);
 
+        mWorkHandler = new Handler(LooperManager.getInstance().getWorkLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+
+                if (mHeartbeatCallBack != null) {
+                    mHeartbeatCallBack.onDelaySend(msg.what, msg.obj);
+                }
+            }
+        };
+
     }
 
+    public boolean send0;
+    public boolean send1;
 
     private int conFailTimes;
 
@@ -106,13 +161,6 @@ class ScmDevice implements Heartbeat.OnHeartbeatCallBack {
     public QueryHistoryCount getQueryCount() {
         return mQueryCount;
     }
-
-    public interface OnHeartbeatCallBack {
-        void onStartSendHeartbeat(ScmDevice mScmDevice);
-
-        void onHeartbeatLose(String mac, int diff);
-    }
-
 
     private long createTimestamp;
 
@@ -213,8 +261,8 @@ class ScmDevice implements Heartbeat.OnHeartbeatCallBack {
     @Override
     public void onStartSendHeartbeat(String mac) {
         ++sendHeartTimes;
-        if (mHeartbeatCallBack != null) {
-            mHeartbeatCallBack.onStartSendHeartbeat(this);
+        if (mScmCallBack != null) {
+            mScmCallBack.onStartSendHeartbeat(this);
         }
 
         int diff = getLostHeartbeatTimes();
@@ -227,9 +275,9 @@ class ScmDevice implements Heartbeat.OnHeartbeatCallBack {
 
     @Override
     public void onCheckHeartbeat(String toID, int diff) {
-        if (mHeartbeatCallBack != null) {
+        if (mScmCallBack != null) {
             if (diff <= getLostHeartbeatTimes()) {
-                mHeartbeatCallBack.onHeartbeatLose(toID, diff);
+                mScmCallBack.onHeartbeatLose(toID, diff);
             }
         }
     }
@@ -257,7 +305,12 @@ class ScmDevice implements Heartbeat.OnHeartbeatCallBack {
 
     public final void release() {
         disconnected();
-        mRepeatMsg.removeCallbacksAndMessages(null);
+        if (mRepeatMsg != null) {
+            mRepeatMsg.removeCallbacksAndMessages(null);
+        }
+        if (mWorkHandler != null) {
+            mWorkHandler.removeCallbacksAndMessages(null);
+        }
     }
 
     public final void clearSensor() {

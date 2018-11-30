@@ -162,6 +162,28 @@ public class ControlDevice {
 
     }
 
+    public void recontrolWiFiDevice(int token, String loginUserID, boolean lanDiscovery) {
+        Tlog.d(TAG, " recontrolWiFiDevice() token " + token + " userID:" + loginUserID + " lanDiscovery:" + lanDiscovery + " isWanBind" + lanDeviceInfo.getIsWanBind());
+
+        hasCallJsCon = false;
+
+        resetSendConTokenTimes();
+
+        if (lanDeviceInfo.getIsWanBind()) {
+            setCanWanCom();
+        }
+
+        if (!lanDiscovery) {
+            callJsCon(1000);
+        } else {
+            if (!canLanCom) {
+                checkComModel(token, loginUserID);
+            }
+            callJsCon(1000 * 10);
+        }
+
+    }
+
     public void disControl() {
         Tlog.e(TAG, " disControl " + mac + " setCanNotLanCom() ");
         removeCallJsCon();

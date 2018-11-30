@@ -7,10 +7,12 @@ import android.content.pm.PackageManager;
 import android.widget.Toast;
 
 import org.greenrobot.greendao.query.QueryBuilder;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import cn.com.startai.socket.R;
@@ -35,6 +37,7 @@ import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
 import cn.com.startai.socket.mutual.js.xml.LocalData;
 import cn.com.startai.socket.sign.js.JsUserInfo;
 import cn.com.startai.socket.sign.js.jsInterface.Add;
+import cn.com.startai.socket.sign.js.jsInterface.ColourLamp;
 import cn.com.startai.socket.sign.js.jsInterface.Countdown;
 import cn.com.startai.socket.sign.js.jsInterface.Device;
 import cn.com.startai.socket.sign.js.jsInterface.DeviceList;
@@ -66,6 +69,7 @@ import cn.com.startai.socket.sign.scm.bean.TempHumidityAlarmData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingCommonData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingListData;
+import cn.com.startai.socket.sign.scm.bean.TimingTempHumiData;
 import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.startai.socket.sign.scm.bean.sensor.SensorData;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.TempHumidityData;
@@ -979,6 +983,37 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
+    public void onJSTHSetTemperatureTimingAlarm(TimingTempHumiData obj) {
+        if (mScmVirtual != null) {
+            mScmVirtual.setTemperatureTimingAlarm(obj);
+        }
+
+    }
+
+    @Override
+    public void onJSTHQueryTemperatureTimingAlarm(String mac, int model) {
+
+        if (mScmVirtual != null) {
+            mScmVirtual.queryTemperatureTimingAlarm(mac, model);
+        }
+
+    }
+
+    @Override
+    public void onJSQueryColourLampRGB(String mac) {
+        if (mScmVirtual != null) {
+            mScmVirtual.queryColourLampRGB(mac);
+        }
+
+    }
+
+    @Override
+    public void onJSTurnColourLamp(String mac, boolean state) {
+
+
+    }
+
+    @Override
     public void onJSDisableGoBack(boolean status) {
         if (mCallBack != null) {
             mCallBack.ajDisableGoBack(status);
@@ -1151,7 +1186,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onResultHWStateOn() {
-        Tlog.v(TAG, "onResultHWStateOn() , turn on ");
+        Tlog.v(TAG, "onResultHWStateOn() , turn startup ");
         String method = Device.Method.callJsHWTurn(true);
         loadJs(method);
     }
@@ -1216,13 +1251,14 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onResultSetHumidityAlarm(String mac, boolean result, boolean startup, int limit) {
         Tlog.v(TAG, " onResultSetHumidityAlarm() result:" + result + " startup:" + startup + " limit:" + limit);
-        String method = TemperatureAndHumidity.Method.callJsHumidityAlarmValue(mac, startup, result);
+        String method = TemperatureAndHumidity.Method.callJsHumidityAlarmValue(mac, startup, result, limit);
         loadJs(method);
     }
 
     @Override
     public void onResultQueryCountdown(String mac, CountdownData mCountdownData) {
-        Tlog.v(TAG, " onResultQueryCountdown() on:" + mCountdownData.Switchgear + " startup:" + mCountdownData.countdownSwitch);
+        Tlog.v(TAG, " onResultQueryCountdown() startup:" + mCountdownData.Switchgear
+                + " startup:" + mCountdownData.countdownSwitch);
         checkCountdownData(mCountdownData);
         String s = mCountdownData.toJsonStr();
         String method = Countdown.Method.callJsPowerCountdownData(mac, s);
@@ -1292,7 +1328,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
             mResult = new TimingSetResult();
         }
         String method = Timing.Method.callJsTimingCommonSet(mac,
-                mResult.result, mResult.on, mResult.id, mResult.model);
+                mResult.result, mResult.startup, mResult.id, mResult.model);
         loadJs(method);
     }
 
@@ -1444,13 +1480,6 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         }
     }
 
-    @Override
-    public void onResultUnbind(boolean result, String mac) {
-        Tlog.v(TAG, " onResultUnbind() " + result);
-        String method = DeviceList.Method.callJsUnbindDevice(result, mac);
-        loadJs(method);
-
-    }
 
     @Override
     public void onResultLogout(boolean b) {
@@ -1515,11 +1544,49 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         loadJs(method);
     }
 
+    private String aLastBindMac;
+    private long aLastBindTs;
+
     @Override
-    public void onResultBindDevice(boolean result) {
-        Tlog.v(TAG, " onResultBindDevice() " + result);
+    public void onResultBindDevice(boolean result, String mac) {
+        Tlog.v(TAG, " onResultBindDevice() " + result + " mac:" + mac);
+
+        if (result) {
+            String mLastBindMac = aLastBindMac;
+            long mLastBindTs = aLastBindTs;
+            aLastBindMac = mac;
+            aLastBindTs = System.currentTimeMillis();
+            if (mLastBindMac != null
+                    && mLastBindMac.equalsIgnoreCase(mac)
+                    && Math.abs(aLastBindTs - mLastBindTs) <= 1000 * 5) {
+                // 防止重复绑定
+                Tlog.e(TAG, " onResultBindDevice() mac=lastBindMac return");
+
+                return;
+            }
+
+        }
+
         String method = Add.Method.callJsBindDevice(result);
         loadJs(method);
+    }
+
+
+    @Override
+    public void onResultUnbind(boolean result, String mac) {
+        Tlog.v(TAG, " onResultUnbind() " + result);
+
+        if (result) {
+
+            if (aLastBindMac != null && aLastBindMac.equalsIgnoreCase(mac)) {
+                aLastBindMac = null;
+            }
+
+        }
+
+        String method = DeviceList.Method.callJsUnbindDevice(result, mac);
+        loadJs(method);
+
     }
 
     @Override
@@ -1689,7 +1756,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onQueryHistoryCountResult(boolean result, QueryHistoryCount mCount) {
-        Tlog.v(TAG, " onQueryHistoryCountResult()   result" + result);
+        Tlog.v(TAG, " onQueryHistoryCountResult() result:" + result);
 
         String method = State.Method.callJsHistoryData(mCount.mac, mCount.startTime,
                 mCount.day, mCount.interval, mCount.toJsonArrayData());
@@ -1699,7 +1766,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onResultQueryCostRate(boolean result, CostRate mCostRate) {
-        Tlog.v(TAG, " onResultQueryCostRate()   result" + result);
+        Tlog.v(TAG, " onResultQueryCostRate() result:" + result);
         String method = State.Method.callJsQueryCostRate(mCostRate.mac, mCostRate.hour1, mCostRate.minute1,
                 mCostRate.price1, mCostRate.hour2, mCostRate.minute2, mCostRate.price2);
         loadJs(method);
@@ -1707,7 +1774,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onResultQueryCumuParams(boolean result, CumuParams cumuParams) {
-        Tlog.v(TAG, " onResultQueryCumuParams()   result" + result);
+        Tlog.v(TAG, " onResultQueryCumuParams() result:" + result);
         String method = State.Method.callJsCumuParams(cumuParams.mac, cumuParams.time, cumuParams.GHG, cumuParams.electricity);
         loadJs(method);
     }
@@ -1723,12 +1790,14 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onResultUpdateVersion(boolean result, UpdateVersion mVersion) {
 
         if (mNetworkManager != null) {
-            mNetworkManager.onDeviceUpdateResult(result,mVersion);
+            mNetworkManager.onDeviceUpdateResult(result, mVersion);
         }
 
         if (mVersion.isQueryVersionAction()) {
             String method = Version.Method.callJsScmVersion(mVersion.mac,
-                    mVersion.newVersion > mVersion.curVersion, mVersion.newVersion, mVersion.curVersion);
+                    mVersion.newVersion > mVersion.curVersion,
+                    mVersion.getDoubleNewVersion(),
+                    mVersion.getDoubleCurVersion());
             loadJs(method);
         } else if (mVersion.isUpdateVersionAction()) {
 
@@ -1737,15 +1806,13 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
                 nameByMac = mNetworkManager.getNameByMac(mVersion.mac);
 
             } else {
-                nameByMac = mVersion.mac + "-" + String.valueOf(mVersion.curVersion);
+                nameByMac = mVersion.mac + "-" + String.valueOf(mVersion.getDoubleCurVersion());
             }
 
             String method = Version.Method.callJsScmUpdate(mVersion.mac, nameByMac
                     , result);
             loadJs(method);
-
         }
-
 
     }
 
@@ -1768,6 +1835,66 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
             return mNetworkManager.getToken(mac);
         }
         return -1;
+    }
+
+    @Override
+    public void onRGBSetResult(boolean result, ColorLampRGB mColorLampRGB) {
+
+        String method = ColourLamp.Method.callJsColorLamp(mColorLampRGB.mac,
+                mColorLampRGB.seq, mColorLampRGB.r, mColorLampRGB.g, mColorLampRGB.b);
+        loadJs(method);
+
+        boolean on = mColorLampRGB.r != 0 || mColorLampRGB.g != 0 || mColorLampRGB.b != 0;
+        String stateMethod = ColourLamp.Method.callJsColorLampSwitch(mColorLampRGB.mac, on);
+        loadJs(stateMethod);
+
+    }
+
+    @Override
+    public void onRGBQueryResult(boolean result, ColorLampRGB mColorLampRGB) {
+        String method = ColourLamp.Method.callJsColorLamp(mColorLampRGB.mac,
+                mColorLampRGB.seq, mColorLampRGB.r, mColorLampRGB.g, mColorLampRGB.b);
+        loadJs(method);
+
+        boolean on = mColorLampRGB.r != 0 || mColorLampRGB.g != 0 || mColorLampRGB.b != 0;
+        String stateMethod = ColourLamp.Method.callJsColorLampSwitch(mColorLampRGB.mac, on);
+        loadJs(stateMethod);
+
+    }
+
+    @Override
+    public void onResultSetTimingTempHumi(boolean result, String id, TimingTempHumiData mAdvanceData) {
+
+        if (mAdvanceData != null && mAdvanceData.isTemp()) {
+            String method = TemperatureAndHumidity.Method.callJsTempTimingSetAlarmValue(id,
+                    mAdvanceData.startup, mAdvanceData.model, result);
+            loadJs(method);
+        } else {
+            Tlog.w(TAG, " onResultSetTimingTempHumi mAdvanceData=null || !mAdvanceData.isTemp()");
+        }
+
+    }
+
+    @Override
+    public void onResultQueryTimingTempHumi(boolean result, String mac, ArrayList<TimingTempHumiData> mDataLst) {
+//        TemperatureAndHumidity.Method.callJsTempTimingQueryAlarmValue(mac,mAdvanceData.id,mAdvanceData.on,mAdvanceData.)
+
+        String data;
+        if (mDataLst != null) {
+            JSONArray mArray = new JSONArray();
+
+            for (TimingTempHumiData mTimingData : mDataLst) {
+                JSONObject jsonObject = mTimingData.toJsonObj();
+                mArray.put(jsonObject);
+            }
+
+            data = mArray.toString();
+        } else {
+            Tlog.w(TAG, " onResultQueryTimingTempHumi mAdvanceData=null ");
+            data = "{}";
+        }
+        String method = TemperatureAndHumidity.Method.callJsTempTimingQueryAlarmValue(mac, data);
+        loadJs(method);
     }
 
     @Override

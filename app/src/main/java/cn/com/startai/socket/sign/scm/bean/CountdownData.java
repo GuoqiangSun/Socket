@@ -48,7 +48,7 @@ public class CountdownData {
     public int allTime = -1;
 
     /**
-     * 开机关机 on
+     * 开机关机 startup
      */
     public boolean Switchgear;
 

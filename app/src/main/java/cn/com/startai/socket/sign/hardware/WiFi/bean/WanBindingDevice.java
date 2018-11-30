@@ -1,8 +1,8 @@
 package cn.com.startai.socket.sign.hardware.WiFi.bean;
 
 import org.greenrobot.greendao.annotation.Entity;
-import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.Generated;
+import org.greenrobot.greendao.annotation.Id;
 
 import cn.com.startai.mqttsdk.busi.entity.C_0x8002;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8005;
@@ -56,6 +56,35 @@ public class WanBindingDevice {
     private long tokenInsterTimes; // 回话token插入时间
 
 
+    @Generated(hash = 900102256)
+    public WanBindingDevice(Long gid, String apptype, long bindingtime, int connstatus,
+            String oid, int type, String alias, String topic, String mac, String mid,
+            boolean isAdmin, boolean hasBindingByWan, boolean hasBindingByLan, String cpuInfo,
+            int token, long tokenInsterTimes) {
+        this.gid = gid;
+        this.apptype = apptype;
+        this.bindingtime = bindingtime;
+        this.connstatus = connstatus;
+        this.oid = oid;
+        this.type = type;
+        this.alias = alias;
+        this.topic = topic;
+        this.mac = mac;
+        this.mid = mid;
+        this.isAdmin = isAdmin;
+        this.hasBindingByWan = hasBindingByWan;
+        this.hasBindingByLan = hasBindingByLan;
+        this.cpuInfo = cpuInfo;
+        this.token = token;
+        this.tokenInsterTimes = tokenInsterTimes;
+    }
+
+
+    @Generated(hash = 1369897669)
+    public WanBindingDevice() {
+    }
+
+
     @Override
     public String toString() {
         return "WanBindingDevice{" +
@@ -79,33 +108,6 @@ public class WanBindingDevice {
     }
 
 
-    @Generated(hash = 900102256)
-    public WanBindingDevice(Long gid, String apptype, long bindingtime, int connstatus, String oid, int type, String alias,
-                            String topic, String mac, String mid, boolean isAdmin, boolean hasBindingByWan, boolean hasBindingByLan,
-                            String cpuInfo, int token, long tokenInsterTimes) {
-        this.gid = gid;
-        this.apptype = apptype;
-        this.bindingtime = bindingtime;
-        this.connstatus = connstatus;
-        this.oid = oid;
-        this.type = type;
-        this.alias = alias;
-        this.topic = topic;
-        this.mac = mac;
-        this.mid = mid;
-        this.isAdmin = isAdmin;
-        this.hasBindingByWan = hasBindingByWan;
-        this.hasBindingByLan = hasBindingByLan;
-        this.cpuInfo = cpuInfo;
-        this.token = token;
-        this.tokenInsterTimes = tokenInsterTimes;
-    }
-
-    @Generated(hash = 1369897669)
-    public WanBindingDevice() {
-    }
-
-
     public static WanBindingDevice memor(C_0x8005.Resp.ContentBean mContentBean) {
         WanBindingDevice tBindingDevice = new WanBindingDevice();
         tBindingDevice.setAlias(mContentBean.getAlias());
@@ -116,6 +118,7 @@ public class WanBindingDevice {
         tBindingDevice.setMac(mContentBean.getMac());
         tBindingDevice.setTopic(mContentBean.getTopic());
         tBindingDevice.setType(mContentBean.getType());
+        tBindingDevice.setAlias(mContentBean.getAlias());
         return tBindingDevice;
     }
 

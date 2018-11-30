@@ -15,11 +15,11 @@ import cn.com.swain169.log.Tlog;
 public class ScmDeviceUtils {
 
     private IDataProtocolOutput mResponse;
-    private ScmDevice.OnHeartbeatCallBack mHeartbeatCallBack;
+    private ScmDevice.OnScmCallBack mScmCallBack;
 
-    ScmDeviceUtils(IDataProtocolOutput mResponse, ScmDevice.OnHeartbeatCallBack mHeartbeatCallBack) {
+    ScmDeviceUtils(IDataProtocolOutput mResponse, ScmDevice.OnScmCallBack mScmCallBack) {
         this.mResponse = mResponse;
-        this.mHeartbeatCallBack = mHeartbeatCallBack;
+        this.mScmCallBack = mScmCallBack;
     }
 
     /**
@@ -50,7 +50,7 @@ public class ScmDeviceUtils {
             synchronized (synObj) {
                 scmData = mConnectDeviceMap.get(mac);
                 if (scmData == null) {
-                    scmData = new ScmDevice(mac, mResponse, mHeartbeatCallBack);
+                    scmData = new ScmDevice(mac, mResponse, mScmCallBack);
                     mConnectDeviceMap.put(mac, scmData);
                 }
             }

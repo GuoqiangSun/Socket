@@ -39,15 +39,7 @@ public class TimingAdvanceData {
     public boolean startup;
     public int week;
 
-    @Override
-    public String toString() {
-
-        return "  id:" + id + " startHour:" + startHour + " startMinute:" + startMinute + " endHour:" + endHour + " endMinute:" + endMinute +
-                "  on :" + on + " onIntervalHour:" + onIntervalHour + " onIntervalMinute:" + onIntervalMinute + " offIntervalHour:" + offIntervalHour + " offIntervalMinute:" + offIntervalMinute + " startup:" + startup;
-
-    }
-
-//    {
+    //    {
 //        "time": "21:25",
 //            "time2": "23:25",
 //            "id":1,
@@ -64,6 +56,12 @@ public class TimingAdvanceData {
             obj.put("id", this.id);
             obj.put("state", this.startup);
             obj.put("week", this.week);
+
+            String onCycle = this.onIntervalHour + ":" + this.onIntervalMinute;
+            obj.put("onCycle",onCycle);
+
+            String offCycle = this.offIntervalHour + ":" + this.offIntervalMinute;
+            obj.put("offCycle",offCycle);
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -250,4 +248,28 @@ public class TimingAdvanceData {
 
     }
 
+    @Override
+    public String toString() {
+        return "TimingAdvanceData{" +
+                "mac='" + mac + '\'' +
+                ", model=" + model +
+                ", id=" + id +
+                ", startup=" + on +
+                ", startup=" + startup +
+                ", week=" + week +
+                ", startHour=" + startHour +
+                ", startMinute=" + startMinute +
+                ", onTime='" + onTime + '\'' +
+                ", state=" + state +
+                ", endHour=" + endHour +
+                ", endMinute=" + endMinute +
+                ", offTime='" + offTime + '\'' +
+                ", onIntervalHour=" + onIntervalHour +
+                ", onIntervalMinute=" + onIntervalMinute +
+                ", onIntervalTime='" + onIntervalTime + '\'' +
+                ", offIntervalHour=" + offIntervalHour +
+                ", offIntervalMinute=" + offIntervalMinute +
+                ", offIntervalTime='" + offIntervalTime + '\'' +
+                '}';
+    }
 }

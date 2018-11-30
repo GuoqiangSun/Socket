@@ -1,5 +1,7 @@
 package cn.com.startai.socket.sign.scm.receivetask;
 
+import android.app.Application;
+
 import cn.com.startai.socket.sign.scm.receivetask.impl.MyErrorTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.MyTestTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.ScmErrorTask;
@@ -10,6 +12,8 @@ import cn.com.startai.socket.sign.scm.receivetask.impl.control.CountdownSetRecei
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.CumuParamQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.HistoryCountTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.MaxOutputQueryReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.control.RGBQueryReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.control.RGBSetReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.SpendingElectricityQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.SpendingElectricitySetReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.SwitchControllerReceiveTask;
@@ -20,6 +24,8 @@ import cn.com.startai.socket.sign.scm.receivetask.impl.control.TimeQueryReceiveT
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.TimeSetReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.TimingListQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.TimingSetReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.control.TimingTempHumiQueryReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.control.TimingTempHumiSetReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.report.CountdownReportReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.report.NewElectricReportReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.report.PointReportReceiveTask;
@@ -81,52 +87,13 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
 
     private final OnTaskCallBack mTaskCallBack;
 
-    public ProtocolTaskImpl(IDataProtocolOutput mResponse, OnTaskCallBack mTaskCallBack) {
+    private final Application app;
+
+    public ProtocolTaskImpl(IDataProtocolOutput mResponse, OnTaskCallBack mTaskCallBack, Application app) {
         this.mResponse = mResponse;
         this.mTaskCallBack = mTaskCallBack;
+        this.app = app;
     }
-//
-//    @Override
-//    public void onFailReceiveDataNull(int errorCode) {
-//
-//        new ScmErrorTask(errorCode, mTaskCallBack).execute(null);
-//
-//    }
-//
-//    @Override
-//    public void onFailLengthTooLong(int errorCode) {
-//        new ScmErrorTask(errorCode, mTaskCallBack).execute(null);
-//    }
-//
-//    @Override
-//    public void onFailHasHeadNoTail(int errorCode) {
-//        new ScmErrorTask(errorCode, mTaskCallBack).execute(null);
-//    }
-//
-//    @Override
-//    public void onFailHasTailNoHead(int errorCode) {
-//        new ScmErrorTask(errorCode, mTaskCallBack).execute(null);
-//    }
-//
-//    @Override
-//    public void onPackNullError(int errorCode) {
-//        new ScmErrorTask(errorCode, mTaskCallBack).execute(null);
-//    }
-//
-//    @Override
-//    public void onPackNoHeadError(int errorCode, SocketDataArray mSocketDataArray) {
-//        new ScmErrorTask(errorCode, mTaskCallBack).execute(mSocketDataArray);
-//    }
-//
-//    @Override
-//    public void onPackCrcError(int errorCode, SocketDataArray mSocketDataArray) {
-//        new ScmErrorTask(errorCode, mTaskCallBack).execute(mSocketDataArray);
-//    }
-//
-//    @Override
-//    public void onPackNoTailError(int errorCode, SocketDataArray mSocketDataArray) {
-//        new ScmErrorTask(errorCode, mTaskCallBack).execute(mSocketDataArray);
-//    }
 
     @Override
     public void onFail(FailTaskResult failTaskResult) {
@@ -170,16 +137,13 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                         new HeartbeatReceiveTask(mTaskCallBack).execute(mParam);
                         break;
                     case SocketSecureKey.Cmd.CMD_DISCOVERY_DEVICE_RESPONSE:
-                        new DeviceDiscoveryTask(mTaskCallBack).execute(mParam);
+                        new DeviceDiscoveryTask(mTaskCallBack, app).execute(mParam);
                         break;
                     case SocketSecureKey.Cmd.CMD_BIND_DEVICE_RESPONSE:
                         new DeviceBindTask(mTaskCallBack).execute(mParam);
                         break;
                     case SocketSecureKey.Cmd.CMD_UPDATE_RESPONSE:
                         new UpdateReceiveTask(mTaskCallBack).execute(mParam);
-                        break;
-                    case SocketSecureKey.Cmd.CMD_SET_VOLTAGE_ALARM_VALUE_RESPONSE:
-                        new VoltageSettingReceiveTask(mTaskCallBack).execute(mParam);
                         break;
                     case SocketSecureKey.Cmd.CMD_RENAME_RESPONSE:
                         new RenameReceiveTask(mTaskCallBack).execute(mParam);
@@ -284,6 +248,18 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                     case SocketSecureKey.Cmd.CMD_QUERY_MAX_OUTPUT_RESPONSE:
                         new MaxOutputQueryReceiveTask(mTaskCallBack).execute(mParam);
                         break;
+                    case SocketSecureKey.Cmd.CMD_SET_LIGHT_COLOR_RESPONSE:
+                        new RGBSetReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_QUERY_LIGHT_COLOR_RESPONSE:
+                        new RGBQueryReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_SET_TEMP_HUMI_ALARM_RESPONSE:
+                        new TimingTempHumiSetReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_QUERY_TEMP_HUMI_ALARM_RESPONSE:
+                        new TimingTempHumiQueryReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
 
                     default:
                         new ScmErrorTask(ProtocolCode.ERROR_CODE_RESOLVE_CMD, mTaskCallBack).execute(mParam);
@@ -322,6 +298,9 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
             case SocketSecureKey.Type.TYPE_SETTING:
 
                 switch (protocolCmd) {
+                    case SocketSecureKey.Cmd.CMD_SET_VOLTAGE_ALARM_VALUE_RESPONSE:
+                        new VoltageSettingReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
                     case SocketSecureKey.Cmd.CMD_QUERY_VOLTAGE_ALARM_VALUE_RESPONSE:
                         new VoltageQueryReceiveTask(mTaskCallBack).execute(mParam);
                         break;

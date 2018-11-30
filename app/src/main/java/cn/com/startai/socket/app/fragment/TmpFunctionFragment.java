@@ -14,11 +14,16 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Objects;
+
 import cn.com.startai.socket.R;
 import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.global.LooperManager;
 import cn.com.startai.socket.mutual.Controller;
+import cn.com.startai.socket.sign.hardware.WiFi.impl.NetworkManager;
 import cn.com.startai.socket.sign.scm.impl.SocketScmManager;
+import cn.com.swain.baselib.util.IpUtil;
+import cn.com.swain.support.protocolEngine.pack.ComModel;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -150,7 +155,6 @@ public class TmpFunctionFragment extends BaseFragment {
         Button mCheckProtocolThreadBtn = view.findViewById(R.id.check_protocol_thread_btn);
         mCheckProtocolThreadBtn.setOnClickListener(v -> mProtocolHandler.sendEmptyMessage(0));
 
-
         Handler mRepeatHandler = new Handler(LooperManager.getInstance().getWorkLooper()) {
             @Override
             public void handleMessage(Message msg) {
@@ -172,11 +176,53 @@ public class TmpFunctionFragment extends BaseFragment {
             SocketScmManager scmManager = Controller.getInstance().getScmManager();
             if (scmManager != null) {
                 String s = mInputEdt.getText().toString();
-                scmManager.testProtocolAnalysis(Debuger.getInstance().getProductDevice(), s);
+                scmManager.testProtocolAnalysis(Debuger.getInstance().getProductDevice(), s, ComModel.SEND_MODEL_LAN);
             } else {
                 Toast.makeText(getContext(), " scmManager=null ", Toast.LENGTH_SHORT).show();
             }
         });
+
+        EditText mInputWEdt = view.findViewById(R.id.protocol_engineW_input_edt);
+        Button mCheckProtocolEngineWBtn = view.findViewById(R.id.check_protocolEngineW_btn);
+        mCheckProtocolEngineWBtn.setOnClickListener(v -> {
+            SocketScmManager scmManager = Controller.getInstance().getScmManager();
+            if (scmManager != null) {
+                String s = mInputWEdt.getText().toString();
+                scmManager.testProtocolAnalysis(Debuger.getInstance().getProductDevice(), s, ComModel.SEND_MODEL_WAN);
+            } else {
+                Toast.makeText(getContext(), " scmManager=null ", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+        EditText mInputCEdt = view.findViewById(R.id.protocol_engineC_input_edt);
+        Button mCheckProtocolEngineCBtn = view.findViewById(R.id.check_protocolEngineC_btn);
+        mCheckProtocolEngineCBtn.setOnClickListener(v -> {
+            SocketScmManager scmManager = Controller.getInstance().getScmManager();
+            if (scmManager != null) {
+                String s = mInputCEdt.getText().toString();
+                scmManager.testProtocolAnalysis(Debuger.getInstance().getProductDevice(), s, ComModel.SEND_MODEL_CASUAL);
+            } else {
+                Toast.makeText(getContext(), " scmManager=null ", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        TextView mIpTxt = view.findViewById(R.id.ip_txt);
+        TextView mPortTxt = view.findViewById(R.id.port_txt);
+        String ip = null;
+        int port = -1;
+
+        NetworkManager networkManager = Controller.getInstance().getNetworkManager();
+        if (networkManager != null) {
+            ip =
+                    IpUtil.getLocalIpV4Address() + "--" +
+                            networkManager.getUdpLanComIp() + "--" +
+                            IpUtil.getBroadcastAddress(Objects.requireNonNull(getContext()));
+            port = networkManager.getUdpLanComPort();
+        }
+
+        mIpTxt.setText(String.valueOf(ip));
+        mPortTxt.setText(String.valueOf(port));
 
         return view;
     }

@@ -163,7 +163,19 @@ public class LanDeviceInfo implements Cloneable {
             obj.put("mac", mac);
             obj.put("encrypted", bindNeedPwd);
             obj.put("isBinding", isWanBind);
-            obj.put("version", getVersion());
+
+//            obj.put("version", getVersion());
+
+            int m = (mainVersion & 0xFF);
+            int s = (subVersion & 0xFF);
+            String v = m + "." + s;
+            double v1;
+            try {
+                v1 = Double.parseDouble(v);
+            } catch (Exception e) {
+                v1 = getVersion();
+            }
+            obj.put("version", v1);
 
             JSONObject mWiFiInfo = new JSONObject();
             mWiFiInfo.put("ssid", ssid);

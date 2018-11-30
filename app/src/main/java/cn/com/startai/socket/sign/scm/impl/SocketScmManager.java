@@ -40,6 +40,7 @@ import cn.com.startai.socket.sign.scm.bean.TempHumidityAlarmData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingCommonData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingListData;
+import cn.com.startai.socket.sign.scm.bean.TimingTempHumiData;
 import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.startai.socket.sign.scm.bean.sensor.SensorData;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.Humidity;
@@ -53,6 +54,7 @@ import cn.com.swain.baselib.app.IApp.IService;
 import cn.com.swain.baselib.util.Bit;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolOutput;
 import cn.com.swain.support.protocolEngine.ProtocolProcessorFactory;
+import cn.com.swain.support.protocolEngine.pack.ComModel;
 import cn.com.swain.support.protocolEngine.pack.ReceivesData;
 import cn.com.swain.support.protocolEngine.pack.ResponseData;
 import cn.com.swain.support.protocolEngine.resolve.AbsProtocolProcessor;
@@ -68,7 +70,7 @@ import cn.com.swain169.log.Tlog;
 public class SocketScmManager extends AbsSocketScm
         implements IService, IDataProtocolOutput,
         OnTaskCallBack, IRegDebugerProtocolStream,
-        ScmDevice.OnHeartbeatCallBack {
+        ScmDevice.OnScmCallBack {
 
     public static final String TAG = "SocketScmManager";
 
@@ -134,10 +136,9 @@ public class SocketScmManager extends AbsSocketScm
 
     private ScmDeviceUtils mScmDeviceUtils;
 
-
     @Override
     public void onSCreate() {
-        Tlog.v(TAG, " SocketProtocolWrapper onSCreate()");
+        Tlog.v(TAG, " SocketScmManager onSCreate()");
 
         MySocketDataCache.BuildParams mParams = new MySocketDataCache.BuildParams();
         mParams.setCustom(CustomManager.getInstance().getCustom());
@@ -158,25 +159,27 @@ public class SocketScmManager extends AbsSocketScm
 //                version);
 
         pm = ProtocolProcessorFactory.newMultiChannelSingleTask(LooperManager.getInstance().getProtocolLooper(),
-                new ProtocolTaskImpl(this, this),
+                new ProtocolTaskImpl(this, this,app),
                 version, true);
+
+
     }
 
     @Override
     public void onSResume() {
-        Tlog.v(TAG, " SocketProtocolWrapper onSResume()");
+        Tlog.v(TAG, " SocketScmManager onSResume()");
         MySocketDataCache.getInstance().onSResume();
     }
 
     @Override
     public void onSPause() {
-        Tlog.v(TAG, " SocketProtocolWrapper onSPause()");
+        Tlog.v(TAG, " SocketScmManager onSPause()");
         MySocketDataCache.getInstance().onSPause();
     }
 
     @Override
     public void onSDestroy() {
-        Tlog.v(TAG, " SocketProtocolWrapper onSDestroy()");
+        Tlog.v(TAG, " SocketScmManager onSDestroy()");
 
         MySocketDataCache.getInstance().onSDestroy();
 
@@ -190,15 +193,23 @@ public class SocketScmManager extends AbsSocketScm
 
     @Override
     public void onSFinish() {
-        Tlog.v(TAG, " SocketProtocolWrapper onSFinish()");
+        Tlog.v(TAG, " SocketScmManager onSFinish()");
         MySocketDataCache.getInstance().onSFinish();
     }
 
     @Override
     public void onInputServerData(ReceivesData mReceivesData) {
+
+        if (Debuger.isLogDebug) {
+            Tlog.d(TAG, " SocketScmManager onInputServerData() " + String.valueOf(mReceivesData));
+        }
+
         if (pm != null) {
             pm.onInputServerData(mReceivesData);
+        } else {
+            Tlog.e(TAG, " SocketScmManager onInputServerData() pm=null ");
         }
+
     }
 
     @Override
@@ -317,6 +328,50 @@ public class SocketScmManager extends AbsSocketScm
     }
 
     @Override
+    public void setTemperatureTimingAlarm(TimingTempHumiData mTimingAdvanceData) {
+
+        ResponseData mResponseData;
+        synchronized (syncObj) {
+//            (byte id, byte startHour, byte startMinute, byte stopHour, byte stopMinute, boolean startup, byte onIntervalHour,
+// byte onIntervalMinute, byte offIntervalHour, byte offIntervalMinute, byte startup) {
+            mResponseData = MySocketDataCache.getSetTimingTemp(mTimingAdvanceData.mac, mTimingAdvanceData.id,
+                    mTimingAdvanceData.state,
+                    (byte) mTimingAdvanceData.startHour, (byte) mTimingAdvanceData.startMinute,
+                    (byte) mTimingAdvanceData.endHour, (byte) mTimingAdvanceData.endMinute, mTimingAdvanceData.on,
+                    (byte) mTimingAdvanceData.onIntervalHour, (byte) mTimingAdvanceData.onIntervalMinute,
+                    (byte) mTimingAdvanceData.offIntervalHour, (byte) mTimingAdvanceData.offIntervalMinute,
+                    mTimingAdvanceData.startup, (byte) mTimingAdvanceData.week,
+                    (byte) mTimingAdvanceData.alarmValue, mTimingAdvanceData.model);
+        }
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " setTemperatureTimingAlarm data: " + mResponseData.toString());
+        }
+        onOutputDataToServer(mResponseData);
+
+    }
+
+    @Override
+    public void queryTemperatureTimingAlarm(String mac, int model) {
+
+        ResponseData mResponseData = MySocketDataCache.getQueryTimingTemp(mac, model);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryTemperatureTimingAlarm data: " + mResponseData.toString());
+        }
+        onOutputDataToServer(mResponseData);
+
+    }
+
+    @Override
+    public void queryColourLampRGB(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getQueryLightColor(mac, 1);
+
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryColourLampRGB : " + mResponseData.toString());
+        }
+        onOutputDataToServer(mResponseData);
+    }
+
+    @Override
     public void quickControlRelay(String mac, boolean on) {
         ResponseData mResponseData = MySocketDataCache.getQuickSetRelaySwitch(mac, on);
 
@@ -324,7 +379,6 @@ public class SocketScmManager extends AbsSocketScm
             Tlog.v(TAG, " quickControlRelay status : " + on + mResponseData.toString());
         }
         onOutputDataToServer(mResponseData);
-
 
     }
 
@@ -340,380 +394,29 @@ public class SocketScmManager extends AbsSocketScm
     }
 
     @Override
-    public void queryHistoryCount(QueryHistoryCount mQueryCount) {
+    public synchronized void queryHistoryCount(QueryHistoryCount mQueryCount) {
 
         ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mQueryCount.mac);
-        QueryHistoryCount queryHistoryCount = mQueryCount.cloneMyself();
-        scmDevice.putQueryHistoryCount(queryHistoryCount);
+        scmDevice.removeQueryHistory();
 
-        long startTimestamp = mQueryCount.getStartTimestampFromStr();
-        long endTimestamp = mQueryCount.getEndTimestampFromStr();
-
-        int lastMonth = DateUtils.getMonth(startTimestamp);
-        int lastYear = DateUtils.getYear(startTimestamp);
-
-        final long curMillis = DateUtils.fastFormatTsToDayTs(System.currentTimeMillis());
-
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
-
-        if (Debuger.isLogDebug) {
-            Tlog.d(TAG, " queryHistoryCount startTimestamp:" + startTimestamp
-                    + " " + mQueryCount.startTime
-                    + " endTimestamp:" + endTimestamp
-                    + " " + mQueryCount.endTime
-                    + " interval:" + mQueryCount.interval
-                    + " day:" + mQueryCount.day
-                    + " curMillis:" + curMillis
-                    + " lastMonth:" + lastMonth
-                    + " lastYear:" + lastYear
-            );
+        QueryHistoryUtil.queryHistoryCount(mQueryCount, scmDevice, this);
+        if (Debuger.isDebug) {
+            testReport(mQueryCount.mac);
         }
+    }
 
-        QueryHistoryCount mCount = new QueryHistoryCount();
-        mCount.mac = mQueryCount.mac;
-        mCount.startTime = mQueryCount.startTime;
-        mCount.interval = mQueryCount.interval;
-        mCount.mDataArray = new ArrayList<>();
-        mCount.mDayArray = new ArrayList<>();
 
-        QueryHistoryCount.Day mDay;
-        QueryHistoryCount.Data mData;
-        QueryHistoryCount.Data mTmpData = new QueryHistoryCount.Data();
-
-        CountElectricityDao countElectricityDao =
-                DBManager.getInstance().getDaoSession().getCountElectricityDao();
-
-        int oneLength = CountElectricity.ONE_PKG_LENGTH; // 一组数据大小
-        int oneDaySize = CountElectricity.SIZE_ONE_DAY; //一天数据个数
-        int oneDayBytes = CountElectricity.ONE_DAY_BYTES; // 一天数据长度
-        final byte[] countData = new byte[oneDaySize];
-
-        StringBuilder sbLog = new StringBuilder();
-        StringBuilder sbJsLog = new StringBuilder();
-
-        while (startTimestamp < endTimestamp) {
-
-            if (Debuger.isLogDebug) {
-                Tlog.v(TAG, " queryHistoryCount startTime: "
-                        + dateFormat.format(new Date(startTimestamp))
-                        + "  curMillis:"
-                        + dateFormat.format(new Date(curMillis)));
+    @Override
+    public void onDelaySend(int what, Object obj) {
+        if (what == 0) {
+            if (mScmResultCallBack != null) {
+                mScmResultCallBack.onQueryHistoryCountResult(true, (QueryHistoryCount) obj);
             }
-
-            List<CountElectricity> listElectricitys = countElectricityDao.queryBuilder()
-                    .where(CountElectricityDao.Properties.Mac.eq(mQueryCount.mac),
-                            CountElectricityDao.Properties.Timestamp.eq(startTimestamp)).list();
-
-            mDay = new QueryHistoryCount.Day();
-            mDay.startTime = startTimestamp;
-            mCount.mDayArray.add(mDay);
-
-            if (listElectricitys != null && listElectricitys.size() > 0) {
-                CountElectricity countElectricity = listElectricitys.get(0);
-                mDay.countData = countElectricity.getElectricity();
-
-                if (Debuger.isLogDebug) {
-                    Tlog.v(TAG, " queryHistoryCount from DB ");
-                }
-
-                if (startTimestamp == curMillis && mQueryCount.needQueryFromServer) {
-
-                    Date mStartDate = new Date(startTimestamp);
-                    Date mEndDate = new Date(startTimestamp + DateUtils.ONE_DAY);
-                    ResponseData mResponseData = MySocketDataCache.getQueryHistoryCount(mQueryCount.mac,
-                            mStartDate, mEndDate);
-
-                    queryHistoryCount.msgSeq = mResponseData.getRepeatMsgModel().getMsgSeq();
-
-                    if (Debuger.isLogDebug) {
-                        Tlog.v(TAG, " queryCurDayHistoryCount from server ;" + mResponseData.toString());
-                    }
-                    onOutputDataToServer(mResponseData);
-                }
-
-            } else {
-
-                mDay.countData = new byte[oneDayBytes];
-
-                if (Debuger.isLogDebug) {
-                    Tlog.w(TAG, " queryHistoryCount from DB is null ; new null byte[]");
-                }
-
-                long diff = curMillis - startTimestamp;
-
-                if (diff < DateUtils.ONE_DAY * 7 && diff > 0) {
-
-                    if (mQueryCount.needQueryFromServer) {
-                        Date mStartDate = new Date(startTimestamp);
-                        Date mEndDate = new Date(startTimestamp + DateUtils.ONE_DAY);
-                        ResponseData mResponseData = MySocketDataCache.getQueryHistoryCount(mQueryCount.mac,
-                                mStartDate, mEndDate);
-
-                        queryHistoryCount.msgSeq = mResponseData.getRepeatMsgModel().getMsgSeq();
-
-                        if (Debuger.isLogDebug) {
-                            Tlog.v(TAG, " queryHistoryCount from server:" + mResponseData.toString());
-                        }
-                        onOutputDataToServer(mResponseData);
-
-                    } else {
-                        if (Debuger.isLogDebug) {
-                            Tlog.w(TAG, " queryHistoryCount from server buf break:");
-                        }
-                    }
-
-                } else {
-                    if (Debuger.isLogDebug) {
-                        Tlog.w(TAG, " queryHistoryCount from server but out of 7 days ");
-                    }
-                }
-
-            }
-
-            for (int j = 0; j < oneDaySize; j++) {
-
-                try {
-                    System.arraycopy(mDay.countData, j * oneLength, countData, 0, oneLength);
-
-                } catch (Exception e) {
-                    Tlog.e(TAG, " e ", e);
-                    break;
-                }
-
-                int ee = (countData[0] & 0xFF) << 24 | (countData[1] & 0xFF) << 16
-                        | (countData[2] & 0xFF) << 8 | (countData[3] & 0xFF);
-
-                int ss = (countData[4] & 0xFF) << 24 | (countData[5] & 0xFF) << 16
-                        | (countData[6] & 0xFF) << 8 | (countData[7] & 0xFF);
-
-                float e = ee / 1000F;
-                float s = ss / 1000F;
-
-
-//                if (Debuger.isTest && e == 0) {
-//                    e = (int) ((Math.random() * 9 + 1) * 1000);
-//                }
-
-                if (SocketSecureKey.Util.isIntervalMonth((byte) mQueryCount.interval)) {
-
-                    int month = DateUtils.getMonth(startTimestamp);
-                    int year = DateUtils.getYear(startTimestamp);
-
-//                    Tlog.v(TAG, "--year:" + DateUtils.getYear(startTimestamp)
-//                            + " month:" + month
-//                            + " day:" + DateUtils.getDays(startTimestamp)
-//                            + " lastMonth:" + lastMonth);
-
-                    mTmpData.e += e;
-                    mTmpData.s += s;
-
-//                    if (month == 11) {
-//                        Tlog.e(" e : " + e + " s:" + s);
-//                    }
-
-                    if (month - lastMonth == 1 || year - lastYear == 1 ||
-                            ((startTimestamp == endTimestamp - DateUtils.ONE_DAY) && (j == oneDaySize - 1))) {
-                        Tlog.v(TAG, " startYear:" + DateUtils.getYear(startTimestamp)
-                                + " startMonth:" + month
-                                + " startDay:" + DateUtils.getDays(startTimestamp)
-                                + " lastMonth:" + lastMonth);
-
-                        int daysOfMonth = DateUtils.getDaysOfMonth(lastYear, lastMonth);
-
-                        lastMonth = month;
-
-                        // 一个月一次的平均数据
-                        mData = new QueryHistoryCount.Data();
-                        mData.e = mTmpData.e / daysOfMonth;
-                        mData.s = mTmpData.s / daysOfMonth;
-                        mCount.mDataArray.add(mData);
-                        mCount.day++;
-
-                        if (Debuger.isLogDebug) {
-
-                            Tlog.e(TAG, "isIntervalMonth tmpData.e:" + mTmpData.e + " tmpData.s:" + mTmpData.s
-                                    + " days:" + daysOfMonth + " add e:" + mData.e + " s:" + mData.s);
-
-                            sbJsLog.append(j).append("-e:").append(mData.e)
-                                    .append(",s:").append(mData.s).append("; ");
-
-                        }
-
-                        mTmpData.e = 0;
-                        mTmpData.s = 0;
-
-                    }
-
-                } else if (SocketSecureKey.Util.isIntervalWeek((byte) mQueryCount.interval)) {
-
-                    int curWeek = DateUtils.getWeek(startTimestamp);
-
-                    mTmpData.e += e;
-                    mTmpData.s += s;
-
-                    if ((curWeek == 0 || (startTimestamp == endTimestamp - DateUtils.ONE_DAY)) && (j == oneDaySize - 1)) {
-
-                        Tlog.v(TAG, " curWeek: " + curWeek + " " + dateFormat.format(new Date(startTimestamp)));
-
-                        int countNumber = curWeek;
-                        if (curWeek == 0) {
-                            countNumber = 7;
-                        }
-
-                        mData = new QueryHistoryCount.Data();
-                        mData.e = mTmpData.e / countNumber;
-                        mData.s = mTmpData.s / countNumber;
-                        mCount.mDataArray.add(mData);
-                        mCount.day++;
-
-                        if (Debuger.isLogDebug) {
-
-                            Tlog.e(TAG, "isIntervalWeek tmpData.e:" + mTmpData.e + " tmpData.s:" + mTmpData.s
-                                    + " days:" + 7 + " add e:" + mData.e + " s:" + mData.s);
-
-                            sbJsLog.append(j).append("-e:").append(mData.e)
-                                    .append(",s:").append(mData.s).append("; ");
-
-                        }
-
-
-                        mTmpData.e = 0;
-                        mTmpData.s = 0;
-
-                    }
-
-
-                } else if (SocketSecureKey.Util.isIntervalDay((byte) mQueryCount.interval)) {
-
-                    mTmpData.e += e;
-                    mTmpData.s += s;
-
-                    if (j == oneDaySize - 1) {
-
-                        int countNumber = CountElectricity.SIZE_ONE_DAY;//一个数据一天
-                        // 一天一次的平均数据
-                        mData = new QueryHistoryCount.Data();
-                        mData.e = mTmpData.e / countNumber;
-                        mData.s = mTmpData.s / countNumber;
-                        mCount.mDataArray.add(mData);
-                        mCount.day++;
-
-                        if (Debuger.isLogDebug) {
-
-                            Tlog.e(TAG, "isIntervalDay tmpData.e:" + mTmpData.e + " tmpData.s:" + mTmpData.s
-                                    + " days:" + countNumber + " add e:" + mData.e + " s:" + mData.s);
-
-                            sbJsLog.append(j).append("-e:").append(mData.e)
-                                    .append(",s:").append(mData.s).append("; ");
-
-                        }
-
-                        mTmpData.e = 0;
-                        mTmpData.s = 0;
-
-                    }
-
-                } else if (SocketSecureKey.Util.isIntervalHour((byte) mQueryCount.interval)) {
-
-                    int countNumber = 60 / 5; // 一个数据一小时
-                    mTmpData.e += e;
-                    mTmpData.s += s;
-
-                    if (j != 0 && j % countNumber == 0) {
-                        // 一小时一次的平均数据
-
-                        mData = new QueryHistoryCount.Data();
-                        mData.e = mTmpData.e / countNumber;
-                        mData.s = mTmpData.s / countNumber;
-                        mCount.mDataArray.add(mData);
-                        mCount.day++;
-
-                        if (Debuger.isLogDebug) {
-
-                            Tlog.e(TAG, "isIntervalHour tmpData.e:" + mTmpData.e + " tmpData.s:" + mTmpData.s
-                                    + " days:" + countNumber + " add e:" + mData.e + " s:" + mData.s);
-
-                            sbJsLog.append(j).append("-e:").append(mData.e)
-                                    .append(",s:").append(mData.s).append("; ");
-                        }
-
-                        mTmpData.e = 0;
-                        mTmpData.s = 0;
-
-                    }
-
-                } else if (SocketSecureKey.Util.isIntervalMinute((byte) mQueryCount.interval)) {
-                    mData = new QueryHistoryCount.Data(e, s);
-                    mCount.mDataArray.add(mData);
-                    mCount.day++;
-
-                    if (Debuger.isLogDebug) {
-                        sbJsLog.append(j).append("-e:").append(mData.e)
-                                .append(",s:").append(mData.s).append("; ");
-                    }
-
-                } else {
-                    mData = new QueryHistoryCount.Data(e, s);
-                    mCount.mDataArray.add(mData);
-                    mCount.day++;
-
-                    if (Debuger.isLogDebug) {
-                        sbJsLog.append(j).append("-e:").append(mData.e)
-                                .append(",s:").append(mData.s).append("; ");
-                    }
-
-                }
-
-
-                if (Debuger.isLogDebug) {
-                    sbLog.append(j).append("-e:").append(e).append(",s:").append(s).append(";");
-
-                    if (sbLog.length() >= 1024 * 5) {
-                        Tlog.d(TAG, mCount.interval + " QueryHistoryCount myLog: " + sbLog.toString());
-                        sbLog = new StringBuilder();
-                    }
-
-                    if (sbJsLog.length() >= 1024 * 5) {
-                        Tlog.d(TAG, mCount.interval + " QueryHistoryCount jsLog: " + sbJsLog.toString());
-                        sbJsLog = new StringBuilder();
-                    }
-
-                }
-
-            }
-
-            startTimestamp += DateUtils.ONE_DAY;
-
-
-            if (Debuger.isLogDebug) {
-                Tlog.e(TAG, " QueryHistoryCount one circle finish ,next day: "
-                        + dateFormat.format(new Date(startTimestamp)));
-            }
-
-
-            if (startTimestamp >= endTimestamp) {
-                Tlog.e(TAG, " QueryHistoryCount break; startTimestamp >= endTimestamp "
-                        + dateFormat.format(new Date(startTimestamp)));
-                break;
-            }
-
-        }
-
-        if (mScmResultCallBack != null) {
-            if (Debuger.isLogDebug) {
-                Tlog.d(TAG, mCount.interval + " QueryHistoryCount myLog: " + sbLog.toString());
-                Tlog.d(TAG, mCount.interval + " QueryHistoryCount jsLog: " + sbJsLog.toString());
-                Tlog.d(TAG, mCount.interval + " QueryHistoryCount jsData: " + mCount.toJsonArrayData());
-            }
-            mScmResultCallBack.onQueryHistoryCountResult(true, mCount);
-        }
-
-        if (Debuger.isTest) {
-            testReport(mCount.mac);
+        } else if (what == 1) {
+            queryHistoryCount((QueryHistoryCount) obj);
         }
 
     }
-
 
     @Override
     public void onQueryHistoryCountResult(boolean result, QueryHistoryCount mCount) {
@@ -734,19 +437,20 @@ public class SocketScmManager extends AbsSocketScm
 
         deleteOldHistory(mCount.mac);
 
-
         ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mCount.mac);
         QueryHistoryCount queryCount = scmDevice.getQueryCount();
-        if (queryCount != null && queryCount.msgSeq == mCount.msgSeq &&
-                SocketSecureKey.Util.isIntervalMinute((byte) queryCount.interval)) {
-            queryCount.needQueryFromServer = false;
+        if (queryCount != null && queryCount.msgSeq == mCount.msgSeq
+//                &&SocketSecureKey.Util.isIntervalMinute((byte) queryCount.interval)
+                ) {
+
             Tlog.e(TAG, " queryHistoryCount again:");
-            queryHistoryCount(queryCount);
+            queryCount.needQueryFromServer = false;
+            scmDevice.removeQueryHistory();
+            scmDevice.removeQueryHistoryCountResult();
+            scmDevice.sendQueryHistory(1500, queryCount);
+
         }
 
-//        if (mScmResultCallBack != null) {
-//            mScmResultCallBack.onQueryHistoryCountResult(result, mCount);
-//        }
     }
 
     private void updateHistory(QueryHistoryCount mCount) {
@@ -776,12 +480,14 @@ public class SocketScmManager extends AbsSocketScm
 
         long curMillis = DateUtils.fastFormatTsToDayTs(System.currentTimeMillis());
 
-//        long startTimestampFromStr = mCount.getStartTimestampFromStr();
+        long startTimestampFromStr = mCount.getStartTimestampFromStr();
 
-        long startTimestampFromStr = DateUtils.fastFormatTsToDayTs(mCount.startTimeMillis);
+//        long startTimestampFromStr = DateUtils.fastFormatTsToDayTs(mCount.startTimeMillis); // 有问题
 
-        Tlog.v(TAG, " updateHistory  curMillis:" + curMillis
-                + " startTimestampFromStr:" + startTimestampFromStr);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
+
+        Tlog.v(TAG, " updateHistory  curMillis:" + curMillis + " " + dateFormat.format(new Date(curMillis))
+                + " startTimestampFromStr:" + startTimestampFromStr + " " + dateFormat.format(new Date(startTimestampFromStr)));
 
         for (QueryHistoryCount.Day mData : mDayArray) {
 
@@ -1070,8 +776,7 @@ public class SocketScmManager extends AbsSocketScm
 
     @Override
     public void setLightRGB(String mac, int i, int r, int g, int b) {
-
-        ResponseData mResponseData = MySocketDataCache.getLightColor(mac, i, r, g, b);
+        ResponseData mResponseData = MySocketDataCache.getSetLightColor(mac, i, r, g, b);
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setLightRGB " + mResponseData.toString());
         }
@@ -1197,8 +902,12 @@ public class SocketScmManager extends AbsSocketScm
     public void setAdvanceTiming(TimingAdvanceData mTimingAdvanceData) {
         ResponseData mResponseData;
         synchronized (syncObj) {
-//            (byte id, byte startHour, byte startMinute, byte stopHour, byte stopMinute, boolean on, byte onIntervalHour,
-// byte onIntervalMinute, byte offIntervalHour, byte offIntervalMinute, byte startup) {
+
+            if (Debuger.isLogDebug) {
+                Tlog.v(TAG, "setAdvanceTiming:" + String.valueOf(mTimingAdvanceData));
+            }
+
+
             mResponseData = MySocketDataCache.getSetAdvanceTiming(mTimingAdvanceData.mac, mTimingAdvanceData.id,
                     mTimingAdvanceData.state,
                     (byte) mTimingAdvanceData.startHour, (byte) mTimingAdvanceData.startMinute,
@@ -1632,12 +1341,19 @@ public class SocketScmManager extends AbsSocketScm
         onOutputDataToServer(mResponseData);
     }
 
-    public void testProtocolAnalysis(String mac, String content) {
+    public void testProtocolAnalysis(String mac, String content, int model) {
         ResponseData responseTestData = MySocketDataCache.getResponseTestData(mac, content);
-        if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " testProtocolAnalysis  " + String.valueOf(responseTestData));
-        }
         ReceivesData mReceiveData = new ReceivesData(mac, responseTestData.data);
+        if (ComModel.SEND_MODEL_LAN == model) {
+            mReceiveData.getReceiveModel().setModelOnlyLan();
+        } else if (ComModel.SEND_MODEL_WAN == model) {
+            mReceiveData.getReceiveModel().setModelOnlyWan();
+        } else {
+            mReceiveData.getReceiveModel().fillEmpty();
+        }
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " testProtocolAnalysis  " + String.valueOf(mReceiveData));
+        }
         onInputServerData(mReceiveData);
     }
 
@@ -2201,6 +1917,22 @@ public class SocketScmManager extends AbsSocketScm
         }
     }
 
+
+    @Override
+    public void onRGBSetResult(boolean result, ColorLampRGB mColorLampRGB) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onRGBSetResult(result, mColorLampRGB);
+        }
+    }
+
+    @Override
+    public void onRGBQueryResult(boolean result, ColorLampRGB mColorLampRGB) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onRGBQueryResult(result, mColorLampRGB);
+        }
+    }
+
+
     @Override
     public void onQuerySpendingElectricityResult(String id, boolean result, SpendingElectricityData mSpendingElectricityData) {
 
@@ -2231,6 +1963,21 @@ public class SocketScmManager extends AbsSocketScm
                 alarmSwitch = mSpendingElectricityData.alarmSwitch;
             }
             mScmResultCallBack.onResultSetSpendingElectricity(id, model, alarmSwitch, result);
+        }
+    }
+
+
+    @Override
+    public void onSetTimingTempHumiResult(boolean result, String id, TimingTempHumiData mAdvanceData) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onResultSetTimingTempHumi(result,id,mAdvanceData);
+        }
+    }
+
+    @Override
+    public void onQueryTimingTempHumiResult(boolean result, String id, ArrayList<TimingTempHumiData> mDataLst) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onResultQueryTimingTempHumi(result,id,mDataLst);
         }
     }
 
@@ -2285,6 +2032,18 @@ public class SocketScmManager extends AbsSocketScm
         }
 
     }
+
+    @Override
+    public void onRemoveCmd(String id, byte paramType, byte paramCmd, int seq) {
+        if (Debuger.isLogDebug) {
+            Tlog.e(TAG, " onRemoveCmd Data mac:" + id
+                    + " what:" + Integer.toHexString(paramType)
+                    + "-" + Integer.toHexString(paramType)
+                    + " seq:" + seq);
+        }
+        onSuccess(id, paramType, paramCmd, seq);
+    }
+
 
 
     @Override

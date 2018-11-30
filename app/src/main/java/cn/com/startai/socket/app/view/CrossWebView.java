@@ -24,7 +24,6 @@ import cn.com.swain169.log.Tlog;
 
 public class CrossWebView extends XWalkView {
 
-
     private static final String TAG = SocketApplication.TAG;
 
     public CrossWebView(Context context) {
@@ -45,7 +44,7 @@ public class CrossWebView extends XWalkView {
     private void init() {
 
         // crossWalk 在浏览器调试
-        if (Debuger.isDebug) {
+        if (Debuger.isDebug || Debuger.isLoadLocalH5) {
             XWalkPreferences.setValue(XWalkPreferences.REMOTE_DEBUGGING, true);
         }
 

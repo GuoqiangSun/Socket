@@ -267,7 +267,7 @@ public class Setting extends AbsJsInterface {
 
     @JavascriptInterface
     public void queryMonetarytUnitRequest(String mac) {
-        Tlog.v(TAG, " queryTemperatureUnitRequest mac:" + mac);
+        Tlog.v(TAG, " queryMonetarytUnitRequest mac:" + mac);
         if (mCallBack != null) {
             mCallBack.onJSQueryMonetaryUnit(mac);
         }
@@ -275,7 +275,7 @@ public class Setting extends AbsJsInterface {
 
     @JavascriptInterface
     public void queryLocalElectricityRequest(String mac) {
-        Tlog.v(TAG, " queryTemperatureUnitRequest mac:" + mac);
+        Tlog.v(TAG, " queryLocalElectricityRequest mac:" + mac);
         if (mCallBack != null) {
             mCallBack.onJSQueryElectricityPrices(mac);
         }

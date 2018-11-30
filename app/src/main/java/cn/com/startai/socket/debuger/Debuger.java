@@ -17,7 +17,7 @@ import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.FileManager;
 import cn.com.swain.baselib.app.IApp.IApp;
 import cn.com.swain.baselib.app.IApp.IService;
-import cn.com.swain.baselib.util.SSL;
+import cn.com.swain.baselib.util.AppUtils;
 import cn.com.swain169.log.TFlog;
 import cn.com.swain169.log.Tlog;
 import cn.com.swain169.log.logRecord.impl.LogRecordManager;
@@ -174,7 +174,7 @@ public class Debuger implements IApp, IService {
         }
 
         if (isLogDebug) {
-            Tlog.i(SSL.generalSsl(app));
+            Tlog.i(AppUtils.generalSsl(app));
         }
 
         Tlog.i(" Debuger init success...");

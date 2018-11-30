@@ -2,9 +2,9 @@ package cn.com.startai.socket.sign.scm.receivetask.impl.system;
 
 import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -38,6 +38,13 @@ public class UpdateReceiveTask extends SocketResponseTask {
         UpdateVersion mVersion = new UpdateVersion();
         mVersion.mac = mSocketDataArray.getID();
         mVersion.action = protocolParams[1];
+
+        mVersion.curVersionMain = protocolParams[2];
+        mVersion.curVersionSub = protocolParams[3];
+
+        mVersion.newVersionMain = protocolParams[4];
+        mVersion.newVersionSub = protocolParams[5];
+
         mVersion.curVersion = ((protocolParams[2] & 0xFF) << 8 | (protocolParams[3] & 0xFF));
         mVersion.newVersion = ((protocolParams[4] & 0xFF) << 8 | (protocolParams[5] & 0xFF));
 

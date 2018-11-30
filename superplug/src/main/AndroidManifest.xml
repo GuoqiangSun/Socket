@@ -3,7 +3,7 @@
 
     <application
         android:name=".SuperPlugApplication"
-        android:icon="@mipmap/ic_launcher_startai"
+        android:icon="@mipmap/ic_launcher_musik"
         android:label="@string/app_name_super"
-        android:roundIcon="@mipmap/ic_launcher_startai" />
+        android:roundIcon="@mipmap/ic_launcher_musik" />
 </manifest>

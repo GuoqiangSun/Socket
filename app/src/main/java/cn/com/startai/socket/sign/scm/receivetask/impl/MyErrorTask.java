@@ -38,6 +38,11 @@ public class MyErrorTask extends SocketResponseTask {
             byte paramType = protocolParams[1];
             byte paramCmd = protocolParams[2];
             Tlog.e(TAG, " myType:" + Integer.toHexString(paramType) + " myCmd:" + Integer.toHexString(paramCmd));
+
+            if (mTaskCallBack != null) {
+                mTaskCallBack.onRemoveCmd(mSocketDataArray.getID(), paramType, paramCmd, mSocketDataArray.getSeq());
+            }
+
         }
 
         switch (protocolParam) {

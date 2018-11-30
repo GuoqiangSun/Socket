@@ -50,7 +50,7 @@ public class Timing extends AbsHandlerJsInterface {
         }
 
         private static final String METHOD_TIMING_COMMON_SET_RESPONSE
-                = "javascript:commonPatternTimingResponse('$mac',$result,$on,$id,$model)";
+                = "javascript:commonPatternTimingResponse('$mac',$result,$startup,$id,$model)";
 
         /**
          * 新建定时列表回复
@@ -59,11 +59,11 @@ public class Timing extends AbsHandlerJsInterface {
          * @param result
          * @return
          */
-        public static String callJsTimingCommonSet(String mac, boolean result,boolean on,int id,int model) {
+        public static String callJsTimingCommonSet(String mac, boolean result,boolean startup,int id,int model) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
             return METHOD_TIMING_COMMON_SET_RESPONSE.replace("$mac", mac)
                     .replace("$result", String.valueOf(result))
-                    .replace("$on", String.valueOf(on))
+                    .replace("$startup", String.valueOf(startup))
                     .replace("$id", String.valueOf(id))
                     .replace("$model", String.valueOf(model));
         }
@@ -94,7 +94,7 @@ public class Timing extends AbsHandlerJsInterface {
     @Deprecated
     @JavascriptInterface
     public void commonPatternNewTimingRequest(String mac, int id, boolean on, String time, int week, boolean startup) {
-        Tlog.v(TAG, " commonPatternNewTimingRequest id:" + id + " on:" + on
+        Tlog.v(TAG, " commonPatternNewTimingRequest id:" + id + " startup:" + on
                 + " time:" + time + " week:" + week + " startup:" + startup);
     }
 
@@ -115,7 +115,7 @@ public class Timing extends AbsHandlerJsInterface {
 //        mTimingData.setModelIsCommon();
 //        mTimingData.setId((byte) id);
 //        mTimingData.setStateIsConfirm();
-//        mTimingData.setOn(on);
+//        mTimingData.setOn(startup);
 //        mTimingData.setTime(time);
 //        mTimingData.setWeek((byte) (week & 0xFF));
 //        mTimingData.setStartup(startup);
@@ -133,7 +133,7 @@ public class Timing extends AbsHandlerJsInterface {
     public void commonPatternEditTimingRequest(String mac, int id, boolean on,
                                                String time, int week, boolean startup, int model,
                                                String onTimeInterval, String offTimeInterval, String offTime) {
-        Tlog.v(TAG, " commonPatternEditTimingRequest id:" + id + " on:" + on
+        Tlog.v(TAG, " commonPatternEditTimingRequest id:" + id + " startup:" + on
                 + " time:" + time + " week:" + week + " startup:" + startup);
         Tlog.v(TAG, " model:" + model + " offTimeInterval:"
                 + offTimeInterval + " onTimeInterval:" + onTimeInterval + " offTime:" + offTime);

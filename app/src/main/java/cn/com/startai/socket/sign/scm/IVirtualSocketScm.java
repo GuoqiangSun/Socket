@@ -1,5 +1,7 @@
 package cn.com.startai.socket.sign.scm;
 
+import java.util.ArrayList;
+
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.mutual.js.bean.TimingSetResult;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
@@ -17,6 +19,7 @@ import cn.com.startai.socket.sign.scm.bean.TempHumidityAlarmData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingCommonData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingListData;
+import cn.com.startai.socket.sign.scm.bean.TimingTempHumiData;
 import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.startai.socket.sign.scm.bean.sensor.SensorData;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.TempHumidityData;
@@ -223,6 +226,12 @@ public interface IVirtualSocketScm {
 
     int getScmToken(String mac);
 
+    void setTemperatureTimingAlarm(TimingTempHumiData obj);
+
+    void queryTemperatureTimingAlarm(String mac,int model);
+
+    void queryColourLampRGB(String mac);
+
 
     /**
      * author: Guoqiang_Sun
@@ -317,6 +326,15 @@ public interface IVirtualSocketScm {
         void onElectricityReportResult(boolean result, PointReport mElectricity);
 
         int getTokenFromDB(String mac);
+
+        void onRGBSetResult(boolean result, ColorLampRGB mColorLampRGB);
+
+        void onRGBQueryResult(boolean result, ColorLampRGB mColorLampRGB);
+
+        void onResultSetTimingTempHumi(boolean result, String id, TimingTempHumiData mAdvanceData);
+
+        void onResultQueryTimingTempHumi(boolean result, String id, ArrayList<TimingTempHumiData> mDataLst);
+
     }
 
 

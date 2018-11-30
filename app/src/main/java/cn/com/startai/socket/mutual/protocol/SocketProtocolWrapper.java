@@ -35,7 +35,7 @@ public class SocketProtocolWrapper extends ProtocolWrapper implements IRegDebuge
         }
 
         if (Debuger.isLogDebug) {
-            Tlog.w(SocketResponseTask.TAG, "onInputServerData() :" + mReceiverData.toString());
+            Tlog.w(SocketResponseTask.TAG, "SocketProtocolWrapper onInputServerData() :" + mReceiverData.toString());
         }
 
     }
@@ -51,7 +51,7 @@ public class SocketProtocolWrapper extends ProtocolWrapper implements IRegDebuge
         }
 
         if (Debuger.isLogDebug) {
-            Tlog.d(SocketResponseTask.TAG, "onOutputDataToServer() :" + mResponseData.toString());
+            Tlog.d(SocketResponseTask.TAG, "SocketProtocolWrapper onOutputDataToServer() :" + mResponseData.toString());
         }
     }
 

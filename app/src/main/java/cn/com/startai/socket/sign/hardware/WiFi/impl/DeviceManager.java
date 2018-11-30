@@ -29,6 +29,7 @@ import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
 import cn.com.startai.socket.sign.hardware.IControlWiFi;
 import cn.com.startai.socket.sign.hardware.WiFi.bean.WanBindingDevice;
 import cn.com.startai.socket.sign.hardware.WiFi.util.LanDeviceLst;
+import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
 import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.swain.baselib.app.IApp.IService;
@@ -116,7 +117,8 @@ public class DeviceManager implements IService {
             Tlog.e(TAG, " getBindList msg send failed " + startaiError.getErrorCode());
 
             hasRequestBindLst = false;
-            if (mResultCallBack != null) {
+
+            if (mResultCallBack != null && 5001 != startaiError.getErrorCode()) {
                 mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
             }
         }
@@ -159,12 +161,18 @@ public class DeviceManager implements IService {
             LanDeviceInfo displayDeviceByMac = mDisplayDeviceLst.getDisplayDeviceByMac(mVersion.mac);
 
             if (displayDeviceByMac != null) {
+                int version = displayDeviceByMac.getVersion();
                 displayDeviceByMac.setMainVersion((mVersion.curVersion >> 8) & 0xFF);
                 displayDeviceByMac.setSubVersion(mVersion.curVersion & 0xFF);
 
                 if (mResultCallBack != null) {
                     DisplayDeviceList mLst = new DisplayDeviceList(displayDeviceByMac);
+                    Tlog.v(TAG, " onDeviceUpdateResult onResultWiFiDeviceListDisplay " + String.valueOf(displayDeviceByMac));
                     mResultCallBack.onResultWiFiDeviceListDisplay(mLst);
+                }
+
+                if (mVersion.curVersion != version) {
+                    updateDaoLanDeviceInfo(displayDeviceByMac);
                 }
 
             }
@@ -184,25 +192,31 @@ public class DeviceManager implements IService {
     void lanDeviceDiscovery(LanDeviceInfo mDevice) {
 
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " lanDeviceDiscovery() " + mDevice.toString());
+            Tlog.v(TAG, " lanDeviceDiscovery() " + String.valueOf(mDevice));
         }
 
         LanDeviceInfo displayLanDevice = mDisplayDeviceLst.getDisplayDeviceByMac(mDevice.mac);
-        if (!mDevice.isLanBind && displayLanDevice != null && displayLanDevice.isLanBind) {
-            if (mResultCallBack != null) {
-                mResultCallBack.onResultNeedReBind(mDevice.mac);
-            }
-        }
 
         String mLastName = null;
         int mLastRSSI = 0;
-        boolean state = false;
-        int version = 0;
+        boolean mLastState = false;
+        int mLastVersion = 0;
+        String mLastSsid = null;
+
         if (displayLanDevice != null) {
             mLastName = displayLanDevice.getName();
             mLastRSSI = displayLanDevice.getRssi();
-            state = displayLanDevice.getState();
-            version = displayLanDevice.getVersion();
+            mLastState = displayLanDevice.getState();
+            mLastVersion = displayLanDevice.getVersion();
+            mLastSsid = displayLanDevice.getSsid();
+
+            if (!mDevice.isLanBind && displayLanDevice.isLanBind) {
+                Tlog.v(TAG, " lanDeviceDiscovery() onResultNeedReBind ");
+                if (mResultCallBack != null) {
+                    mResultCallBack.onResultNeedReBind(mDevice.mac);
+                }
+            }
+
         }
 
         mDiscoveryDeviceLst.deviceDiscoveryUpdateDevice(mDevice);
@@ -210,18 +224,21 @@ public class DeviceManager implements IService {
 
         if (displayLanDevice != null) {
             if (Debuger.isLogDebug) {
-                Tlog.e(TAG, " lanDeviceDiscovery() updateDisplay:" + displayLanDevice.toString());
+                Tlog.e(TAG, " lanDeviceDiscovery() updateDisplay:" + String.valueOf(displayLanDevice));
             }
 
-            if (!mLastName.equalsIgnoreCase(mDevice.getName())) {
+            if ((mLastName != null && !mLastName.equalsIgnoreCase(mDevice.getName()))
+                    || mLastVersion != mDevice.getVersion()
+                    || (mLastSsid != null && !mLastSsid.equalsIgnoreCase(mDevice.getSsid()))
+                    ) {
+
                 updateDaoLanDeviceInfo(mDevice);
-            }
 
-            if (mLastRSSI != mDevice.rssi ||
-                    !mLastName.equalsIgnoreCase(mDevice.getName()) ||
-                    !state ||
-                    version != mDevice.getVersion()) {
-
+                if (mResultCallBack != null) {
+                    DisplayDeviceList mList = new DisplayDeviceList(displayLanDevice);
+                    mResultCallBack.onResultWiFiDeviceListDisplay(mList);
+                }
+            } else if (mLastRSSI != mDevice.rssi || mLastState != mDevice.state) {
                 if (mResultCallBack != null) {
                     DisplayDeviceList mList = new DisplayDeviceList(displayLanDevice);
                     mResultCallBack.onResultWiFiDeviceListDisplay(mList);
@@ -241,7 +258,8 @@ public class DeviceManager implements IService {
         }
 
         LanDeviceInfoDao lanDeviceInfoDao = DBManager.getInstance().getDaoSession().getLanDeviceInfoDao();
-        List<LanDeviceInfo> listInfo = lanDeviceInfoDao.queryBuilder().where(LanDeviceInfoDao.Properties.Mac.eq(mDevice.mac)).list();
+        List<LanDeviceInfo> listInfo = lanDeviceInfoDao.queryBuilder()
+                .where(LanDeviceInfoDao.Properties.Mac.eq(mDevice.mac)).list();
 
         if (listInfo.size() > 0) {
 
@@ -295,7 +313,6 @@ public class DeviceManager implements IService {
         }
     };
 
-
     /**
      * 局域内设备被绑定
      */
@@ -309,7 +326,7 @@ public class DeviceManager implements IService {
 
             if (displayDeviceByMac == null) {
                 if (mResultCallBack != null) {
-                    mResultCallBack.onResultBindDevice(false);
+                    mResultCallBack.onResultBindDevice(false, mLanBindingDevice.getOmac());
                 }
             }
             return;
@@ -392,7 +409,7 @@ public class DeviceManager implements IService {
 
         if (displayDeviceByMac == null) {
             if (mResultCallBack != null) {
-                mResultCallBack.onResultBindDevice(true);
+                mResultCallBack.onResultBindDevice(true, mLanBindingDevice.getOmac());
             }
         }
 
@@ -556,13 +573,22 @@ public class DeviceManager implements IService {
             return integer;
         }
 
+        if (userID == null) {
+            return 0;
+        }
+
         WanBindingDeviceDao bindingDeviceDao = DBManager.getInstance().getDaoSession().getWanBindingDeviceDao();
-        List<WanBindingDevice> listBind = bindingDeviceDao.queryBuilder()
-                .where(WanBindingDeviceDao.Properties.Mid.eq(userID),
-                        WanBindingDeviceDao.Properties.Mac.eq(mac)).list();
+
+        QueryBuilder<WanBindingDevice> where = bindingDeviceDao.queryBuilder()
+                .where(WanBindingDeviceDao.Properties.Mac.eq(mac),
+                        WanBindingDeviceDao.Properties.Mid.eq(userID));
+        List<WanBindingDevice> listBind = null;
+        if (where != null) {
+            listBind = where.list();
+        }
 
         int token = 0;
-        if (listBind.size() > 0) {
+        if (listBind != null && listBind.size() > 0) {
             WanBindingDevice windingDevice = listBind.get(0);
             token = windingDevice.getToken();
         }
@@ -668,6 +694,7 @@ public class DeviceManager implements IService {
             Tlog.d(TAG, "onBindResult bebinding  BebindingBean:" + String.valueOf(bebinding));
         }
 
+        String bindMac = H5Config.DEFAULT_MAC;
 
         if (resp.getResult() != 1) {
 
@@ -687,6 +714,7 @@ public class DeviceManager implements IService {
                 String id = null;
                 if (bebinding != null) {
                     id = bebinding.getId();
+                    bindMac = bebinding.getMac();
                 } else {
                     C_0x8002.Resp.ContentBean content = resp.getContent();
                     if (content != null) {
@@ -704,13 +732,33 @@ public class DeviceManager implements IService {
                     if (isAutoBindResult) {
                         mAutoBindId.remove(id.hashCode());
                     }
+
+                    if ("0x800207".equalsIgnoreCase(resp.getContent().getErrcode())) {
+                        Tlog.w(TAG, "bind fail cross domain");
+
+                        WanBindingDeviceDao wanBindingDeviceDao = DBManager.getInstance().getDaoSession().getWanBindingDeviceDao();
+                        QueryBuilder<WanBindingDevice> where = wanBindingDeviceDao.queryBuilder()
+                                .where(WanBindingDeviceDao.Properties.Mid.eq(mid), WanBindingDeviceDao.Properties.Oid.eq(id));
+                        List<WanBindingDevice> list = where.list();
+                        if (list.size() > 0) {
+                            WanBindingDevice wanBindingDevice = list.get(0);
+                            wanBindingDeviceDao.delete(wanBindingDevice);
+                            Tlog.e(TAG, "bind fail  delete device " + String.valueOf(wanBindingDevice));
+                            bindMac = wanBindingDevice.getMac();
+                            if (mResultCallBack != null) {
+                                mResultCallBack.onResultUnbind(true, wanBindingDevice.getMac());
+                            }
+
+                        }
+                    }
+
                 }
 
 
                 if (!isAutoBindResult) {
                     if (mResultCallBack != null) {
                         mResultCallBack.onResultMsgSendError(resp.getContent().getErrcode());
-                        mResultCallBack.onResultBindDevice(false);
+                        mResultCallBack.onResultBindDevice(false, bindMac);
                     }
                 } else {
                     Tlog.w(TAG, " bind fail is auto bind");
@@ -855,6 +903,7 @@ public class DeviceManager implements IService {
                 }
             } else { // 我有，服务器也有
                 mBindingDevice.setConnstatus(tContentBean.getConnstatus());// 连接状态是实时刷新的
+                mBindingDevice.setAlias(tContentBean.getAlias());
                 mBindingDevice.setHasBindingByWan(true);
                 bindingDeviceDao.update(mBindingDevice);
                 Tlog.e(TAG, "onGetBindListResult() bindingDeviceDao update:" + mBindingDevice.toString());
@@ -948,7 +997,13 @@ public class DeviceManager implements IService {
             mLanDeviceInfo.setIsAdmin(mBindingDevice.getIsAdmin());
             mLanDeviceInfo.setIsWanBind(mBindingDevice.getHasBindingByWan());
             mLanDeviceInfo.setIsLanBind(mBindingDevice.getHasBindingByLan());
-            mLanDeviceInfo.checkName();
+            String alias = mBindingDevice.getAlias();
+            if (mLanDeviceInfo.getName() == null // 只针对新用户
+                    && alias != null && !"".equals(alias)) {
+                mLanDeviceInfo.setName(alias);
+            } else {
+                mLanDeviceInfo.checkName();
+            }
             mLanDeviceInfo.setState(mBindingDevice.getConnstatus() == 1);
             if (mLanDeviceInfo.rssi == 0) {// 表示没有,默认为最小信号
                 mLanDeviceInfo.rssi = -100;
@@ -1007,6 +1062,22 @@ public class DeviceManager implements IService {
         hasRequestBindLst = false;
     }
 
+    private final IOnCallListener mRenameDeviceLsn = new IOnCallListener() {
+        @Override
+        public void onSuccess(MqttPublishRequest request) {
+            Tlog.e(TAG, " mRenameDeviceLsn msg send success ");
+        }
+
+        @Override
+        public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
+            Tlog.e(TAG, " mRenameDeviceLsn msg send fail " + startaiError.getErrorMsg());
+        }
+
+        @Override
+        public boolean needUISafety() {
+            return false;
+        }
+    };
 
     synchronized void onDeviceRename(String mac, String name) {
         Tlog.v(TAG, " onDeviceRename " + mac + " name : " + name);
@@ -1018,10 +1089,16 @@ public class DeviceManager implements IService {
 
         if (name != null && mDisplayDeviceLst.rename(mac, name)) {
 
+            LanDeviceInfo displayDeviceByMac = mDisplayDeviceLst.getDisplayDeviceByMac(mac);
+
+            String deviceID = displayDeviceByMac.getDeviceID();
+
+            if (deviceID != null) {
+                StartAI.getInstance().getBaseBusiManager()
+                        .updateRemark(deviceID, name, mRenameDeviceLsn);
+            }
+
             if (mResultCallBack != null) {
-
-                LanDeviceInfo displayDeviceByMac = mDisplayDeviceLst.getDisplayDeviceByMac(mac);
-
                 if (Debuger.isLogDebug) {
                     Tlog.e(TAG, " onDeviceRename() onResultWiFiDeviceListDisplay:" + displayDeviceByMac.toString());
                 }
@@ -1042,15 +1119,10 @@ public class DeviceManager implements IService {
                 }
             } else {
                 // 收到重命名消息，如果设备info里面没有此设备，插入一台。
-                if (mLanDeviceInfo != null) {
-                    LanDeviceInfo displayDeviceByMac = mDisplayDeviceLst.getDisplayDeviceByMac(mac);
-                    if (displayDeviceByMac != null) {
-                        mLanDeviceInfo.setDeviceID(displayDeviceByMac.getDeviceID());
-                    }
-                    if (mLanDeviceInfo.getDeviceID() != null) {
-                        lanDeviceInfoDao.insert(mLanDeviceInfo);
-                        Tlog.v(TAG, "onDeviceRename() lanDeviceInfoDao insert  " + mLanDeviceInfo.getId());
-                    }
+                if (mLanDeviceInfo != null && deviceID != null) {
+                    mLanDeviceInfo.setDeviceID(deviceID);
+                    lanDeviceInfoDao.insert(mLanDeviceInfo);
+                    Tlog.v(TAG, "onDeviceRename() lanDeviceInfoDao insert  " + mLanDeviceInfo.getId());
                 }
             }
 

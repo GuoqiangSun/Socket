@@ -7,6 +7,7 @@ import org.xwalk.core.JavascriptInterface;
 
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.bean.TempHumidityAlarmData;
+import cn.com.startai.socket.sign.scm.bean.TimingTempHumiData;
 import cn.com.swain.baselib.jsInterface.AbsHandlerJsInterface;
 import cn.com.swain169.log.Tlog;
 
@@ -32,6 +33,9 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
          */
         void onJSTHSetHumidityAlarmValue(TempHumidityAlarmData mAlarmData);
 
+        void onJSTHSetTemperatureTimingAlarm(TimingTempHumiData obj);
+
+        void onJSTHQueryTemperatureTimingAlarm(String obj, int model);
     }
 
     public static final class Method {
@@ -71,7 +75,7 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
         }
 
         private static final String METHOD_HUMIDITY_ALARM_VALUE
-                = "javascript:alarmHumidityValueResponse('$mac',$state,$result)";
+                = "javascript:alarmHumidityValueResponse('$mac',$state,$result,$limit)";
 
         /**
          * 设置告警湿度值返回
@@ -80,9 +84,33 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
          * @param result
          * @return
          */
-        public static final String callJsHumidityAlarmValue(String mac, boolean state, boolean result) {
+        public static final String callJsHumidityAlarmValue(String mac, boolean state, boolean result, int limit) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return METHOD_HUMIDITY_ALARM_VALUE.replace("$mac", mac).replace("$state", String.valueOf(state)).replace("$result", String.valueOf(result));
+            return METHOD_HUMIDITY_ALARM_VALUE.replace("$mac", mac)
+                    .replace("$state", String.valueOf(state))
+                    .replace("$result", String.valueOf(result))
+                    .replace("$limit", String.valueOf(limit));
+        }
+
+
+        private static final String METHOD_TEMP_TIMING_ALARM_VALUE
+                = "javascript:alarmTimerAndTemperatureValueResponse('$mac',$state,$model,$result)";
+
+        public static final String callJsTempTimingSetAlarmValue(String mac, boolean state, int model, boolean result) {
+            if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
+            return METHOD_TEMP_TIMING_ALARM_VALUE.replace("$mac", mac)
+                    .replace("$state", String.valueOf(state))
+                    .replace("$model", String.valueOf(model))
+                    .replace("$result", String.valueOf(result));
+        }
+
+        private static final String METHOD_TEMP_TIMING_QUERY_ALARM_VALUE
+                = "javascript:timingAndTemperatureDataResponse('$mac','$data')";
+
+        public static final String callJsTempTimingQueryAlarmValue(String mac, String jsonData) {
+            if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
+            return METHOD_TEMP_TIMING_QUERY_ALARM_VALUE.replace("$mac", mac)
+                    .replace("$data", String.valueOf(jsonData));
         }
 
     }
@@ -145,6 +173,43 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
         mAlarmData.setLimit(limit);
         getHandler().obtainMessage(MSG_SET_HUMIDITY_ALARM, mAlarmData).sendToTarget();
 
+    }
+
+    @JavascriptInterface
+    public void timingAndTemperatureDataRequest(String mac, int model) {
+        Tlog.v(TAG, " timingAndTemperatureDataRequest mac:" + mac + " " + model);
+        getHandler().obtainMessage(MSG_QUERY_TEMP_TIMING, model, model, mac).sendToTarget();
+    }
+
+
+    @JavascriptInterface
+    public void alarmTimingAndTemperatureValueRequest(String mac, int id, boolean on,
+                                                      String time, String offTime, int week, boolean startup,
+                                                      String onTimeInterval, String offTimeInterval,
+                                                      int model, int alarmValue) {
+
+        Tlog.v(TAG, " alarmTimingAndTemperatureValueRequest id:" + id + " on:" + on
+                + " time:" + time + " week:" + week + " startup:" + startup +
+                " model:" + model + " offTimeInterval:"
+                + offTimeInterval + " onTimeInterval:" + onTimeInterval
+                + " offTime:" + offTime
+                + " alarmValue:" + alarmValue
+        );
+
+        TimingTempHumiData mTimingAdvanceData = new TimingTempHumiData();
+        mTimingAdvanceData.setAlarmValue(alarmValue);
+        mTimingAdvanceData.setModel((byte) model);
+        mTimingAdvanceData.mac = mac;
+        mTimingAdvanceData.id = (byte) id;
+        mTimingAdvanceData.setStateIsConfirm();
+        mTimingAdvanceData.on = on;
+        mTimingAdvanceData.setOnTimeSplit(time);
+        mTimingAdvanceData.week = week;
+        mTimingAdvanceData.startup = startup;
+        mTimingAdvanceData.setOnIntervalTime(onTimeInterval);
+        mTimingAdvanceData.setOffIntervalTime(offTimeInterval);
+        mTimingAdvanceData.setOffTimeSplit(offTime);
+        getHandler().obtainMessage(MSG_SET_TEMP_TIMING, mTimingAdvanceData).sendToTarget();
 
     }
 
@@ -153,6 +218,10 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
     private static final int MSG_SET_TEMP_ALARM = 0x10;
 
     private static final int MSG_SET_HUMIDITY_ALARM = 0x11;
+
+    private static final int MSG_SET_TEMP_TIMING = 0x12;
+
+    private static final int MSG_QUERY_TEMP_TIMING = 0x13;
 
     @Override
     protected void handleMessage(Message msg) {
@@ -169,6 +238,14 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
         } else if (msg.what == MSG_SET_HUMIDITY_ALARM) {
             if (mCallBack != null) {
                 mCallBack.onJSTHSetHumidityAlarmValue((TempHumidityAlarmData) msg.obj);
+            }
+        } else if (msg.what == MSG_SET_TEMP_TIMING) {
+            if (mCallBack != null) {
+                mCallBack.onJSTHSetTemperatureTimingAlarm((TimingTempHumiData) msg.obj);
+            }
+        } else if (msg.what == MSG_QUERY_TEMP_TIMING) {
+            if (mCallBack != null) {
+                mCallBack.onJSTHQueryTemperatureTimingAlarm((String) msg.obj, msg.arg1);
             }
         }
 

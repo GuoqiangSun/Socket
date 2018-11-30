@@ -143,7 +143,7 @@ public class Device extends AbsJsInterface {
         /**
          * 用户主动关闭蓝牙回调给js
          *
-         * @param result true : ble on  ; false : ble off
+         * @param result true : ble startup  ; false : ble off
          * @return
          */
         public static final String callJsHWTurn(boolean result) {

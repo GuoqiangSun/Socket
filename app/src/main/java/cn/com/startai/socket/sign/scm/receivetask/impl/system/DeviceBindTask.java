@@ -44,11 +44,11 @@ public class DeviceBindTask extends SocketResponseTask {
         boolean admin = protocolParams[1] == 0x01; // 管理员
         mLanBindingDevice.setIsAdmin(admin);
 
-        String deviceUserID = new String(protocolParams, 2, 32); // userID
-        mLanBindingDevice.setOid(deviceUserID.trim());
+        String deviceUserID = new String(protocolParams, 2, 32).trim(); // userID
+        mLanBindingDevice.setOid(deviceUserID);
 
-        String userID = new String(protocolParams, 2 + 32, 32); // userID
-        mLanBindingDevice.setMid(userID.trim());
+        String userID = new String(protocolParams, 2 + 32, 32).trim(); // userID
+        mLanBindingDevice.setMid(userID);
 
         String mac = MacUtil.byteToMacStr(protocolParams, 2 + 32 + 32);
         mLanBindingDevice.setOmac(mac);
@@ -65,7 +65,7 @@ public class DeviceBindTask extends SocketResponseTask {
         int isBindResult = protocolParams[2 + 32 + 32 + 6 + 4];
 
         Tlog.v(TAG, " deviceID:" + deviceUserID
-                + " userID" + userID + " mac:" + mac
+                + " userID:" + userID + " mac:" + mac
                 + " cpuInfo:" + cpuInfo
                 + " " + Integer.toBinaryString(isBindResult & 0xFF));
         if (mOnTaskCallBack != null) {

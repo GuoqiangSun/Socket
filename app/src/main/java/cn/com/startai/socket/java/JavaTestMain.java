@@ -1,5 +1,7 @@
 package cn.com.startai.socket.java;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -53,8 +55,14 @@ public class JavaTestMain {
         int timezoneInt = isA ? i2 : -i2;
         System.out.println(" " + timezoneInt);
 
-    }
 
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
+        long curMillis = 1542902400000L;
+        long startTimestampFromStr = 1542816000000L;
+
+        System.out.println(" cur: " + dateFormat.format(new Date(curMillis)));
+        System.out.println(" startTimestampFromStr: " + dateFormat.format(new Date(startTimestampFromStr)));
+    }
 
 
 }

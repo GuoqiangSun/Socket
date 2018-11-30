@@ -13,4 +13,14 @@ public class ColorLampRGB {
     public int g;
     public int b;
 
+    @Override
+    public String toString() {
+        return "ColorLampRGB{" +
+                "mac='" + mac + '\'' +
+                ", seq=" + seq +
+                ", r=" + r +
+                ", g=" + g +
+                ", b=" + b +
+                '}';
+    }
 }

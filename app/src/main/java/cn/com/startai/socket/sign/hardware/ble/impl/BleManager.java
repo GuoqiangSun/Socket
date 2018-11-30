@@ -99,7 +99,7 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
 
                         break;
                     case BluetoothAdapter.STATE_ON:
-                        Tlog.d(TAG, "STATE_ON BLE turn on");
+                        Tlog.d(TAG, "STATE_ON BLE turn startup");
                         if (mBleScan != null) {
                             mBleScan.bsBleStateChange(true);
                         }
@@ -130,7 +130,7 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
 
                         break;
                     case BluetoothAdapter.STATE_TURNING_ON:
-                        Tlog.d(TAG, "STATE_TURNING_ON BLE turning on");
+                        Tlog.d(TAG, "STATE_TURNING_ON BLE turning startup");
                         bleEnable = true;
                         break;
                 }
