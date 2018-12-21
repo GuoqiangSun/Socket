@@ -15,8 +15,6 @@ public class TimingSetResult {
 
     public byte state;
     public byte week;
-    public byte hour;
-    public byte minute;
 
     @Override
     public String toString() {
@@ -28,8 +26,6 @@ public class TimingSetResult {
                 ", model=" + model +
                 ", state=" + state +
                 ", week=" + week +
-                ", hour=" + hour +
-                ", minute=" + minute +
                 '}';
     }
 }

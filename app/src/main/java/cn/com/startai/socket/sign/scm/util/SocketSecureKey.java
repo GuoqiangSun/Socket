@@ -11,14 +11,14 @@ public class SocketSecureKey {
     public static class Custom {
 
         public static final byte CUSTOM_WAN = 0x00;//万总
-
         public static final byte PRODUCT_TRIGGER_BLE = 0x00; // triggerHomeBle
         public static final byte PRODUCT_TRIGGER_WIFI = 0x02; // triggerHomeWiFi
         public static final byte PRODUCT_SOCKET_PM90 = 0x04;// PM90
         public static final byte PRODUCT_GROWROOMATE = 0x06;// 英国插座
         public static final byte PRODUCT_SOCKET_RPX = 0x08;// RPX
+        public static final byte PRODUCT_NB_AIRTEMP = 0x0A;// NB-iot 供暖
 
-        public static final byte CUSTOM_LI = 0x02;
+        public static final byte CUSTOM_LI = 0x02;// 李总
         public static final byte PRODUCT_PASS_THROUGH = 0x00;
 
         public static final byte CUSTOM_STARTAI = 0x08; // startai
@@ -100,6 +100,18 @@ public class SocketSecureKey {
         public static final byte CMD_RENAME = 0x0B;
         public static final byte CMD_RENAME_RESPONSE = 0x0C;
 
+        // 蓝牙插座还在用这两条协议，其他插座移到 type=setting里去了.
+        public static final byte CMD_SET_UNIT_TEMPERATURE_BLE = 0x1B;
+        public static final byte CMD_SET_UNIT_TEMPERATURE_RESPONSE_BLE = 0x1C;
+        public static final byte CMD_QUERY_UNIT_TEMPERATURE_BLE = 0x1D;
+        public static final byte CMD_QUERY_UNIT_TEMPERATURE_RESPONSE_BLE = 0x1E;
+
+        /**
+         * 查询name
+         */
+        public static final byte CMD_QUERY_NAME = 0x0D;
+        public static final byte CMD_QUERY_NAME_RESPONSE = 0x0E;
+
         public static final byte CMD_SET_RECOVERY_SCM = 0x27;
         public static final byte CMD_SET_RECOVERY_SCM_RESPONSE = 0x28;
 
@@ -130,6 +142,9 @@ public class SocketSecureKey {
 
         public static final byte CMD_QUERY_TIMEZONE = 0x3B;
         public static final byte CMD_QUERY_TIMEZONE_RESPONSE = 0x3C;
+
+        public static final byte CMD_QUERY_SSID = 0x3D;
+        public static final byte CMD_QUERY_SSID_RESPONSE = 0x3E;
 
 
         /**********0x02control**************/
@@ -265,6 +280,19 @@ public class SocketSecureKey {
         public static final byte CMD_QUERY_TEMP_HUMI_ALARM = 0x2D;
         public static final byte CMD_QUERY_TEMP_HUMI_ALARM_RESPONSE = 0x2E;
 
+
+        /**
+         * 设置小夜灯模式
+         */
+        public static final byte CMD_SET_NIGHT_LIGHT = 0x35;
+        public static final byte CMD_SET_NIGHT_LIGHT_RESPONSE = 0x36;
+
+        /**
+         * 查询小夜灯模式
+         */
+        public static final byte CMD_QUERY_NIGHT_LIGHT = 0x37;
+        public static final byte CMD_QUERY_NIGHT_LIGHT_RESPONSE = 0x38;
+
         /**********report0x03**************/
 
         /**
@@ -343,6 +371,32 @@ public class SocketSecureKey {
 
     public static class Model {
 
+        /**
+         * 小夜灯,智能
+         */
+        public static final byte MODEL_NIGHT_LIGHT_WISDOM = 0x01;
+
+        /**
+         * 小夜灯,定时
+         */
+        public static final byte MODEL_NIGHT_LIGHT_TIMING = 0x02;
+
+        /**
+         * 小夜灯,正在运行
+         */
+        public static final byte MODEL_NIGHT_LIGHT_RUNNING = (byte) 0xFF;
+
+
+        /**
+         * 彩灯
+         */
+        public static final byte MODEL_COLOR_LAMP = 0x01;
+
+        /**
+         * 黄灯
+         */
+        public static final byte MODEL_YELLOW_LIGHT = 0x02;
+
 
         /**
          * 成功
@@ -410,6 +464,11 @@ public class SocketSecureKey {
          * usb开关
          */
         public static final byte MODEL_USB = 0x04;
+
+        /**
+         * usb开关
+         */
+        public static final byte MODEL_NIGHT_LIGHT = 0x05;
 
 
         /**
@@ -491,6 +550,8 @@ public class SocketSecureKey {
          * 年
          */
         public static final byte MODEL_INTERVAL_YEAR = 0x06;
+
+
     }
 
     public static class Util {
@@ -561,6 +622,13 @@ public class SocketSecureKey {
             return (product == Custom.PRODUCT_TRIGGER_BLE);
         }
 
+        public static byte getCommonTiming() {
+            return Model.TIMING_COMMON;
+        }
+
+        public static byte getAdvanceTiming() {
+            return Model.TIMING_ADVANCE;
+        }
 
         public static boolean isCommonTiming(byte model) {
             return (model == Model.TIMING_COMMON);
@@ -574,8 +642,16 @@ public class SocketSecureKey {
             return (model == Model.ALARM_MODEL_TEMPERATURE);
         }
 
+        public static byte getTemperature() {
+            return Model.ALARM_MODEL_TEMPERATURE;
+        }
+
         public static boolean isHumidity(byte model) {
             return (model == Model.ALARM_MODEL_HUMIDITY);
+        }
+
+        public static byte getHumidity() {
+            return Model.ALARM_MODEL_TEMPERATURE;
         }
 
         public static boolean isLimitUp(byte limit) {
@@ -619,12 +695,20 @@ public class SocketSecureKey {
             return (Model.MODEL_USB == model);
         }
 
+        public static boolean isNightLight(byte model) {
+            return (Model.MODEL_NIGHT_LIGHT == model);
+        }
+
         public static boolean isQueryVersionAction(byte action) {
             return (Model.MODEL_QUERY_VERSION == action);
         }
 
         public static boolean isUpdateModel(byte action) {
             return (Model.MODEL_UPDATE == action) || (Model.MODEL_FORCE_UPDATE == action);
+        }
+
+        public static boolean isUpdateModelOnly(byte action) {
+            return (Model.MODEL_UPDATE == action);
         }
 
     }

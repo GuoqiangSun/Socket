@@ -254,7 +254,7 @@ public class TimingAdvanceData {
                 "mac='" + mac + '\'' +
                 ", model=" + model +
                 ", id=" + id +
-                ", startup=" + on +
+                ", on=" + on +
                 ", startup=" + startup +
                 ", week=" + week +
                 ", startHour=" + startHour +

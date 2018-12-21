@@ -11,6 +11,7 @@ import cn.com.startai.socket.app.view.CrossWebView;
 import cn.com.startai.socket.global.LooperManager;
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.mutual.js.bean.MobileLogin;
+import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
 import cn.com.startai.socket.mutual.js.bean.StatusBarBean;
 import cn.com.startai.socket.mutual.js.bean.UserRegister;
 import cn.com.startai.socket.mutual.js.bean.UserUpdateInfo;
@@ -375,6 +376,20 @@ public class JsManager extends AbsJsManager implements IService {
     public void onJSTSetPatternTiming(TimingAdvanceData mTimingAdvanceData) {
         if (mJSManagerCallBack != null) {
             mJSManagerCallBack.onJSSetAdvanceTiming(mTimingAdvanceData);
+        }
+    }
+
+    @Override
+    public void onJSTQueryComTimingListData(String mac) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSTQueryComTimingListData(mac);
+        }
+    }
+
+    @Override
+    public void onJSTQueryAdvTimingListData(String mac) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSTQueryAdvTimingListData(mac);
         }
     }
 
@@ -827,6 +842,41 @@ public class JsManager extends AbsJsManager implements IService {
     public void onJSSetUSBState(String mac, boolean state) {
         if (mJSManagerCallBack != null) {
             mJSManagerCallBack.onJSSetUSBState(mac, state);
+        }
+    }
+
+    @Override
+    public void onJSQueryNightLight(String mac) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSQueryNightLight(mac);
+        }
+    }
+
+    @Override
+    public void onJSSetNightLight(String mac, boolean b) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSSetNightLight(mac,b);
+        }
+    }
+
+    @Override
+    public void onJSQueryRunningNightLight(String mac) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSQueryRunningNightLight(mac);
+        }
+    }
+
+    @Override
+    public void onJSSetNightLightTiming(NightLightTiming mNightLightTiming) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSSetNightLightTiming(mNightLightTiming);
+        }
+    }
+
+    @Override
+    public void onJSSetNightLightWisdom(NightLightTiming mNightLightTiming) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSSetNightLightWisdom(mNightLightTiming);
         }
     }
 

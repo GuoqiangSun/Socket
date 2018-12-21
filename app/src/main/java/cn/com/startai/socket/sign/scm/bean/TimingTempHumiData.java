@@ -19,6 +19,10 @@ public class TimingTempHumiData {
     // 温度 还是湿度
     public byte type;
 
+    public void setTypeIsTemp() {
+        type = SocketSecureKey.Util.getTemperature();
+    }
+
     public boolean isTemp() {
         return SocketSecureKey.Util.isTemperature(type);
     }

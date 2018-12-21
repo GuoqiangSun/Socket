@@ -2,7 +2,6 @@ package cn.com.startai.socket.global;
 
 import android.app.Application;
 import android.content.Intent;
-import android.media.MediaScannerConnection;
 import android.net.Uri;
 
 import java.io.File;
@@ -32,7 +31,7 @@ public class FileManager extends FileTemplate {
     public void init(Application app) {
         super.init(app);
 
-        String absolutePath =initMyProjectPath().getAbsolutePath();
+        String absolutePath = initMyProjectPath().getAbsolutePath();
 
         notifySystemToScan(app, absolutePath);
 
@@ -71,6 +70,8 @@ public class FileManager extends FileTemplate {
             return new File(getAppRootPath(), "Growrootmate");
         } else if (CustomManager.getInstance().isMUSIK()) {
             return new File(getAppRootPath(), "MUSIK");
+        } else if (CustomManager.getInstance().isAirtempNBProject()) {
+            return new File(getAppRootPath(), "AirTempNB");
         }
         return new File(getAppRootPath(), MY_PROJECT_PATH_NAME);
     }

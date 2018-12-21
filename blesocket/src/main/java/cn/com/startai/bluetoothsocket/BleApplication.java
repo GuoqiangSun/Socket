@@ -5,7 +5,7 @@ import cn.com.startai.socket.global.CustomManager;
 
 /**
  * author: Guoqiang_Sun
- * date : 2018/9/4 0004
+ * date : 2018/9/6 0006
  * desc :
  */
 public class BleApplication extends SocketApplication {

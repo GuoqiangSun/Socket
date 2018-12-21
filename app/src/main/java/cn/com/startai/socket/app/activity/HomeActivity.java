@@ -3,6 +3,7 @@ package cn.com.startai.socket.app.activity;
 import android.Manifest;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -26,9 +27,9 @@ import cn.com.startai.socket.app.fragment.BaseFragment;
 import cn.com.startai.socket.app.fragment.GuideFragment;
 import cn.com.startai.socket.app.fragment.WebFragment;
 import cn.com.startai.socket.debuger.Debuger;
+import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.FileManager;
 import cn.com.startai.socket.global.LoginHelp;
-import cn.com.startai.socket.global.Utils.DateUtils;
 import cn.com.startai.socket.mutual.Controller;
 import cn.com.startai.socket.mutual.js.IAndJSCallBack;
 import cn.com.startai.socket.mutual.js.bean.StatusBarBean;
@@ -72,6 +73,8 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
     private volatile boolean mWebShowed = false;
     // webView loaded
     private volatile boolean mWebLoaded = false;
+    // webView loaded ,can call js
+    private volatile boolean mCallJs = false;
 
     private PermissionRequest mPermissionRequest;
 
@@ -156,6 +159,7 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         Fragment fragmentWeb = getFragmentByCache(savedInstanceState, String.valueOf(ID_WEB));
         if (fragmentWeb == null) {
             Tlog.w(TAG, " mFragments add new webFragment");
+            mCallJs = false;
             mFragments.add(ID_WEB, new WebFragment());
             fragmentTransaction.add(R.id.frame_content, mFragments.get(ID_WEB), String.valueOf(ID_WEB));
         } else {
@@ -303,12 +307,12 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
 
 //    private final ArrayList<String> mMethodCache = new ArrayList<>();
 
-    private final Queue<String> mMethodCache = new LimitQueue<>(12);
+    private final Queue<String> mMethodCache = new LimitQueue<>(Byte.MAX_VALUE);
 
     @Override
     public void ajLoadJs(String method) {
 
-        if (mWebShowed) {
+        if (mWebShowed && mCallJs) {
             if (mUiHandler != null) {
                 mUiHandler.obtainMessage(MSG_WHAT_LOAD_JS, method).sendToTarget();
             } else {
@@ -433,7 +437,7 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
     @Override
     public void onWebLoadFinish() {
         mWebLoaded = true;
-        showWeb(1200);
+        showWeb(200);
     }
 
     @Override
@@ -492,13 +496,16 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
 
     /*******************/
 
-    private static final int MSG_WHAT_WEB_VIEW_LOAD_FINISH = 0x02;
 
     private static final int MSG_WHAT_LOAD_JS = 0x01;
+
+    private static final int MSG_WHAT_WEB_VIEW_LOAD_FINISH = 0x02;
 
     private static final int MSG_WHAT_FINISH = 0x03;
 
     private static final int MSG_WHAT_CHANGE_STATUS_BAR = 0x04;
+
+    private static final int MSG_WHAT_CAN_CALL_JS = 0x05;
 
 
     private void handleMessage(Message msg) {
@@ -524,16 +531,10 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
                 fragmentTransaction.show(mFragments.get(ID_WEB));
                 fragmentTransaction.commit();
                 mCurFrame = ID_WEB;
-
                 Tlog.d(TAG, " show mWebFragment ");
 
-                if (mMethodCache.size() > 0) {
-
-                    String method = null;
-                    while ((method = mMethodCache.poll()) != null) {
-                        Tlog.e(TAG, " load cache : " + method);
-                        ajLoadJs(method);
-                    }
+                if (mUiHandler != null) {
+                    mUiHandler.sendEmptyMessageDelayed(MSG_WHAT_CAN_CALL_JS, 600);
                 }
 
             } else {
@@ -553,10 +554,42 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
             } else {
                 StatusBarUtil.fullScreenHideStatusBar(getWindow(), true);
             }
+        } else if (msg.what == MSG_WHAT_CAN_CALL_JS) {
+            mCallJs = true;
+            new LoadCacheJsTask(HomeActivity.this).execute();
         }
 
     }
 
+    private static class LoadCacheJsTask extends AsyncTask<Void, Void, Void> {
+
+        private WeakReference<HomeActivity> wr;
+
+        private LoadCacheJsTask(HomeActivity mHomeActivity) {
+            wr = new WeakReference<>(mHomeActivity);
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            HomeActivity homeActivity = wr.get();
+            if (homeActivity == null) {
+                Tlog.e(TAG, " LoadCacheJsTask homeActivity=null");
+                return null;
+            }
+
+            Queue<String> mMethodCache = homeActivity.mMethodCache;
+
+            if (mMethodCache.size() > 0) {
+                String method = null;
+                while ((method = mMethodCache.poll()) != null) {
+                    Tlog.e(H5Config.TAG, " poll cache method: " + method);
+                    homeActivity.ajLoadJs(method);
+                }
+            }
+            return null;
+        }
+    }
 
     private static class UiHandler extends Handler {
 

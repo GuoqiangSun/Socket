@@ -23,6 +23,7 @@ import cn.com.startai.socket.global.LooperManager;
 import cn.com.startai.socket.global.Utils.DateUtils;
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.mutual.js.bean.CountElectricity;
+import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
 import cn.com.startai.socket.mutual.js.bean.TimingSetResult;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
 import cn.com.startai.socket.sign.scm.AbsSocketScm;
@@ -101,22 +102,18 @@ public class SocketScmManager extends AbsSocketScm
         this.mResponse = mResponse;
     }
 
-
     @Override
     public void onOutputDataToServer(ResponseData mResponseData) {
+
+        if (mResponseData.getRepeatMsgModel().isNeedRepeatSend()) {
+            mScmDeviceUtils.getScmDevice(mResponseData.toID).recordSendMsg(mResponseData, 1000 * 3L);
+        }
+
+        if (Debuger.isLogDebug) {
+            Tlog.w(TAG, " onOutputDataToServer :" + String.valueOf(mResponseData));
+        }
+
         if (mResponse != null) {
-
-            if (mResponseData.getRepeatMsgModel().isNeedRepeatSend()) {
-
-                long timeout = 1000 * 3;
-
-                mScmDeviceUtils.getScmDevice(mResponseData.toID).recordSendMsg(mResponseData, timeout);
-            }
-
-            if (Debuger.isLogDebug) {
-                Tlog.w(TAG, " sendData  mac:" + mResponseData.toID + mResponseData.getRepeatMsgModel().toString());
-            }
-
             mResponse.onOutputDataToServer(mResponseData);
         }
     }
@@ -130,8 +127,6 @@ public class SocketScmManager extends AbsSocketScm
 
     /**************/
 
-
-    private final Object syncObj = new byte[1];
     private AbsProtocolProcessor pm;
 
     private ScmDeviceUtils mScmDeviceUtils;
@@ -159,7 +154,7 @@ public class SocketScmManager extends AbsSocketScm
 //                version);
 
         pm = ProtocolProcessorFactory.newMultiChannelSingleTask(LooperManager.getInstance().getProtocolLooper(),
-                new ProtocolTaskImpl(this, this,app),
+                new ProtocolTaskImpl(this, this, app),
                 version, true);
 
 
@@ -294,7 +289,7 @@ public class SocketScmManager extends AbsSocketScm
 
         ResponseData mResponseData = MySocketDataCache.getQueryUSBState(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryUSBState " + mResponseData.toString());
+            Tlog.v(TAG, " queryUSBState " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -304,7 +299,7 @@ public class SocketScmManager extends AbsSocketScm
 
         ResponseData mResponseData = MySocketDataCache.getSwitchUSB(mac, state);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " setUSBState " + mResponseData.toString());
+            Tlog.v(TAG, " setUSBState " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -330,21 +325,18 @@ public class SocketScmManager extends AbsSocketScm
     @Override
     public void setTemperatureTimingAlarm(TimingTempHumiData mTimingAdvanceData) {
 
-        ResponseData mResponseData;
-        synchronized (syncObj) {
 //            (byte id, byte startHour, byte startMinute, byte stopHour, byte stopMinute, boolean startup, byte onIntervalHour,
 // byte onIntervalMinute, byte offIntervalHour, byte offIntervalMinute, byte startup) {
-            mResponseData = MySocketDataCache.getSetTimingTemp(mTimingAdvanceData.mac, mTimingAdvanceData.id,
-                    mTimingAdvanceData.state,
-                    (byte) mTimingAdvanceData.startHour, (byte) mTimingAdvanceData.startMinute,
-                    (byte) mTimingAdvanceData.endHour, (byte) mTimingAdvanceData.endMinute, mTimingAdvanceData.on,
-                    (byte) mTimingAdvanceData.onIntervalHour, (byte) mTimingAdvanceData.onIntervalMinute,
-                    (byte) mTimingAdvanceData.offIntervalHour, (byte) mTimingAdvanceData.offIntervalMinute,
-                    mTimingAdvanceData.startup, (byte) mTimingAdvanceData.week,
-                    (byte) mTimingAdvanceData.alarmValue, mTimingAdvanceData.model);
-        }
+        ResponseData mResponseData = MySocketDataCache.getSetTimingTemp(mTimingAdvanceData.mac, mTimingAdvanceData.id,
+                mTimingAdvanceData.state,
+                (byte) mTimingAdvanceData.startHour, (byte) mTimingAdvanceData.startMinute,
+                (byte) mTimingAdvanceData.endHour, (byte) mTimingAdvanceData.endMinute, mTimingAdvanceData.on,
+                (byte) mTimingAdvanceData.onIntervalHour, (byte) mTimingAdvanceData.onIntervalMinute,
+                (byte) mTimingAdvanceData.offIntervalHour, (byte) mTimingAdvanceData.offIntervalMinute,
+                mTimingAdvanceData.startup, (byte) mTimingAdvanceData.week,
+                (byte) mTimingAdvanceData.alarmValue, mTimingAdvanceData.model);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " setTemperatureTimingAlarm data: " + mResponseData.toString());
+            Tlog.v(TAG, " setTemperatureTimingAlarm data: " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
 
@@ -355,18 +347,26 @@ public class SocketScmManager extends AbsSocketScm
 
         ResponseData mResponseData = MySocketDataCache.getQueryTimingTemp(mac, model);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryTemperatureTimingAlarm data: " + mResponseData.toString());
+            Tlog.v(TAG, " queryTemperatureTimingAlarm data: " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
 
     }
 
     @Override
-    public void queryColourLampRGB(String mac) {
-        ResponseData mResponseData = MySocketDataCache.getQueryLightColor(mac, 1);
-
+    public void queryYellowLightRGB(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getQueryYellowLight(mac, 1);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryColourLampRGB : " + mResponseData.toString());
+            Tlog.v(TAG, " queryYellowLightRGB : " + String.valueOf(mResponseData));
+        }
+        onOutputDataToServer(mResponseData);
+    }
+
+    @Override
+    public void queryColourLampRGB(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getQueryColorLamp(mac, 1);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryColourLampRGB : " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -376,7 +376,7 @@ public class SocketScmManager extends AbsSocketScm
         ResponseData mResponseData = MySocketDataCache.getQuickSetRelaySwitch(mac, on);
 
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " quickControlRelay status : " + on + mResponseData.toString());
+            Tlog.v(TAG, " quickControlRelay status : " + on + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
 
@@ -387,7 +387,7 @@ public class SocketScmManager extends AbsSocketScm
 
         ResponseData mResponseData = MySocketDataCache.getQuickQueryRelayStatus(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " quickQueryRelay " + mResponseData.toString());
+            Tlog.v(TAG, " quickQueryRelay " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
 
@@ -433,9 +433,9 @@ public class SocketScmManager extends AbsSocketScm
             return;
         }
 
-        updateHistory(mCount);
+        QueryHistoryUtil.updateHistory(mCount);
 
-        deleteOldHistory(mCount.mac);
+        QueryHistoryUtil.deleteOldHistory(mCount.mac);
 
         ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mCount.mac);
         QueryHistoryCount queryCount = scmDevice.getQueryCount();
@@ -453,141 +453,6 @@ public class SocketScmManager extends AbsSocketScm
 
     }
 
-    private void updateHistory(QueryHistoryCount mCount) {
-
-
-        ArrayList<QueryHistoryCount.Day> mDayArray = mCount.mDayArray;
-
-        if (mDayArray == null) {
-            return;
-        }
-
-
-        CountElectricityDao countElectricityDao =
-                DBManager.getInstance().getDaoSession().getCountElectricityDao();
-
-        List<CountElectricity> list0 = countElectricityDao.queryBuilder()
-                .where(CountElectricityDao.Properties.Mac.eq(mCount.mac),
-                        CountElectricityDao.Properties.Timestamp.eq(
-                                mCount.startTimeMillis - DateUtils.ONE_DAY)).list();
-
-        long sequence = 0L;
-        if (list0.size() > 0) {
-            CountElectricity countElectricity = list0.get(0);
-            sequence = countElectricity.getSequence();
-        }
-
-
-        long curMillis = DateUtils.fastFormatTsToDayTs(System.currentTimeMillis());
-
-        long startTimestampFromStr = mCount.getStartTimestampFromStr();
-
-//        long startTimestampFromStr = DateUtils.fastFormatTsToDayTs(mCount.startTimeMillis); // 有问题
-
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
-
-        Tlog.v(TAG, " updateHistory  curMillis:" + curMillis + " " + dateFormat.format(new Date(curMillis))
-                + " startTimestampFromStr:" + startTimestampFromStr + " " + dateFormat.format(new Date(startTimestampFromStr)));
-
-        for (QueryHistoryCount.Day mData : mDayArray) {
-
-            if (mData.countData == null || mData.countData.length <= 0) {
-                Tlog.v(TAG, " QueryHistoryCount.Day.countData ==null ");
-                continue;
-            }
-
-            List<CountElectricity> list = countElectricityDao.queryBuilder()
-                    .where(CountElectricityDao.Properties.Mac.eq(mCount.mac),
-                            CountElectricityDao.Properties.Timestamp.eq(mData.startTime)).list();
-
-            CountElectricity countElectricity = null;
-            if (list.size() > 0) {
-                countElectricity = list.get(0);
-            }
-
-            if (countElectricity == null) {
-                CountElectricity mCountElectricity = new CountElectricity();
-                mCountElectricity.setMac(mCount.mac);
-                mCountElectricity.setElectricity(mData.countData);
-                mCountElectricity.setTimestamp(mData.startTime);
-                mCountElectricity.setSequence(++sequence);
-                long insert = countElectricityDao.insert(mCountElectricity);
-                Tlog.v(TAG, " HistoryCount insert:" + insert);
-            } else {
-
-
-                if (curMillis == startTimestampFromStr) {
-
-                    byte[] electricity = countElectricity.getElectricity();
-                    int length = electricity.length;
-
-                    if (length < CountElectricity.ONE_DAY_BYTES) {
-
-                        byte[] cache = new byte[CountElectricity.ONE_DAY_BYTES];
-
-                        System.arraycopy(electricity, 0, cache, 0, length);
-
-                        byte[] countData = mData.countData;
-
-                        int length1 = countData.length;
-
-                        if (length1 > CountElectricity.ONE_DAY_BYTES) {
-                            length1 = CountElectricity.ONE_DAY_BYTES;
-                        }
-
-                        System.arraycopy(countData, 0, cache, 0, length1);
-
-                        countElectricity.setElectricity(cache);
-
-                        Tlog.v(TAG, " HistoryCount update oldLength:" + length + " newLength:" + length1);
-
-                    } else {
-
-                        byte[] countData = mData.countData;
-
-                        int length1 = countData.length;
-
-                        if (length1 > CountElectricity.ONE_DAY_BYTES) {
-                            length1 = CountElectricity.ONE_DAY_BYTES;
-                        }
-
-                        System.arraycopy(countData, 0, electricity, 0, length1);
-
-                        countElectricity.setElectricity(electricity);
-
-                        Tlog.v(TAG, " HistoryCount update oldLength:" + length + " newLength:" + length1);
-
-                    }
-
-                }
-
-                countElectricityDao.update(countElectricity);
-                Tlog.v(TAG, " HistoryCount update:" + countElectricity.getId());
-            }
-        }
-    }
-
-    private void deleteOldHistory(String mac) {
-
-        CountElectricityDao countElectricityDao =
-                DBManager.getInstance().getDaoSession().getCountElectricityDao();
-
-        long currentTimeMillis = System.currentTimeMillis();
-
-        long l = DateUtils.fastFormatTsToDayTs(currentTimeMillis - DateUtils.ONE_DAY * 31 * 8);
-
-        List<CountElectricity> list = countElectricityDao.queryBuilder()
-                .where(CountElectricityDao.Properties.Mac.eq(mac),
-                        CountElectricityDao.Properties.Timestamp.lt(l)).list();
-
-        if (list != null && list.size() > 0) {
-            for (CountElectricity mCountElectricity : list) {
-                countElectricityDao.delete(mCountElectricity);
-            }
-        }
-
-
-    }
 
     private boolean testReportRun;
     private String testMac;
@@ -742,7 +607,7 @@ public class SocketScmManager extends AbsSocketScm
     public void queryCostRate(String mac) {
         ResponseData mResponseData = MySocketDataCache.getQueryConstRate(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryCostRate " + mResponseData.toString());
+            Tlog.v(TAG, " queryCostRate " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -751,7 +616,7 @@ public class SocketScmManager extends AbsSocketScm
     public void queryCumuParam(String mac) {
         ResponseData mResponseData = MySocketDataCache.getQueryCumuParam(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryCumuParam " + mResponseData.toString());
+            Tlog.v(TAG, " queryCumuParam " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -760,7 +625,16 @@ public class SocketScmManager extends AbsSocketScm
     public void queryVersion(String mac) {
         ResponseData mResponseData = MySocketDataCache.getQueryVersion(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryVersion " + mResponseData.toString());
+            Tlog.v(TAG, " queryVersion " + String.valueOf(mResponseData));
+        }
+        onOutputDataToServer(mResponseData);
+    }
+
+    @Override
+    public void querySSID(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getQuerySSID(mac);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " querySSID " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -769,23 +643,29 @@ public class SocketScmManager extends AbsSocketScm
     public void update(String mac) {
         ResponseData mResponseData = MySocketDataCache.getUpdate(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " update " + mResponseData.toString());
+            Tlog.v(TAG, " update " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
 
     @Override
-    public void setLightRGB(String mac, int i, int r, int g, int b) {
-        ResponseData mResponseData = MySocketDataCache.getSetLightColor(mac, i, r, g, b);
+    public void setColorLamp(String mac, int i, int r, int g, int b) {
+        ResponseData mResponseData = MySocketDataCache.getSetColorLamp(mac, i, r, g, b);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " setLightRGB " + mResponseData.toString());
+            Tlog.v(TAG, " setColorLamp " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
 
     @Override
     public void setLightRGB(ColorLampRGB obj) {
-        setLightRGB(obj.mac, obj.seq, obj.r, obj.g, obj.b);
+
+        ResponseData mResponseData = MySocketDataCache.getSetLightColor(obj.mac, obj.seq, obj.r, obj.g, obj.b, obj.model);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " setLightRGB " + String.valueOf(mResponseData));
+        }
+        onOutputDataToServer(mResponseData);
+
     }
 
 
@@ -830,7 +710,7 @@ public class SocketScmManager extends AbsSocketScm
 
         ResponseData mResponseData = MySocketDataCache.getSetRelaySwitch(mac, status);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " SwitchRelay " + status + mResponseData.toString());
+            Tlog.v(TAG, " SwitchRelay " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
 
@@ -841,7 +721,7 @@ public class SocketScmManager extends AbsSocketScm
 
         ResponseData mResponseData = MySocketDataCache.getSwitchFlash(mac, status);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " switchFlash " + status + mResponseData.toString());
+            Tlog.v(TAG, " switchFlash " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
 
@@ -851,7 +731,7 @@ public class SocketScmManager extends AbsSocketScm
     public void queryRelayState(String mac) {
         ResponseData mResponseData = MySocketDataCache.getQueryRelayStatus(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " QueryRelayState " + mResponseData.toString());
+            Tlog.v(TAG, " QueryRelayState " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -861,21 +741,17 @@ public class SocketScmManager extends AbsSocketScm
 
         ResponseData mResponseData = MySocketDataCache.getQueryFlashState(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryFlashState " + mResponseData.toString());
+            Tlog.v(TAG, " queryFlashState " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
 
     @Override
     public void setPowerCountdown(PowerCountdown powerCountdown) {
-        ResponseData mResponseData;
-        synchronized (syncObj) {
-            mResponseData = MySocketDataCache.getSetCountdown(powerCountdown.getMac(), powerCountdown.getStatus(),
-                    powerCountdown.getSwitchGear(), powerCountdown.getHour(), powerCountdown.getMinute());
-        }
-
+        ResponseData mResponseData = MySocketDataCache.getSetCountdown(powerCountdown.getMac(), powerCountdown.getStatus(),
+                powerCountdown.getSwitchGear(), powerCountdown.getHour(), powerCountdown.getMinute());
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " setPowerCountdown data:" + mResponseData.toString());
+            Tlog.v(TAG, " setPowerCountdown data:" + String.valueOf(mResponseData));
         }
 
         onOutputDataToServer(mResponseData);
@@ -884,15 +760,12 @@ public class SocketScmManager extends AbsSocketScm
 
     @Override
     public void setCommonTiming(TimingCommonData mTimingCommonData) {
-        ResponseData mResponseData;
-        synchronized (syncObj) {
-            mResponseData = MySocketDataCache.getSetCommonTiming(mTimingCommonData.getMac(),
-                    mTimingCommonData.getId(), mTimingCommonData.getState(), mTimingCommonData.isOn(),
-                    mTimingCommonData.getWeek(), mTimingCommonData.getHour(), mTimingCommonData.getMinute(),
-                    mTimingCommonData.getStartup());
-        }
+        ResponseData mResponseData = MySocketDataCache.getSetCommonTiming(mTimingCommonData.getMac(),
+                mTimingCommonData.getId(), mTimingCommonData.getState(), mTimingCommonData.isOn(),
+                mTimingCommonData.getWeek(), mTimingCommonData.getHour(), mTimingCommonData.getMinute(),
+                mTimingCommonData.getStartup());
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, "setCommonTiming data: " + mResponseData.toString());
+            Tlog.v(TAG, "setCommonTiming data: " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
 
@@ -900,24 +773,16 @@ public class SocketScmManager extends AbsSocketScm
 
     @Override
     public void setAdvanceTiming(TimingAdvanceData mTimingAdvanceData) {
-        ResponseData mResponseData;
-        synchronized (syncObj) {
-
-            if (Debuger.isLogDebug) {
-                Tlog.v(TAG, "setAdvanceTiming:" + String.valueOf(mTimingAdvanceData));
-            }
-
-
-            mResponseData = MySocketDataCache.getSetAdvanceTiming(mTimingAdvanceData.mac, mTimingAdvanceData.id,
-                    mTimingAdvanceData.state,
-                    (byte) mTimingAdvanceData.startHour, (byte) mTimingAdvanceData.startMinute,
-                    (byte) mTimingAdvanceData.endHour, (byte) mTimingAdvanceData.endMinute, mTimingAdvanceData.on,
-                    (byte) mTimingAdvanceData.onIntervalHour, (byte) mTimingAdvanceData.onIntervalMinute,
-                    (byte) mTimingAdvanceData.offIntervalHour, (byte) mTimingAdvanceData.offIntervalMinute,
-                    mTimingAdvanceData.startup, (byte) mTimingAdvanceData.week);
-        }
+        ResponseData mResponseData = MySocketDataCache.getSetAdvanceTiming(mTimingAdvanceData.mac, mTimingAdvanceData.id,
+                mTimingAdvanceData.state,
+                (byte) mTimingAdvanceData.startHour, (byte) mTimingAdvanceData.startMinute,
+                (byte) mTimingAdvanceData.endHour, (byte) mTimingAdvanceData.endMinute, mTimingAdvanceData.on,
+                (byte) mTimingAdvanceData.onIntervalHour, (byte) mTimingAdvanceData.onIntervalMinute,
+                (byte) mTimingAdvanceData.offIntervalHour, (byte) mTimingAdvanceData.offIntervalMinute,
+                mTimingAdvanceData.startup, (byte) mTimingAdvanceData.week);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " setAdvanceTiming data: " + mResponseData.toString());
+            Tlog.v(TAG, "setAdvanceTiming:" + String.valueOf(mTimingAdvanceData));
+            Tlog.v(TAG, " setAdvanceTiming data: " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -933,7 +798,7 @@ public class SocketScmManager extends AbsSocketScm
         ResponseData mResponseData = MySocketDataCache.getBindDevice(mLanBindInfo.mac, bytes, (byte) info, pwdBuf);
         mResponseData.getRepeatMsgModel().setMaxRepeatTimes(3);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " bindDevice data: " + mResponseData.toString());
+            Tlog.v(TAG, " bindDevice data: " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -947,7 +812,7 @@ public class SocketScmManager extends AbsSocketScm
         int info = new Bit().remove(0).reserve(1, (bytes != null && bytes.length > 0)).getDevice();
         ResponseData mResponseData = MySocketDataCache.getBindDevice(mac, bytes, (byte) info, null);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " unbindDevice data: " + mResponseData.toString());
+            Tlog.v(TAG, " unbindDevice data: " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -963,7 +828,7 @@ public class SocketScmManager extends AbsSocketScm
         byte[] bytes = userID != null ? userID.getBytes() : null;
         ResponseData mResponseData = MySocketDataCache.getRequestToken(mac, bytes, random);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " requestToken data: " + mResponseData.toString());
+            Tlog.v(TAG, " requestToken data: " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
 
@@ -980,7 +845,7 @@ public class SocketScmManager extends AbsSocketScm
         ResponseData mResponseData = MySocketDataCache.getControlDevice(mac, bytes, token);
 
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " controlDevice data: " + mResponseData.toString());
+            Tlog.v(TAG, " controlDevice data: " + String.valueOf(mResponseData));
         }
 
         onOutputDataToServer(mResponseData);
@@ -988,86 +853,90 @@ public class SocketScmManager extends AbsSocketScm
 
     @Override
     public void appSleep(String mac, String userID, int token) {
-        Tlog.v(TAG, " appSleep " + userID + " token:" + token);
-        ResponseData mResponseData = MySocketDataCache.getAppSleep(mac, userID.getBytes(), token);
+        Tlog.v(TAG, " appSleep userID:" + userID + " token:" + token);
 
-        if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " appSleep data: " + mResponseData.toString());
+        if (userID != null) {
+            ResponseData mResponseData = MySocketDataCache.getAppSleep(mac, userID.getBytes(), token);
+
+            if (Debuger.isLogDebug) {
+                Tlog.v(TAG, " appSleep data: " + String.valueOf(mResponseData));
+            }
+
+            onOutputDataToServer(mResponseData);
+        } else {
+            Tlog.e(TAG, " appSleep userID=null ");
         }
-
-        onOutputDataToServer(mResponseData);
     }
 
     @Override
     public void disconnectDevice(String mac, String userID, int token) {
-        Tlog.v(TAG, " disconnectDevice " + userID + " token:" + token);
-        ResponseData mResponseData = MySocketDataCache.getDisconnectDevice(mac, userID.getBytes(), token);
-        if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " disconnectDevice data: " + mResponseData.toString());
+        Tlog.v(TAG, " disconnectDevice userID:" + userID + " token:" + token);
+        if (userID != null) {
+            ResponseData mResponseData = MySocketDataCache.getDisconnectDevice(mac, userID.getBytes(), token);
+            if (Debuger.isLogDebug) {
+                Tlog.v(TAG, " disconnectDevice data: " + String.valueOf(mResponseData));
+            }
+            onOutputDataToServer(mResponseData);
+        } else {
+            Tlog.e(TAG, " disconnectDevice userID=null ");
         }
-        onOutputDataToServer(mResponseData);
     }
 
 
     @Override
     public void setTempHumidityAlarm(TempHumidityAlarmData mAlarm) {
         ResponseData mResponseData;
-        synchronized (syncObj) {
-            int model;
-            if (mAlarm.isTemperatureType()) {
-                model = SocketSecureKey.Model.ALARM_MODEL_TEMPERATURE;
-            } else {
-                model = SocketSecureKey.Model.ALARM_MODEL_HUMIDITY;
+        int model;
+        if (mAlarm.isTemperatureType()) {
+            model = SocketSecureKey.Model.ALARM_MODEL_TEMPERATURE;
+        } else {
+            model = SocketSecureKey.Model.ALARM_MODEL_HUMIDITY;
+        }
+        mResponseData = MySocketDataCache.getSetTempHumidityAlarm(mAlarm.getMac(), mAlarm.isStartup(),
+                model, mAlarm.getAlarmValue(), mAlarm.getAlarmValueDeci(), mAlarm.isLimitUp());
+
+        if (mAlarm.isTemperatureType()) {
+            ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mAlarm.getMac());
+
+
+            if (mAlarm.isLimitUp()) {
+                scmDevice.setTempHotAlarmData(mAlarm.getOriginalAlarmValue());
+
+            } else if (mAlarm.isLimitDown()) {
+
+                scmDevice.setTempCodeAlarmData(mAlarm.getOriginalAlarmValue());
             }
-            mResponseData = MySocketDataCache.getSetTempHumidityAlarm(mAlarm.getMac(), mAlarm.isStartup(),
-                    model, mAlarm.getAlarmValue(), mAlarm.getAlarmValueDeci(), mAlarm.isLimitUp());
 
-            if (mAlarm.isTemperatureType()) {
-                ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mAlarm.getMac());
+        } else if (mAlarm.isHumidityType()) {
+            ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mAlarm.getMac());
 
-                Tlog.v(TAG, " setTempAlarmData limit: " + mAlarm.getLimit());
 
-                if (mAlarm.isLimitUp()) {
-                    scmDevice.setTempHotAlarmData(mAlarm.getOriginalAlarmValue());
+            if (mAlarm.isLimitUp()) {
+                scmDevice.setHumiHotAlarmData(mAlarm.getOriginalAlarmValue());
 
-                } else if (mAlarm.isLimitDown()) {
+            } else if (mAlarm.isLimitDown()) {
 
-                    scmDevice.setTempCodeAlarmData(mAlarm.getOriginalAlarmValue());
-                }
-
-            } else if (mAlarm.isHumidityType()) {
-                ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mAlarm.getMac());
-
-                Tlog.v(TAG, " setHumiAlarmData limit: " + mAlarm.getLimit());
-
-                if (mAlarm.isLimitUp()) {
-                    scmDevice.setHumiHotAlarmData(mAlarm.getOriginalAlarmValue());
-
-                } else if (mAlarm.isLimitDown()) {
-
-                    scmDevice.setHumiCodeAlarmData(mAlarm.getOriginalAlarmValue());
-                }
+                scmDevice.setHumiCodeAlarmData(mAlarm.getOriginalAlarmValue());
             }
         }
 
 
         if (Debuger.isLogDebug) {
 
-            Tlog.v(TAG, " setTempHumidityAlarm  float:" + mAlarm.getOriginalAlarmValue()
-                    + " int:" + mAlarm.getAlarmValue() + " deci:" + mAlarm.getAlarmValueDeci());
+            Tlog.v(TAG, " setTempHumidityAlarm  alarm:" + String.valueOf(mAlarm));
 
-            Tlog.v(TAG, " setTempHumidityAlarm  data: " + mResponseData.toString());
+            Tlog.v(TAG, " setTempHumidityAlarm  data: " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
 
     @Override
     public void queryTempHumidityData(String mac) {
-        ResponseData mResponseTempData = MySocketDataCache.getQueryTemperatureLimitUp(mac);
+        ResponseData mResponseTempDataUp = MySocketDataCache.getQueryTemperatureLimitUp(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryTempData: " + mResponseTempData.toString());
+            Tlog.v(TAG, " queryTempDataUp: " + String.valueOf(mResponseTempDataUp));
         }
-        onOutputDataToServer(mResponseTempData);
+        onOutputDataToServer(mResponseTempDataUp);
 
         try {
             Thread.sleep(300);
@@ -1075,35 +944,50 @@ public class SocketScmManager extends AbsSocketScm
             e.printStackTrace();
         }
 
-        ResponseData mResponseTempData2 = MySocketDataCache.getQueryTemperatureLimitDown(mac);
+        ResponseData mResponseTempDataDown = MySocketDataCache.getQueryTemperatureLimitDown(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryHumiData: " + mResponseTempData2.toString());
+            Tlog.v(TAG, " queryTempDataDown: " + String.valueOf(mResponseTempDataDown));
         }
-        onOutputDataToServer(mResponseTempData2);
 
-//        Tlog.v(TAG, " queryHumidity ");
-//        ResponseData mResponseHumidityData = new SocketResponseDataUtil().newResponseDataCalCrc(mac, MySocketDataCache.getQueryHumidity());
-//        if (mResponse != null) {
-//            mResponse.onOutputDataToServer(mResponseHumidityData);
-//        }
+        onOutputDataToServer(mResponseTempDataDown);
+
+        try {
+            Thread.sleep(300);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        ResponseData mResponseHumiDataUp = MySocketDataCache.getQueryHumidityLimitUp(mac);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryHumiDataUp: " + String.valueOf(mResponseHumiDataUp));
+        }
+        onOutputDataToServer(mResponseHumiDataUp);
+
+        try {
+            Thread.sleep(300);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        ResponseData mResponseHumiDataDown = MySocketDataCache.getQueryHumidityLimitDown(mac);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryHumiDataDown: " + String.valueOf(mResponseHumiDataDown));
+        }
+        onOutputDataToServer(mResponseHumiDataDown);
     }
 
     @Override
     public void queryCountdownData(String mac) {
         ResponseData mResponseData = MySocketDataCache.getQueryCountdown(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryCountdownData  data:" + mResponseData.toString());
+            Tlog.v(TAG, " queryCountdownData  data:" + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
 
     @Override
     public void queryTimingData(String mac) {
-        ResponseData mResponseData = MySocketDataCache.getQueryCommonTimingList(mac);
-        if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryCommonTimingData  data:" + mResponseData.toString());
-        }
-        onOutputDataToServer(mResponseData);
+        queryComTimingListData(mac);
 
         try {
             Thread.sleep(300);
@@ -1111,19 +995,134 @@ public class SocketScmManager extends AbsSocketScm
             e.printStackTrace();
         }
 
-        ResponseData mAdvanceResponseData = MySocketDataCache.getQueryAdvanceTimingList(mac);
-        if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryAdvanceTimingData  data:" + mAdvanceResponseData.toString());
-        }
-        onOutputDataToServer(mAdvanceResponseData);
+        queryAdvTimingListData(mac);
 
+    }
+
+    @Override
+    public void queryComTimingListData(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getQueryCommonTimingList(mac);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryCommonTimingData  data:" + String.valueOf(mResponseData));
+        }
+        onOutputDataToServer(mResponseData);
+    }
+
+    @Override
+    public void queryAdvTimingListData(String mac) {
+
+        ResponseData mResponseData = MySocketDataCache.getQueryAdvanceTimingList(mac);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryAdvanceTimingData  data:" + String.valueOf(mResponseData));
+        }
+        onOutputDataToServer(mResponseData);
+    }
+
+    @Override
+    public void setNightLightTiming(NightLightTiming nightLightTiming) {
+
+        if (nightLightTiming != null) {
+            ResponseData mResponseData = MySocketDataCache.getSetTimingNightLight(nightLightTiming.mac,
+                    nightLightTiming.startup,
+                    (byte) nightLightTiming.getStartHour(), (byte) nightLightTiming.getStartMinute(),
+                    (byte) nightLightTiming.getStopHour(), (byte) nightLightTiming.getStopMinute());
+            if (Debuger.isLogDebug) {
+                Tlog.v(TAG, " setNightLightTiming  data:" + String.valueOf(mResponseData));
+            }
+            onOutputDataToServer(mResponseData);
+        }
+    }
+
+    @Override
+    public void setNightLightWisdom(NightLightTiming nightLightTiming) {
+        if (nightLightTiming != null) {
+            ResponseData mResponseData = MySocketDataCache.getSetWisdomNightLight(nightLightTiming.mac,
+                    nightLightTiming.startup,
+                    (byte) nightLightTiming.getStartHour(), (byte) nightLightTiming.getStartMinute(),
+                    (byte) nightLightTiming.getStopHour(), (byte) nightLightTiming.getStopMinute());
+            if (Debuger.isLogDebug) {
+                Tlog.v(TAG, " setNightLightWisdom  data:" + String.valueOf(mResponseData));
+            }
+            onOutputDataToServer(mResponseData);
+        }
+    }
+
+    @Override
+    public void openWisdomNightLight(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getSetWisdomNightLight(mac, true);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " openWisdomNightLight  data:" + String.valueOf(mResponseData));
+        }
+        onOutputDataToServer(mResponseData);
+    }
+
+    @Override
+    public void closeWisdomNightLight(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getSetWisdomNightLight(mac, false);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " closeWisdomNightLight  data:" + String.valueOf(mResponseData));
+        }
+        onOutputDataToServer(mResponseData);
+    }
+
+    @Override
+    public void queryNightLight(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getQueryNightLight(mac);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryNightLight  data:" + String.valueOf(mResponseData));
+        }
+        onOutputDataToServer(mResponseData);
+    }
+
+    @Override
+    public void switchNightLight(String mac, boolean b) {
+        ResponseData mResponseData = MySocketDataCache.getSwitchNightLight(mac, b);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " switchNightLight  data:" + String.valueOf(mResponseData));
+        }
+        onOutputDataToServer(mResponseData);
+    }
+
+    @Override
+    public void queryRunningNightLight(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getQueryRunningNightLight(mac);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryTimingNightLight  data:" + String.valueOf(mResponseData));
+        }
+        onOutputDataToServer(mResponseData);
+
+//        queryTimingNightLight(mac);
+//        try {
+//            Thread.sleep(300);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//        queryWisdomNightLight(mac);
+    }
+
+    @Override
+    public void queryTimingNightLight(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getQueryTimingNightLight(mac);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryTimingNightLight  data:" + String.valueOf(mResponseData));
+        }
+        onOutputDataToServer(mResponseData);
+    }
+
+    @Override
+    public void queryWisdomNightLight(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getQueryWisdomNightLight(mac);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryWisdomNightLight  data:" + String.valueOf(mResponseData));
+        }
+        onOutputDataToServer(mResponseData);
     }
 
     @Override
     public void queryScmTimezone(String mac) {
         ResponseData mResponseData = MySocketDataCache.getQueryTimezone(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryScmTimezone  data:" + mResponseData.toString());
+            Tlog.v(TAG, " queryScmTimezone  data:" + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -1137,7 +1136,7 @@ public class SocketScmManager extends AbsSocketScm
 
         ResponseData mResponseData = MySocketDataCache.getSetTimezone(mac, zone);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " setScmTimezone  data:" + mResponseData.toString());
+            Tlog.v(TAG, " setScmTimezone  data:" + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -1174,29 +1173,26 @@ public class SocketScmManager extends AbsSocketScm
     public void queryScmTime(String mac) {
         ResponseData mResponseData = MySocketDataCache.getQueryTime(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryScmTime  data:" + mResponseData.toString());
+            Tlog.v(TAG, " queryScmTime  data:" + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
 
     @Override
     public void setScmTime(String mac) {
-        ResponseData mResponseData;
-        synchronized (syncObj) {
-            Calendar instance = Calendar.getInstance();
-            instance.setTimeInMillis(System.currentTimeMillis());
-            Date date = instance.getTime();
-            byte year = (byte) (date.getYear() + 1900 - 2000);
-            byte month = (byte) (date.getMonth() + 1);
-            byte day = (byte) date.getDate();
-            byte hours = (byte) date.getHours();
-            byte minutes = (byte) date.getMinutes();
-            byte seconds = (byte) date.getSeconds();
-            byte week = (byte) date.getDay();
-            mResponseData = MySocketDataCache.getSetTime(mac, year, month, day, hours, minutes, seconds, week);
-        }
+        Calendar instance = Calendar.getInstance();
+        instance.setTimeInMillis(System.currentTimeMillis());
+        Date date = instance.getTime();
+        byte year = (byte) (date.getYear() + 1900 - 2000);
+        byte month = (byte) (date.getMonth() + 1);
+        byte day = (byte) date.getDate();
+        byte hours = (byte) date.getHours();
+        byte minutes = (byte) date.getMinutes();
+        byte seconds = (byte) date.getSeconds();
+        byte week = (byte) date.getDay();
+        ResponseData mResponseData = MySocketDataCache.getSetTime(mac, year, month, day, hours, minutes, seconds, week);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " setScmTime data[" + mResponseData.toString());
+            Tlog.v(TAG, " setScmTime data[" + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
 
@@ -1205,34 +1201,25 @@ public class SocketScmManager extends AbsSocketScm
 
     @Override
     public void setSetVoltageAlarmValue(String mac, int value) {
-        ResponseData mResponseData;
-        synchronized (syncObj) {
-            mResponseData = MySocketDataCache.getVoltageAlarmValue(mac, value);
-        }
+        ResponseData mResponseData = MySocketDataCache.getVoltageAlarmValue(mac, value);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " setSetVoltageAlarmValue  data:" + mResponseData.toString());
+            Tlog.v(TAG, " setSetVoltageAlarmValue  data:" + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
 
     @Override
     public void setSetCurrentAlarmValue(String mac, int value) {
-        ResponseData mResponseData;
-        synchronized (syncObj) {
-            mResponseData = MySocketDataCache.getCurrentAlarmValue(mac, value * 100);
-        }
+        ResponseData mResponseData = MySocketDataCache.getCurrentAlarmValue(mac, value * 100);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " setSetCurrentAlarmValue  data:" + mResponseData.toString());
+            Tlog.v(TAG, " setSetCurrentAlarmValue  data:" + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
 
     @Override
     public void setSetPowerAlarmValue(String mac, int value) {
-        ResponseData mResponseData;
-        synchronized (syncObj) {
-            mResponseData = MySocketDataCache.getPowerAlarmValue(mac, value);
-        }
+        ResponseData mResponseData = MySocketDataCache.getPowerAlarmValue(mac, value);
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setSetPowerAlarmValue  data:" + mResponseData.toString());
         }
@@ -1242,42 +1229,34 @@ public class SocketScmManager extends AbsSocketScm
     @Override
     public void setSetTemperatureUnit(String mac, int value) {
         ResponseData mResponseData;
-        synchronized (syncObj) {
 
-            if (CustomManager.getInstance().isTriggerBle()) {
-                mResponseData = MySocketDataCache.getTempUnitBle(mac, (byte) value);
-            } else {
+        if (CustomManager.getInstance().isTriggerBle()) {
+            mResponseData = MySocketDataCache.getTempUnitBle(mac, (byte) value);
+        } else {
 
-                mResponseData = MySocketDataCache.getTempUnit(mac, (byte) value);
-            }
-
+            mResponseData = MySocketDataCache.getTempUnit(mac, (byte) value);
         }
+
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " setSetTemperatureUnit  data:" + mResponseData.toString());
+            Tlog.v(TAG, " setSetTemperatureUnit  data:" + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
 
     @Override
     public void setSetMonetaryUnit(String mac, int unit) {
-        ResponseData mResponseData;
-        synchronized (syncObj) {
-            mResponseData = MySocketDataCache.getMonetaryUnit(mac, (byte) unit);
-        }
+        ResponseData mResponseData = MySocketDataCache.getMonetaryUnit(mac, (byte) unit);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " setSetMonetaryUnit  data:" + mResponseData.toString());
+            Tlog.v(TAG, " setSetMonetaryUnit  data:" + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
 
     @Override
     public void setSetElectricityPrice(String mac, int value) {
-        ResponseData mResponseData;
-        synchronized (syncObj) {
-            mResponseData = MySocketDataCache.getElectricityPrice(mac, value);
-        }
+        ResponseData mResponseData = MySocketDataCache.getElectricityPrice(mac, value);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " setSetElectricityPrice  data:" + mResponseData.toString());
+            Tlog.v(TAG, " setSetElectricityPrice  data:" + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -1286,7 +1265,7 @@ public class SocketScmManager extends AbsSocketScm
     public void queryVoltageAlarmValue(String mac) {
         ResponseData mResponseData = MySocketDataCache.getQueryVoltageAlarmValue(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryVoltageAlarmValue  data:" + mResponseData.toString());
+            Tlog.v(TAG, " queryVoltageAlarmValue  data:" + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -1295,7 +1274,7 @@ public class SocketScmManager extends AbsSocketScm
     public void queryCurrentAlarmValue(String mac) {
         ResponseData mResponseData = MySocketDataCache.getQueryCurrentAlarmValue(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryCurrentAlarmValue  data:" + mResponseData.toString());
+            Tlog.v(TAG, " queryCurrentAlarmValue  data:" + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -1304,7 +1283,7 @@ public class SocketScmManager extends AbsSocketScm
     public void queryPowerAlarmValue(String mac) {
         ResponseData mResponseData = MySocketDataCache.getQueryPowerAlarmValue(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryPowerAlarmValue  data:" + mResponseData.toString());
+            Tlog.v(TAG, " queryPowerAlarmValue  data:" + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -1318,7 +1297,7 @@ public class SocketScmManager extends AbsSocketScm
             mResponseData = MySocketDataCache.getQueryTemperatureUnit(mac);
         }
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryTemperatureUnit  data:" + mResponseData.toString());
+            Tlog.v(TAG, " queryTemperatureUnit  data:" + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -1327,7 +1306,7 @@ public class SocketScmManager extends AbsSocketScm
     public void queryMonetaryUnit(String mac) {
         ResponseData mResponseData = MySocketDataCache.getQueryMonetaryUnit(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryMonetaryUnit  data:" + mResponseData.toString());
+            Tlog.v(TAG, " queryMonetaryUnit  data:" + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -1336,7 +1315,7 @@ public class SocketScmManager extends AbsSocketScm
     public void queryElectricityPrice(String mac) {
         ResponseData mResponseData = MySocketDataCache.getQueryElectricityPrices(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryElectricityPrice  data:" + mResponseData.toString());
+            Tlog.v(TAG, " queryElectricityPrice  data:" + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -1344,10 +1323,12 @@ public class SocketScmManager extends AbsSocketScm
     public void testProtocolAnalysis(String mac, String content, int model) {
         ResponseData responseTestData = MySocketDataCache.getResponseTestData(mac, content);
         ReceivesData mReceiveData = new ReceivesData(mac, responseTestData.data);
-        if (ComModel.SEND_MODEL_LAN == model) {
+        if (ComModel.MODEL_LAN == model) {
             mReceiveData.getReceiveModel().setModelOnlyLan();
-        } else if (ComModel.SEND_MODEL_WAN == model) {
+        } else if (ComModel.MODEL_WAN == model) {
             mReceiveData.getReceiveModel().setModelOnlyWan();
+        } else if (ComModel.MODEL_CASUAL == model) {
+            mReceiveData.getReceiveModel().setModelCasual();
         } else {
             mReceiveData.getReceiveModel().fillEmpty();
         }
@@ -1359,14 +1340,21 @@ public class SocketScmManager extends AbsSocketScm
 
     @Override
     public void rename(RenameBean obj) {
-        Tlog.v(TAG, " rename  " + obj.name);
+        String mac = obj.address;
+        String name = obj.name;
+        byte[] bytes = name != null ? name.getBytes() : mac.getBytes();
+        ResponseData mResponseData = MySocketDataCache.getRename(mac, bytes);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " rename  " + String.valueOf(mResponseData));
+        }
+        onOutputDataToServer(mResponseData);
+    }
 
-        ResponseData mResponseData;
-        synchronized (syncObj) {
-            String mac = obj.address;
-            String name = obj.name;
-            byte[] bytes = name.getBytes();
-            mResponseData = MySocketDataCache.getRename(mac, bytes);
+    @Override
+    public void queryDeviceName(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getQueryDeviceName(mac);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryDeviceName " + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -1375,18 +1363,17 @@ public class SocketScmManager extends AbsSocketScm
     public void setSetRecoveryScm(String mac) {
         ResponseData mResponseData = MySocketDataCache.getRecovery(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " setSetRecoveryScm  data:" + mResponseData.toString());
+            Tlog.v(TAG, " setSetRecoveryScm :" + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
 
     @Override
     public void querySpendingElectricity(String mac) {
-        Tlog.v(TAG, " querySpendingElectricity  ");
 
         ResponseData mResponseSpendingData = MySocketDataCache.getQuerySpendingElectricityE(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " querySpendingElectricityE  data:" + mResponseSpendingData.toString());
+            Tlog.v(TAG, " querySpendingElectricityE :" + String.valueOf(mResponseSpendingData));
         }
         onOutputDataToServer(mResponseSpendingData);
         try {
@@ -1397,7 +1384,7 @@ public class SocketScmManager extends AbsSocketScm
 
         ResponseData mResponseCountdownData = MySocketDataCache.getQuerySpendingElectricityS(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " querySpendingElectricityS  data:" + mResponseSpendingData.toString());
+            Tlog.v(TAG, " querySpendingElectricityS :" + String.valueOf(mResponseCountdownData));
         }
         onOutputDataToServer(mResponseCountdownData);
     }
@@ -1408,7 +1395,7 @@ public class SocketScmManager extends AbsSocketScm
         ResponseData responseData = MySocketDataCache.getSetSpendingCountdown(obj.mac, obj.alarmSwitch,
                 (byte) obj.model, (byte) obj.year, (byte) obj.month, (byte) obj.day, obj.alarmValue);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " setSpendingCountdown  data:" + responseData.toString());
+            Tlog.v(TAG, " setSpendingCountdown :" + String.valueOf(responseData));
         }
         onOutputDataToServer(responseData);
     }
@@ -1483,6 +1470,13 @@ public class SocketScmManager extends AbsSocketScm
     public void onUSBResult(String id, boolean on) {
         if (mScmResultCallBack != null) {
             mScmResultCallBack.onResultUSBState(id, on);
+        }
+    }
+
+    @Override
+    public void onNightLightResult(String id, boolean on) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onNightLightResult(id, on);
         }
     }
 
@@ -1588,22 +1582,33 @@ public class SocketScmManager extends AbsSocketScm
     @Override
     public void onSetTempHumiAlarmResult(String mac, boolean result, boolean startup, int model, int limit) {
 
+        final ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mac);
+        final SensorData sensorData = scmDevice.getSensorData();
+
         switch (model) {
 
             case SocketSecureKey.Model.ALARM_MODEL_HUMIDITY:
 
                 if (result) {
 
-                    final TempHumidityData mTempHumi = mScmDeviceUtils.getScmDevice(mac).getTempHumidityData();
-
-//                    Tlog.v(TAG, " onSetTempHumiAlarmResult useCacheData update limit: " +limit);
+                    final TempHumidityData mTempHumi = scmDevice.getTempHumidityData();
 
                     if (mTempHumi.mHumidity.typeIsHot((byte) limit)) {
                         mTempHumi.mHumidity.hotAlarmSwitch = startup;
                         mTempHumi.useSetHumiHotAlarmData();
+
+                        if (startup) {
+                            sensorData.mHumidity.alarmValue = mTempHumi.mHumidity.hotAlarmValue;
+                        }
+
                     } else if (mTempHumi.mHumidity.typeIsCode((byte) limit)) {
                         mTempHumi.mHumidity.codeAlarmSwitch = startup;
                         mTempHumi.useSetHumiCodeAlarmData();
+
+                        if (startup) {
+                            sensorData.mHumidity.alarmValue = mTempHumi.mHumidity.codeAlarmValue;
+                        }
+
                     }
                 }
 
@@ -1617,16 +1622,24 @@ public class SocketScmManager extends AbsSocketScm
 
                 if (result) {
 
-                    final TempHumidityData mTempHumi = mScmDeviceUtils.getScmDevice(mac).getTempHumidityData();
-
-//                    Tlog.v(TAG, " onSetTempHumiAlarmResult useCacheData update limit: " +limit);
+                    final TempHumidityData mTempHumi = scmDevice.getTempHumidityData();
 
                     if (mTempHumi.mTemperature.typeIsHot((byte) limit)) {
                         mTempHumi.mTemperature.hotAlarmSwitch = startup;
                         mTempHumi.useSetTempHotAlarmData();
+
+                        if (startup) {
+                            sensorData.mTemperature.alarmValue = mTempHumi.mTemperature.hotAlarmValue;
+                        }
+
                     } else if (mTempHumi.mTemperature.typeIsCode((byte) limit)) {
                         mTempHumi.mTemperature.codeAlarmSwitch = startup;
                         mTempHumi.useSetTempCodeAlarmData();
+
+                        if (startup) {
+                            sensorData.mTemperature.alarmValue = mTempHumi.mTemperature.codeAlarmValue;
+                        }
+
                     }
                 }
 
@@ -1637,32 +1650,54 @@ public class SocketScmManager extends AbsSocketScm
 
         }
 
+        if (mScmResultCallBack != null) {
+            if (scmDevice.isPublish()) {
+                mScmResultCallBack.onResultPublishSensorData(mac, sensorData);
+            }
+        }
+
     }
 
 
     @Override
     public void onQueryTemperatureResult(String mac, boolean result, Temperature mTemperature) {
 
-        if (mScmResultCallBack != null) {
+        final ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mac);
 
-//            Tlog.e(TAG," onQueryTemperatureResult:" + mTemperature.toString());
-
-            final TempHumidityData mTempHumi = mScmDeviceUtils.getScmDevice(mac).getTempHumidityData();
-            if (result) {
-                if (mTemperature.typeIsHot()) {
-                    mTempHumi.mTemperature.hotAlarmSwitch = mTemperature.hotAlarmSwitch;
-                    mTempHumi.mTemperature.hotAlarmValue = mTemperature.hotAlarmValue;
-                } else if (mTemperature.typeIsCode()) {
-                    mTempHumi.mTemperature.codeAlarmSwitch = mTemperature.codeAlarmSwitch;
-                    mTempHumi.mTemperature.codeAlarmValue = mTemperature.codeAlarmValue;
-                }
-
-                mTempHumi.mTemperature.currentValue = mTemperature.currentValue;
+        final TempHumidityData mTempHumi = scmDevice.getTempHumidityData();
+        if (result) {
+            if (mTemperature.typeIsHot()) {
+                mTempHumi.mTemperature.hotAlarmSwitch = mTemperature.hotAlarmSwitch;
+                mTempHumi.mTemperature.hotAlarmValue = mTemperature.hotAlarmValue;
+            } else if (mTemperature.typeIsCode()) {
+                mTempHumi.mTemperature.codeAlarmSwitch = mTemperature.codeAlarmSwitch;
+                mTempHumi.mTemperature.codeAlarmValue = mTemperature.codeAlarmValue;
             }
 
+            mTempHumi.mTemperature.currentValue = mTemperature.currentValue;
+        }
+
+        if (Debuger.isLogDebug) {
             Tlog.e(TAG, " onQueryTemperatureResult:" + mTempHumi.toJsonStr());
+        }
+
+        final SensorData sensorData = scmDevice.getSensorData();
+        if (result) {
+            if (mTemperature.typeIsHot() && mTemperature.hotAlarmSwitch) {
+                sensorData.mTemperature.alarmValue = mTemperature.hotAlarmValue;
+            } else if (mTemperature.typeIsCode() && mTemperature.codeAlarmSwitch) {
+                sensorData.mTemperature.alarmValue = mTemperature.codeAlarmValue;
+            }
+            sensorData.mTemperature.value = mTemperature.currentValue;
+        }
+
+        if (mScmResultCallBack != null) {
 
             mScmResultCallBack.onResultQueryTemperatureHumidityData(mac, mTempHumi);
+
+            if (scmDevice.isPublish()) {
+                mScmResultCallBack.onResultPublishSensorData(mac, sensorData);
+            }
         }
 
     }
@@ -1670,7 +1705,9 @@ public class SocketScmManager extends AbsSocketScm
     @Override
     public void onQueryHumidityResult(String mac, boolean result, Humidity mHumidity) {
 
-        final TempHumidityData mTempHumi = mScmDeviceUtils.getScmDevice(mac).getTempHumidityData();
+        final ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mac);
+
+        final TempHumidityData mTempHumi = scmDevice.getTempHumidityData();
         if (result) {
             if (mHumidity.typeIsHot()) {
                 mTempHumi.mHumidity.hotAlarmSwitch = mHumidity.hotAlarmSwitch;
@@ -1682,8 +1719,26 @@ public class SocketScmManager extends AbsSocketScm
 
             mTempHumi.mHumidity.currentValue = mHumidity.currentValue;
         }
+
+        if (Debuger.isLogDebug) {
+            Tlog.e(TAG, " onQueryHumidityResult:" + mTempHumi.toJsonStr());
+        }
+
+        final SensorData sensorData = scmDevice.getSensorData();
+        if (result) {
+            if (mHumidity.typeIsHot() && mHumidity.hotAlarmSwitch) {
+                sensorData.mHumidity.alarmValue = mHumidity.hotAlarmValue;
+            } else if (mHumidity.typeIsCode() && mHumidity.codeAlarmSwitch) {
+                sensorData.mHumidity.alarmValue = mHumidity.codeAlarmValue;
+            }
+            sensorData.mHumidity.value = mHumidity.currentValue;
+        }
+
         if (mScmResultCallBack != null) {
             mScmResultCallBack.onResultQueryTemperatureHumidityData(mac, mTempHumi);
+            if (scmDevice.isPublish()) {
+                mScmResultCallBack.onResultPublishSensorData(mac, sensorData);
+            }
         }
     }
 
@@ -1716,6 +1771,17 @@ public class SocketScmManager extends AbsSocketScm
         // 定时功能生效，回调js继电器的状态
         if (mData != null) {
             onRelayResult(mac, mData.isOn());
+
+            TimingSetResult mResult = new TimingSetResult();
+            mResult.result = true;
+            mResult.mac = mData.getMac();
+            mResult.model = SocketSecureKey.Util.getAdvanceTiming();
+            mResult.id = mData.getId();
+            mResult.startup = mData.getStartup();
+            mResult.state = mData.getState();
+            mResult.week = mData.getWeek();
+            onSetTimingResult(mac, mResult);
+
         }
     }
 
@@ -1724,6 +1790,42 @@ public class SocketScmManager extends AbsSocketScm
     public void onTimingAdvanceExecuteResult(String mac, TimingAdvanceData mAdvanceData) {
         if (mAdvanceData != null) {
             onRelayResult(mac, mAdvanceData.on);
+
+            TimingSetResult mResult = new TimingSetResult();
+            mResult.result = true;
+            mResult.mac = mAdvanceData.mac;
+            mResult.model = SocketSecureKey.Util.getAdvanceTiming();
+            mResult.id = mAdvanceData.id;
+            mResult.startup = mAdvanceData.startup;
+            mResult.state = mAdvanceData.state;
+            mResult.week = (byte) mAdvanceData.week;
+            onSetTimingResult(mac, mResult);
+
+//            final TimingListData mTimingListData = mScmDeviceUtils.getScmDevice(mac).getTimingListData();
+//
+//            ArrayList<TimingAdvanceData> advanceDataArray = mTimingListData.getAdvanceDataArray();
+//
+//            if (advanceDataArray != null && advanceDataArray.size() > 0) {
+//                try {
+//                    for (int i = 0; i < advanceDataArray.size(); i++) {
+//                        TimingAdvanceData tmpTimingAdvanceData = advanceDataArray.get(i);
+//                        if (tmpTimingAdvanceData.id == mAdvanceData.id) {
+//                            tmpTimingAdvanceData.startup = mAdvanceData.startup;
+//                            tmpTimingAdvanceData.state = mAdvanceData.state;
+//                            tmpTimingAdvanceData.week = mAdvanceData.week;
+//                            break;
+//                        }
+//                    }
+//                } catch (Exception e) {
+//
+//                }
+//            }
+//
+//            if (mScmResultCallBack != null) {
+//                mScmResultCallBack.onResultQueryTiming(mac, mTimingListData);
+//            }
+
+
         }
     }
 
@@ -1900,10 +2002,11 @@ public class SocketScmManager extends AbsSocketScm
     @Override
     public void onDeviceDiscoveryResult(String id, boolean result, LanDeviceInfo mWiFiDevice) {
 
-        String mac = mWiFiDevice.getMac();
-
-        ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mac);
-        scmDevice.putIp(mWiFiDevice.getIp());
+        if (mWiFiDevice != null) {
+            String mac = mWiFiDevice.getMac();
+            ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mac);
+            scmDevice.putIp(mWiFiDevice.getIp());
+        }
 
         if (mScmResultCallBack != null) {
             mScmResultCallBack.onResultDeviceDiscovery(id, result, mWiFiDevice);
@@ -1914,6 +2017,20 @@ public class SocketScmManager extends AbsSocketScm
     public void onDeviceRenameResult(String id, boolean result, String name) {
         if (mScmResultCallBack != null) {
             mScmResultCallBack.onResultRename(id, result, name);
+        }
+    }
+
+    @Override
+    public void onQueryDeviceNameResult(String id, boolean result, String name) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onResultQueryRename(id, result, name);
+        }
+    }
+
+    @Override
+    public void onQueryDeviceSSIDResult(String id, boolean result, int rssi, String ssid) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onResultQueryDeviceSSID(id, result, rssi, ssid);
         }
     }
 
@@ -1970,14 +2087,28 @@ public class SocketScmManager extends AbsSocketScm
     @Override
     public void onSetTimingTempHumiResult(boolean result, String id, TimingTempHumiData mAdvanceData) {
         if (mScmResultCallBack != null) {
-            mScmResultCallBack.onResultSetTimingTempHumi(result,id,mAdvanceData);
+            mScmResultCallBack.onResultSetTimingTempHumi(result, id, mAdvanceData);
         }
     }
 
     @Override
     public void onQueryTimingTempHumiResult(boolean result, String id, ArrayList<TimingTempHumiData> mDataLst) {
         if (mScmResultCallBack != null) {
-            mScmResultCallBack.onResultQueryTimingTempHumi(result,id,mDataLst);
+            mScmResultCallBack.onResultQueryTimingTempHumi(result, id, mDataLst);
+        }
+    }
+
+    @Override
+    public void onSetNightLightResult(boolean result, NightLightTiming mNightLightTiming) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onResultSetNightLight(result, mNightLightTiming);
+        }
+    }
+
+    @Override
+    public void onQueryNightLightResult(boolean result, NightLightTiming mNightLightTiming) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onResultQueryNightLight(result, mNightLightTiming);
         }
     }
 
@@ -2026,7 +2157,6 @@ public class SocketScmManager extends AbsSocketScm
     @Override
     public void onQueryTimezoneResult(boolean result, String id, byte zone) {
 
-
         if (zone != getTimezone()) {
             setScmTimezone(id);
         }
@@ -2038,12 +2168,13 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.e(TAG, " onRemoveCmd Data mac:" + id
                     + " what:" + Integer.toHexString(paramType)
-                    + "-" + Integer.toHexString(paramType)
+                    + "-" + Integer.toHexString(paramCmd)
                     + " seq:" + seq);
         }
-        onSuccess(id, paramType, paramCmd, seq);
-    }
+        final int what = (paramType & 0xFF) << 8 | ((paramCmd - 1) & 0xFF);
 
+        mScmDeviceUtils.getScmDevice(id).receiveOnePkg(what, seq);
+    }
 
 
     @Override

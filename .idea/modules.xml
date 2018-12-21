@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/airtempnb/airtempnb.iml" filepath="$PROJECT_DIR$/airtempnb/airtempnb.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/blesocket/blesocket.iml" filepath="$PROJECT_DIR$/blesocket/blesocket.iml" />
       <module fileurl="file://$PROJECT_DIR$/smartplug/smartplug.iml" filepath="$PROJECT_DIR$/smartplug/smartplug.iml" />

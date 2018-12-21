@@ -2,6 +2,9 @@ package cn.com.startai.socket.debuger.impl;
 
 import android.content.Context;
 
+import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
+import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
+
 /**
  * author: Guoqiang_Sun
  * date : 2018/5/18 0018
@@ -26,4 +29,10 @@ public interface IProductDetectionCallBack {
     Context getApp();
 
     void receiveProtocolAnalysisResult(byte[] protocolParams);
+
+    void nightLightSetResult(NightLightTiming obj);
+
+    void nightLightQueryResult(NightLightTiming obj);
+
+    void rgbQueryResult(ColorLampRGB obj);
 }

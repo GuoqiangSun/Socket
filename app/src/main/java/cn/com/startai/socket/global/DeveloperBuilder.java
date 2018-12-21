@@ -58,9 +58,26 @@ public class DeveloperBuilder {
 
 
     /**
-     * WIFI插座android开发者信息
+     * 供暖 android开发者信息
      * <p>
      * 万总的
+     */
+    public static final class AirtempNBDeveloper extends MqttInitParam {
+
+        public AirtempNBDeveloper() {
+            super.domain = "okaylight";
+            super.m_ver = "Json_1.2.4_9.2.1";
+            super.appid = "qxb050edbace01cbd8";
+            super.apptype = "smartOlWifi/controll/android";
+        }
+
+    }
+
+
+    /**
+     * Musik插座android开发者信息
+     * <p>
+     * startai的
      */
     public static final class SuperSocketDeveloper extends MqttInitParam {
 

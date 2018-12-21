@@ -26,6 +26,11 @@ public class SocketProtocolWrapper extends ProtocolWrapper implements IRegDebuge
 
     @Override
     public void onInputServerData(ReceivesData mReceiverData) {
+
+        if (Debuger.isLogDebug) {
+            Tlog.w(SocketResponseTask.TAG, "SocketProtocolWrapper onInputServerData() :" + mReceiverData.toString());
+        }
+
         super.onInputServerData(mReceiverData);
 
         if (Debuger.isProductDetection) {
@@ -33,11 +38,6 @@ public class SocketProtocolWrapper extends ProtocolWrapper implements IRegDebuge
                 productDetectionManager.receiveData(mReceiverData);
             }
         }
-
-        if (Debuger.isLogDebug) {
-            Tlog.w(SocketResponseTask.TAG, "SocketProtocolWrapper onInputServerData() :" + mReceiverData.toString());
-        }
-
     }
 
     @Override

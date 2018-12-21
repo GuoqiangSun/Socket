@@ -74,6 +74,12 @@ public class Controller implements IService {
         } else if (CustomManager.getInstance().isMUSIK()) {
             mHardware = new NetworkManager(app);
 
+        }else if(CustomManager.getInstance().isTestProject()){
+
+            mHardware = new NetworkManager(app);
+
+        }else if(CustomManager.getInstance().isAirtempNBProject()){
+            mHardware = new NetworkManager(app);
         }
 
         if (mHardware == null) {

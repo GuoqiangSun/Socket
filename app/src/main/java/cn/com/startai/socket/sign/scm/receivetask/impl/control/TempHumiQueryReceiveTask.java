@@ -55,7 +55,11 @@ public class TempHumiQueryReceiveTask extends SocketResponseTask {
         float curValue = Float.valueOf(value_int + "." + value_deci);
         curValue = (float) (Math.round(curValue * 100)) / 100;
 
-        Tlog.v(TAG, " result:" + result + " startup:" + startup + " alarmValue:" + alarmValue + " curValue:" + curValue + " limit:" + limit);
+        Tlog.v(TAG, " result:" + result
+                + " startup:" + startup
+                + " alarmValue:" + alarmValue
+                + " curValue:" + curValue
+                + " limit:" + limit);
 
         if (mCallBack != null) {
 
@@ -93,8 +97,6 @@ public class TempHumiQueryReceiveTask extends SocketResponseTask {
                     mHumidity.codeAlarmValue = alarmValue;
                 }
 
-//                mHumidity.alarmSwitch = startup;
-//                mHumidity.alarmValue = alarmValue;
                 mHumidity.currentValue = curValue;
 
                 mCallBack.onQueryHumidityResult(mac, result, mHumidity);

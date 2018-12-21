@@ -2,9 +2,9 @@ package cn.com.startai.socket.global;
 
 import android.app.Application;
 
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.baselib.app.IApp.IApp;
 import cn.com.swain.support.protocolEngine.ProtocolBuild;
-import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -29,6 +29,8 @@ public class CustomManager implements IApp {
     private boolean isGrowroomateProject = false;
     private boolean isTriggerWiFiProject = false;
     private boolean isTriggerBleProject = false;
+    private boolean isAirtempNBProject = false;
+
     private boolean isTestSocketProject = false;
 
     public boolean isMUSIK() {
@@ -45,6 +47,14 @@ public class CustomManager implements IApp {
 
     public boolean isTriggerBle() {
         return isTriggerBleProject;
+    }
+
+    public boolean isAirtempNBProject() {
+        return isAirtempNBProject;
+    }
+
+    public boolean isAirtempNBProjectTest() {
+        return isAirtempNBProject;
     }
 
     public boolean isTestProject() {
@@ -68,10 +78,13 @@ public class CustomManager implements IApp {
         return PROTOCOL_VERSION;
     }
 
+    public void initAirtempNBProject() {
+        Tlog.i(" is airtempNB socket project ");
+        isAirtempNBProject = true;
+    }
 
     public void initTestSocketProject() {
         Tlog.i(" is Test socket project ");
-        this.isTriggerBleProject = true;
         this.isTestSocketProject = true;
     }
 
@@ -116,6 +129,12 @@ public class CustomManager implements IApp {
 
             CUSTOM = SocketSecureKey.Custom.CUSTOM_STARTAI;
             PRODUCT = SocketSecureKey.Custom.PRODUCT_MUSIK;
+            PROTOCOL_VERSION = ProtocolBuild.VERSION.VERSION_SEQ;
+
+        } else if (isAirtempNBProject()) {
+
+            CUSTOM = SocketSecureKey.Custom.CUSTOM_WAN;
+            PRODUCT = SocketSecureKey.Custom.PRODUCT_NB_AIRTEMP;
             PROTOCOL_VERSION = ProtocolBuild.VERSION.VERSION_SEQ;
 
         } else {

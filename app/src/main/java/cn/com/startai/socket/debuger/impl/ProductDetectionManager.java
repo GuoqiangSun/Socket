@@ -19,6 +19,8 @@ import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.global.FileManager;
 import cn.com.startai.socket.global.LooperManager;
 import cn.com.startai.socket.mutual.Controller;
+import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
+import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
 import cn.com.startai.socket.sign.js.impl.JsManager;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.impl.SocketScmManager;
@@ -478,6 +480,21 @@ public class ProductDetectionManager implements DetectionRecyclerAdapter.OnClick
         mUIHandler.obtainMessage(RECEIVE_TEST_ANALYSIS_RESULT, protocolParams).sendToTarget();
     }
 
+    @Override
+    public void receiveNightLightSet(Object obj, NightLightTiming mNightLightTiming) {
+        mUIHandler.obtainMessage(REFRESH_NIGHT_LIGHT_SET, mNightLightTiming).sendToTarget();
+    }
+
+    @Override
+    public void receiveNightLightQuery(Object obj, NightLightTiming mNightLightTiming) {
+        mUIHandler.obtainMessage(REFRESH_NIGHT_LIGHT_QUERY, mNightLightTiming).sendToTarget();
+    }
+
+    @Override
+    public void receiveQueryRGB(Object obj, boolean result, ColorLampRGB mRGB) {
+        mUIHandler.obtainMessage(REFRESH_NIGHT_RGB_QUERY, mRGB).sendToTarget();
+    }
+
     private void recOnePkg(int type) {
         if (mDatas.size() > 0) {
             for (DetectInfo mDetect : mDatas) {
@@ -507,7 +524,9 @@ public class ProductDetectionManager implements DetectionRecyclerAdapter.OnClick
     private static final int REFRESH_TOAST = 0x03;
     private static final int REFRESH_FLASH_STATE = 0x04;
     private static final int RECEIVE_TEST_ANALYSIS_RESULT = 0x05;
-
+    private static final int REFRESH_NIGHT_LIGHT_SET = 0x06;
+    private static final int REFRESH_NIGHT_LIGHT_QUERY = 0x07;
+    private static final int REFRESH_NIGHT_RGB_QUERY = 0x08;
 
     private void uiHandlerMessage(Message msg) {
         switch (msg.what) {
@@ -555,6 +574,18 @@ public class ProductDetectionManager implements DetectionRecyclerAdapter.OnClick
                 break;
             case RECEIVE_TEST_ANALYSIS_RESULT:
                 mRecyclerAdapter.receiveProtocolAnalysisResult((byte[]) msg.obj);
+                break;
+
+            case REFRESH_NIGHT_LIGHT_SET:
+                mRecyclerAdapter.nightLightSetResult((NightLightTiming) msg.obj);
+                break;
+
+            case REFRESH_NIGHT_LIGHT_QUERY:
+                mRecyclerAdapter.nightLightQueryResult((NightLightTiming) msg.obj);
+                break;
+
+            case REFRESH_NIGHT_RGB_QUERY:
+                mRecyclerAdapter.rgbQueryResult((ColorLampRGB) msg.obj);
                 break;
         }
 

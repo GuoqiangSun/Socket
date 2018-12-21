@@ -22,8 +22,8 @@ public class MyTestTask extends SocketResponseTask {
 
     @Override
     protected void doTask(SocketDataArray mSocketDataArray) {
-
-        Tlog.d(TAG, " MyTestTask:" + mSocketDataArray.toString());
+        
+        Tlog.e(TAG, String.valueOf(mSocketDataArray));
 
         if (mTaskCallBack != null) {
             mTaskCallBack.onTestResult(mSocketDataArray.getProtocolParams());

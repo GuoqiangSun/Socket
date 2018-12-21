@@ -23,7 +23,7 @@ public class MyErrorTask extends SocketResponseTask {
     @Override
     protected void doTask(SocketDataArray mSocketDataArray) {
 
-        Tlog.e(TAG, mSocketDataArray.toString());
+        Tlog.e(TAG, String.valueOf(mSocketDataArray));
 
         byte[] protocolParams = mSocketDataArray.getProtocolParams();
 

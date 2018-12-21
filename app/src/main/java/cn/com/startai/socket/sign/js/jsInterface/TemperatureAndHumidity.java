@@ -197,6 +197,7 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
         );
 
         TimingTempHumiData mTimingAdvanceData = new TimingTempHumiData();
+        mTimingAdvanceData.setTypeIsTemp();
         mTimingAdvanceData.setAlarmValue(alarmValue);
         mTimingAdvanceData.setModel((byte) model);
         mTimingAdvanceData.mac = mac;

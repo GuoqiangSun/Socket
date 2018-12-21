@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import cn.com.startai.socket.debuger.impl.IDebugerProtocolStream;
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
+import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
 import cn.com.startai.socket.mutual.js.bean.TimingSetResult;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
 import cn.com.startai.socket.sign.scm.bean.CostRate;
@@ -159,6 +160,10 @@ public interface OnTaskCallBack {
 
     void onDeviceRenameResult(String id, boolean result, String name);
 
+    void onQueryDeviceNameResult(String id, boolean result, String name);
+
+    void onQueryDeviceSSIDResult(String id, boolean result, int rssi, String ssid);
+
     void onQuerySpendingElectricityResult(String id, boolean result, SpendingElectricityData mSpendingElectricityData);
 
     void onSetSpendingElectricityResult(String id, boolean result, SpendingElectricityData mSpendingElectricityData);
@@ -195,6 +200,8 @@ public interface OnTaskCallBack {
 
     void onUSBResult(String id, boolean on);
 
+    void onNightLightResult(String id, boolean on);
+
     void onSetTimezoneResult(boolean result, String id, byte zone);
 
     void onQueryTimezoneResult(boolean result, String id, byte zone);
@@ -203,7 +210,7 @@ public interface OnTaskCallBack {
 
     void onRGBQueryResult(boolean result, ColorLampRGB mColorLampRGB);
 
-    void onSetTimingTempHumiResult(boolean result,String id, TimingTempHumiData mAdvanceData);
+    void onSetTimingTempHumiResult(boolean result, String id, TimingTempHumiData mAdvanceData);
 
     void onQueryTimingTempHumiResult(boolean result, String id, ArrayList<TimingTempHumiData> mDataLst);
 
@@ -211,5 +218,9 @@ public interface OnTaskCallBack {
     void onRemoveCmd(String id, byte paramType, byte paramCmd, int seq);
 
     void onTestResult(byte[] protocolParams);
+
+    void onSetNightLightResult(boolean result, NightLightTiming mNightLightTiming);
+
+    void onQueryNightLightResult(boolean result, NightLightTiming mNightLightTiming);
 
 }

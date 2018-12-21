@@ -77,6 +77,11 @@ public class SwitchQueryResponseTask extends SocketResponseTask {
             if (mCallBack != null) {
                 mCallBack.onUSBResult(mSocketDataArray.getID(), on);
             }
+        } else if (SocketSecureKey.Util.isNightLight(model)) {
+            Tlog.e(TAG, "control switch is nightLight ");
+            if (mCallBack != null) {
+                mCallBack.onNightLightResult(mSocketDataArray.getID(), on);
+            }
         }
 
 

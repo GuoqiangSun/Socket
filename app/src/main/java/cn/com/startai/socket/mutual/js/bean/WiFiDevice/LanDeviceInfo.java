@@ -6,6 +6,10 @@ import org.greenrobot.greendao.annotation.Id;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+
 /**
  * author: Guoqiang_Sun
  * date : 2018/6/6 0006
@@ -169,13 +173,7 @@ public class LanDeviceInfo implements Cloneable {
             int m = (mainVersion & 0xFF);
             int s = (subVersion & 0xFF);
             String v = m + "." + s;
-            double v1;
-            try {
-                v1 = Double.parseDouble(v);
-            } catch (Exception e) {
-                v1 = getVersion();
-            }
-            obj.put("version", v1);
+            obj.put("version", v);
 
             JSONObject mWiFiInfo = new JSONObject();
             mWiFiInfo.put("ssid", ssid);

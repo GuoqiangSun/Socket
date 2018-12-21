@@ -27,7 +27,7 @@ public class RGBSetReceiveTask extends SocketResponseTask {
         byte[] protocolParams = mSocketDataArray.getProtocolParams();
 
         if (protocolParams == null || protocolParams.length < 5) {
-            Tlog.e(TAG, " MaxOutputQueryReceiveTask error:" + mSocketDataArray.toString());
+            Tlog.e(TAG, " RGBSetReceiveTask error:" + mSocketDataArray.toString());
             return;
         }
 
@@ -40,11 +40,19 @@ public class RGBSetReceiveTask extends SocketResponseTask {
         mRGB.g = protocolParams[3] & 0xFF;
         mRGB.b = protocolParams[4] & 0xFF;
 
+        if (protocolParams.length >= 6) {
+            mRGB.model = protocolParams[5] & 0xFF;
+        } else {
+            mRGB.model = SocketSecureKey.Model.MODEL_COLOR_LAMP;
+        }
+
         Tlog.e(TAG, " RGBSetReceiveTask result:" + result
-                + String.valueOf(mRGB));
+                + " " + String.valueOf(mRGB));
 
         if (mTaskCallBack != null) {
-            mTaskCallBack.onRGBSetResult(result, mRGB);
+            if (mRGB.model == SocketSecureKey.Model.MODEL_COLOR_LAMP) {
+                mTaskCallBack.onRGBSetResult(result, mRGB);
+            }
         }
 
 

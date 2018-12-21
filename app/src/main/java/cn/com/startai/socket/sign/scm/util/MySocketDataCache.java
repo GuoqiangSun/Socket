@@ -119,14 +119,14 @@ public class MySocketDataCache implements IService {
 
         if (mSocketDataProducer != null) {
             mSocketDataProducer.clear();
-            mSocketDataProducer = null;
         }
 
+        mScm = null;
     }
 
     @Override
     public void onSFinish() {
-        mScm = null;
+
     }
 
     private static final Object synObj = new byte[1];
@@ -228,6 +228,8 @@ public class MySocketDataCache implements IService {
         repeatMsgModel.setProduct(mPack.getProduct());
         repeatMsgModel.setMsgWhat((mPack.getType() & 0xFF) << 8 | (mPack.getCmd() & 0xFF));
         repeatMsgModel.setNeedRepeatSend(record);
+        responseData.getSendModel().setModelIsLan();
+        responseData.getSendModel().setModelIsWan();
         mPack.setISUnUsed();
         return responseData;
     }
@@ -256,8 +258,8 @@ public class MySocketDataCache implements IService {
 
         mSecureDataPack.setParams(new byte[]{SocketSecureKey.Model.MODEL_RELAY});
         ResponseData responseData = newResponseDataNoRecord(mac, mSecureDataPack);
-        responseData.getSendModel().setModelIsLan();
-        responseData.getSendModel().setModelIsWan();
+        responseData.getSendModel().fillEmpty();
+        responseData.getSendModel().setModelCasual();
         return responseData;
     }
 
@@ -279,8 +281,8 @@ public class MySocketDataCache implements IService {
         params[1] = SocketSecureKey.Util.on(on);
         mSecureDataPack.setParams(params);
         ResponseData responseData = newResponseDataRecord(mac, mSecureDataPack);
-        responseData.getSendModel().setModelIsLan();
-        responseData.getSendModel().setModelIsWan();
+        responseData.getSendModel().fillEmpty();
+        responseData.getSendModel().setModelCasual();
         return responseData;
     }
 
@@ -432,6 +434,74 @@ public class MySocketDataCache implements IService {
         return newResponseDataRecord(mac, mSecureDataPack);
     }
 
+    public static ResponseData getSetWisdomNightLight(String mac, boolean startup) {
+        return getSetWisdomNightLight(mac,
+                startup,
+                (byte) 0x0, (byte) 0x0,
+                (byte) 0x18, (byte) 0x18);
+    }
+
+    public static ResponseData getSetWisdomNightLight(String mac,
+                                                      boolean startup,
+                                                      byte startHour, byte startMinute,
+                                                      byte stopHour, byte stopMinute) {
+        return getSetNightLight(mac,
+                SocketSecureKey.Model.MODEL_NIGHT_LIGHT_WISDOM,
+                startup, startHour, startMinute,
+                stopHour, stopMinute);
+    }
+
+    public static ResponseData getSetTimingNightLight(String mac,
+                                                      boolean startup,
+                                                      byte startHour, byte startMinute,
+                                                      byte stopHour, byte stopMinute) {
+        return getSetNightLight(mac,
+                SocketSecureKey.Model.MODEL_NIGHT_LIGHT_TIMING,
+                startup, startHour, startMinute,
+                stopHour, stopMinute);
+    }
+
+    public static ResponseData getSetNightLight(String mac, byte id,
+                                                boolean startup,
+                                                byte startHour, byte startMinute,
+                                                byte stopHour, byte stopMinute) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_NIGHT_LIGHT);
+
+        final byte[] params = new byte[6];
+        params[0] = id;
+        params[1] = SocketSecureKey.Util.startup(startup);
+        params[2] = startHour;
+        params[3] = startMinute;
+        params[4] = stopHour;
+        params[5] = stopMinute;
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getQueryWisdomNightLight(String mac) {
+        return getQueryNightLight(mac, SocketSecureKey.Model.MODEL_NIGHT_LIGHT_WISDOM);
+    }
+
+    public static ResponseData getQueryTimingNightLight(String mac) {
+        return getQueryNightLight(mac, SocketSecureKey.Model.MODEL_NIGHT_LIGHT_TIMING);
+    }
+
+    public static ResponseData getQueryRunningNightLight(String mac) {
+        return getQueryNightLight(mac, SocketSecureKey.Model.MODEL_NIGHT_LIGHT_RUNNING);
+    }
+
+    public static ResponseData getQueryNightLight(String mac, int id) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_NIGHT_LIGHT);
+        final byte[] params = new byte[1];
+        params[0] = (byte) id;
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
 
     public static ResponseData getSetTime(String mac, byte year, byte month, byte day, byte hour, byte minute, byte second, byte week) {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
@@ -490,17 +560,29 @@ public class MySocketDataCache implements IService {
         mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_TEMPERATURE_HUMIDITY_DATA);
 
         final byte[] params = new byte[]{SocketSecureKey.Model.ALARM_MODEL_TEMPERATURE,
-                SocketSecureKey.Model.ALARM_LIMIT_DOWN,};
+                SocketSecureKey.Model.ALARM_LIMIT_DOWN};
         mSecureDataPack.setParams(params);
         return newResponseDataRecord(mac, mSecureDataPack);
     }
 
-    public static ResponseData getQueryHumidity(String mac) {
+    public static ResponseData getQueryHumidityLimitUp(String mac) {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
         mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_TEMPERATURE_HUMIDITY_DATA);
 
-        final byte[] params = new byte[]{SocketSecureKey.Model.ALARM_MODEL_HUMIDITY};
+        final byte[] params = new byte[]{SocketSecureKey.Model.ALARM_MODEL_HUMIDITY,
+                SocketSecureKey.Model.ALARM_LIMIT_UP};
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getQueryHumidityLimitDown(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_TEMPERATURE_HUMIDITY_DATA);
+
+        final byte[] params = new byte[]{SocketSecureKey.Model.ALARM_MODEL_HUMIDITY,
+                SocketSecureKey.Model.ALARM_LIMIT_DOWN};
         mSecureDataPack.setParams(params);
         return newResponseDataRecord(mac, mSecureDataPack);
     }
@@ -544,7 +626,7 @@ public class MySocketDataCache implements IService {
     public static ResponseData getQueryTimezone(String mac) {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_TIME);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_TIMEZONE);
         return newResponseDataRecord(mac, mSecureDataPack);
     }
 
@@ -687,9 +769,11 @@ public class MySocketDataCache implements IService {
         params[2] = (byte) ((token >> 8) & 0xFF);
         params[3] = (byte) ((token) & 0xFF);
         mSecureDataPack.setParams(params);
-        return newResponseDataNoRecord(mac, mSecureDataPack);
+        ResponseData responseData = newResponseDataNoRecord(mac, mSecureDataPack);
+        responseData.getSendModel().setModelOnlyLan();
+        responseData.getRepeatMsgModel().setMaxRepeatTimes(1);
+        return responseData;
     }
-
 
     public static ResponseData getRecovery(String mac) {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
@@ -735,7 +819,7 @@ public class MySocketDataCache implements IService {
 
         mSecureDataPack.setParams(params);
         ResponseData responseData = newResponseDataRecord(mac, mSecureDataPack);
-        responseData.getSendModel().setModelIsLan();
+        responseData.getSendModel().setModelOnlyLan();
         return responseData;
     }
 
@@ -758,7 +842,9 @@ public class MySocketDataCache implements IService {
             System.arraycopy(userIDByte, 0, params, 0, length);
         }
         mSecureDataPack.setParams(params);
-        return newResponseDataNoRecord(mac, mSecureDataPack);
+        ResponseData responseData = newResponseDataNoRecord(mac, mSecureDataPack);
+        responseData.getSendModel().setModelOnlyLan();
+        return responseData;
     }
 
     private static final byte[] EMPTY_BYTES_32 = new byte[]{
@@ -767,6 +853,13 @@ public class MySocketDataCache implements IService {
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
     };
+
+    public static ResponseData getQueryDeviceName(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_NAME);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
 
     public synchronized static ResponseData getRename(String mac, byte[] nameBytes) {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
@@ -787,7 +880,10 @@ public class MySocketDataCache implements IService {
             System.arraycopy(nameBytes, 0, params, 0, length);
         }
         mSecureDataPack.setParams(params);
-        return newResponseDataRecord(mac, mSecureDataPack);
+        ResponseData responseData = newResponseDataRecord(mac, mSecureDataPack);
+        responseData.getSendModel().fillEmpty();
+        responseData.getSendModel().setModelCasual();
+        return responseData;
     }
 
     public static ResponseData getRequestToken(String mac, byte[] userID, int random) {
@@ -816,7 +912,7 @@ public class MySocketDataCache implements IService {
 
         mSecureDataPack.setParams(params);
         ResponseData responseData = newResponseDataRecord(mac, mSecureDataPack);
-        responseData.getSendModel().setModelIsLan();
+        responseData.getSendModel().setModelOnlyLan();
         return responseData;
     }
 
@@ -848,7 +944,7 @@ public class MySocketDataCache implements IService {
         mSecureDataPack.setParams(params);
 
         ResponseData responseData = newResponseDataRecord(mac, mSecureDataPack);
-        responseData.getSendModel().setModelIsLan();
+        responseData.getSendModel().setModelOnlyLan();
         return responseData;
     }
 
@@ -879,7 +975,7 @@ public class MySocketDataCache implements IService {
 
         mSecureDataPack.setParams(params);
         ResponseData responseData = newResponseDataRecord(mac, mSecureDataPack);
-        responseData.getSendModel().setModelIsLan();
+        responseData.getSendModel().setModelOnlyLan();
         return responseData;
     }
 
@@ -910,7 +1006,22 @@ public class MySocketDataCache implements IService {
         params[32 + 3] = (byte) ((token) & 0xFF);
 
         mSecureDataPack.setParams(params);
-        return newResponseDataRecord(mac, mSecureDataPack);
+        ResponseData responseData = newResponseDataRecord(mac, mSecureDataPack);
+        responseData.getSendModel().setModelOnlyLan();
+        return responseData;
+    }
+
+    /**
+     * 查询ssid
+     */
+    public static ResponseData getQuerySSID(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_SSID);
+        ResponseData responseData = newResponseDataRecord(mac, mSecureDataPack);
+        responseData.getSendModel().fillEmpty();
+        responseData.getSendModel().setModelCasual();
+        return responseData;
     }
 
 
@@ -1007,7 +1118,7 @@ public class MySocketDataCache implements IService {
     public static ResponseData getTempUnitBle(String mac, byte unit) {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_UNIT_TEMPERATURE);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_UNIT_TEMPERATURE_BLE);
 
         final byte[] params = new byte[]{(byte) (unit & 0xFF)};
         mSecureDataPack.setParams(params);
@@ -1050,7 +1161,7 @@ public class MySocketDataCache implements IService {
     public static ResponseData getQueryTemperatureUnitBle(String mac) {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
-        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_UNIT_TEMPERATURE);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_UNIT_TEMPERATURE_BLE);
 
         return newResponseDataRecord(mac, mSecureDataPack);
     }
@@ -1150,25 +1261,54 @@ public class MySocketDataCache implements IService {
         return newResponseDataRecord(mac, mSecureDataPack);
     }
 
-    public static ResponseData getQueryLightColor(String mac, int seq) {
+
+    // 彩灯
+    public static ResponseData getQueryColorLamp(String mac, int seq) {
+        return getQueryLightColor(mac, seq, SocketSecureKey.Model.MODEL_COLOR_LAMP);
+    }
+
+    // 黄灯
+    public static ResponseData getQueryYellowLight(String mac, int seq) {
+        return getQueryLightColor(mac, seq, SocketSecureKey.Model.MODEL_YELLOW_LIGHT);
+    }
+
+    public static ResponseData getQueryLightColor(String mac, int seq, int model) {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
         mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_LIGHT_COLOR);
-        byte[] params = new byte[1];
+        byte[] params = new byte[2];
         params[0] = (byte) seq;
+        params[1] = (byte) model;
         mSecureDataPack.setParams(params);
         return newResponseDataRecord(mac, mSecureDataPack);
     }
 
-    public static ResponseData getSetLightColor(String mac, int seq, int r, int g, int b) {
+    // 彩灯
+    public static ResponseData getSetColorLamp(String mac, int seq, int r, int g, int b) {
+        return getSetLightColor(mac, seq, r, g, b, SocketSecureKey.Model.MODEL_COLOR_LAMP);
+    }
+
+    public static ResponseData getSetLightColor(String mac, int seq, int r, int g, int b, int model) {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
         mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_LIGHT_COLOR);
-        byte[] params = new byte[4];
+        byte[] params = new byte[5];
         params[0] = (byte) seq;
         params[1] = (byte) r;
         params[2] = (byte) g;
         params[3] = (byte) b;
+        params[4] = (byte) model;
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getSwitchNightLight(String mac, boolean status) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_RELAY_SWITCH);
+        final byte[] params = new byte[2];
+        params[0] = SocketSecureKey.Model.MODEL_NIGHT_LIGHT;
+        params[1] = SocketSecureKey.Util.on(status);
         mSecureDataPack.setParams(params);
         return newResponseDataRecord(mac, mSecureDataPack);
     }
@@ -1203,6 +1343,14 @@ public class MySocketDataCache implements IService {
         params[0] = SocketSecureKey.Model.MODEL_USB;
         params[1] = SocketSecureKey.Util.on(status);
         mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getQueryNightLight(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_RELAY_STATUS);
+        mSecureDataPack.setParams(new byte[]{SocketSecureKey.Model.MODEL_NIGHT_LIGHT});
         return newResponseDataRecord(mac, mSecureDataPack);
     }
 

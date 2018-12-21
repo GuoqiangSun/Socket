@@ -1,5 +1,9 @@
 package cn.com.startai.socket.java;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -13,6 +17,75 @@ import java.util.TimeZone;
 public class JavaTestMain {
 
     public static void main(String[] args) {
+//        c();
+    }
+
+    public static void d() {
+        JSONObject mObj = new JSONObject();
+        try {
+            mObj.put("name", "123");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        byte[] bytes = {0x01, 0x02, 0x03};
+
+        JSONArray mArray = new JSONArray();
+        mArray.put(bytes[0]);
+        mArray.put(bytes[1]);
+        mArray.put(bytes[2]);
+
+        try {
+            mObj.put("data", mArray);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        String s = mObj.toString();
+        System.out.println(s);
+    }
+
+    private static void c() {
+
+        String s = "123";
+
+        System.out.println(s.hashCode());
+
+        System.out.println("123".hashCode());
+
+        new Thread() {
+            @Override
+            public void run() {
+                super.run();
+
+                String s = "123";
+
+                System.out.println("t:" + s.hashCode());
+
+                System.out.println("t :" + "123".hashCode());
+            }
+        }.start();
+    }
+
+    private static void b() {
+        byte[] protocolParams = new byte[2];
+        protocolParams[0] = (byte) 0x9a;
+        protocolParams[1] = 0x00;
+
+        int temp_int = protocolParams[0];
+        System.out.println(temp_int);
+
+        int temp_deci = protocolParams[1] & 0xFF;
+        float tempF = Float.valueOf(temp_int + "." + temp_deci);
+
+
+        float temp = (float) (Math.round(tempF * 100)) / 100;
+
+        System.out.println(temp);
+
+    }
+
+    private static void a() {
 
         TimeZone aDefault = TimeZone.getDefault();
 

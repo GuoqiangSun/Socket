@@ -27,6 +27,10 @@ public class Timing extends AbsHandlerJsInterface {
         void onJSTSetCommonTiming(TimingCommonData mTimingCommonData);
 
         void onJSTSetPatternTiming(TimingAdvanceData mTimingAdvanceData);
+
+        void onJSTQueryComTimingListData(String mac);
+
+        void onJSTQueryAdvTimingListData(String mac);
     }
 
     public static class Method {
@@ -59,7 +63,7 @@ public class Timing extends AbsHandlerJsInterface {
          * @param result
          * @return
          */
-        public static String callJsTimingCommonSet(String mac, boolean result,boolean startup,int id,int model) {
+        public static String callJsTimingCommonSet(String mac, boolean result, boolean startup, int id, int model) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
             return METHOD_TIMING_COMMON_SET_RESPONSE.replace("$mac", mac)
                     .replace("$result", String.valueOf(result))
@@ -85,9 +89,29 @@ public class Timing extends AbsHandlerJsInterface {
      */
     @JavascriptInterface
     public void commonPatternListDataRequest(String mac) {
-        Tlog.v(TAG, " commonPatternListDataRequest ");
+        Tlog.v(TAG, " commonPatternListDataRequest " + mac);
 
         getHandler().obtainMessage(MSG_QUERY_TIMING_DATA, mac).sendToTarget();
+
+    }
+
+    /**
+     * 定时列表数据
+     */
+    @JavascriptInterface
+    public void commonPatternListDataRequest(String mac, int model) {
+        Tlog.v(TAG, " commonPatternListDataRequest mac:" + mac + " model:" + model);
+
+        if (model != 1 && model != 2) {
+            model = 1;
+        }
+
+        if (model == 1) {
+            getHandler().obtainMessage(MSG_QUERY_TIMING_COM_DATA, mac).sendToTarget();
+        } else {
+            getHandler().obtainMessage(MSG_QUERY_TIMING_ADV_DATA, mac).sendToTarget();
+        }
+
 
     }
 
@@ -215,6 +239,9 @@ public class Timing extends AbsHandlerJsInterface {
 
     private static final int MSG_SET_ADVANCE_TIMING = 0x13;
 
+    private static final int MSG_QUERY_TIMING_COM_DATA = 0x14;
+    private static final int MSG_QUERY_TIMING_ADV_DATA = 0x15;
+
     @Override
     protected void handleMessage(Message msg) {
 
@@ -223,14 +250,20 @@ public class Timing extends AbsHandlerJsInterface {
                 mCallBack.onJSTQueryTimingListData((String) msg.obj);
             }
         } else if (msg.what == MSG_SET_COMMON_TIMING) {
-
             if (mCallBack != null) {
                 mCallBack.onJSTSetCommonTiming((TimingCommonData) msg.obj);
             }
-
         } else if (msg.what == MSG_SET_ADVANCE_TIMING) {
             if (mCallBack != null) {
                 mCallBack.onJSTSetPatternTiming((TimingAdvanceData) msg.obj);
+            }
+        } else if (msg.what == MSG_QUERY_TIMING_COM_DATA) {
+            if (mCallBack != null) {
+                mCallBack.onJSTQueryComTimingListData((String) msg.obj);
+            }
+        } else if (msg.what == MSG_QUERY_TIMING_ADV_DATA) {
+            if (mCallBack != null) {
+                mCallBack.onJSTQueryAdvTimingListData((String) msg.obj);
             }
         }
 

@@ -8,4 +8,5 @@ import cn.com.swain.support.protocolEngine.IO.IDataInputRegOutput;
  * desc :
  */
 public abstract class AbsSocketScm implements IDataInputRegOutput, IVirtualSocketScm {
+
 }

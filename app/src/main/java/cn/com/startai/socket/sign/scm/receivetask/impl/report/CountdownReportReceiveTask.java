@@ -54,7 +54,7 @@ public class CountdownReportReceiveTask extends SocketResponseTask {
             mCountdownData.allTime += protocolParams[5] & 0xFF;
         }
 
-        Tlog.v(TAG, " CountdownReportReceiveTask  :" + mCountdownData.toString());
+        Tlog.v(TAG, " CountdownReportReceiveTask  :" + String.valueOf(mCountdownData));
 //        mCountdownData.checkAllTime();
 
 //         protocolParams[0]  == 1 启动    ==2 结束

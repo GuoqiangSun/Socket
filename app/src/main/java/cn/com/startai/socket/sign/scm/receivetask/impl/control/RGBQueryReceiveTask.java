@@ -1,5 +1,6 @@
 package cn.com.startai.socket.sign.scm.receivetask.impl.control;
 
+import cn.com.startai.socket.debuger.impl.IDebugerProtocolStream;
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
@@ -27,7 +28,7 @@ public class RGBQueryReceiveTask extends SocketResponseTask {
         byte[] protocolParams = mSocketDataArray.getProtocolParams();
 
         if (protocolParams == null || protocolParams.length < 5) {
-            Tlog.e(TAG, " MaxOutputQueryReceiveTask error:" + mSocketDataArray.toString());
+            Tlog.e(TAG, " RGBQueryReceiveTask error:" + mSocketDataArray.toString());
             return;
         }
 
@@ -40,11 +41,24 @@ public class RGBQueryReceiveTask extends SocketResponseTask {
         mRGB.g = protocolParams[3] & 0xFF;
         mRGB.b = protocolParams[4] & 0xFF;
 
-        Tlog.e(TAG, " RGBSetReceiveTask result:" + result
-                + String.valueOf(mRGB));
+        if (protocolParams.length >= 6) {
+            mRGB.model = protocolParams[5] & 0xFF;
+        } else {
+            mRGB.model = SocketSecureKey.Model.MODEL_COLOR_LAMP;
+        }
+
+        Tlog.e(TAG, " RGBQueryReceiveTask result:" + result
+                + " " + String.valueOf(mRGB));
 
         if (mTaskCallBack != null) {
-            mTaskCallBack.onRGBQueryResult(result, mRGB);
+            if (mRGB.model == SocketSecureKey.Model.MODEL_COLOR_LAMP) {
+                mTaskCallBack.onRGBQueryResult(result, mRGB);
+            }
+
+            IDebugerProtocolStream iDebugerStream = mTaskCallBack.getIDebugerStream();
+            if (iDebugerStream != null) {
+                iDebugerStream.receiveQueryRGB(mSocketDataArray.getObj(), result, mRGB);
+            }
         }
 
 

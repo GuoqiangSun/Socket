@@ -1,36 +1,43 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        smartplug {
+            keyAlias 'smartplug'
+            keyPassword 'startai'
+            storeFile file('D:/AS_project/key/startai-key-super-startai')
+            storePassword 'startai'
+        }
+    }
     compileSdkVersion 27
-
     compileOptions {
         sourceCompatibility 1.8
         targetCompatibility 1.8
     }
-
     defaultConfig {
         applicationId "cn.com.startai.smartplug"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 16018
-        versionName "1.6.018"
+        versionCode 16028
+        versionName "1.6.028"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }
-
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.smartplug
+        }
+        debug {
+            signingConfig signingConfigs.smartplug
         }
     }
-
     android.applicationVariants.all { variant ->
         variant.outputs.all {
             outputFileName = "smartplug-${variant.versionName}-${variant.buildType.name}.apk"
         }
     }
-
 }
 
 
@@ -48,8 +55,7 @@ allprojects {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support.constraint:constraint-layout:1.1.2'
     implementation 'com.android.support:recyclerview-v7:27.1.1'
     implementation 'com.android.support:appcompat-v7:27.1.1'

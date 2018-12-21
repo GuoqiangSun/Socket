@@ -59,8 +59,8 @@ public class TimingSetReceiveTask extends SocketResponseTask {
             mResult.state = protocolParams[3];//保存删除
             mResult.startup = SocketSecureKey.Util.startup(protocolParams[4]);//onOff
             mResult.week = (byte) (protocolParams[5] & 0xFF);//week
-            mResult.hour = protocolParams[6];//hour
-            mResult.minute = protocolParams[7];//minute
+//             protocolParams[6];//hour
+//           protocolParams[7];//minute
         }
 
         Tlog.v(TAG, " TimingSetReceiveTask : " + String.valueOf(mResult));

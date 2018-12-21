@@ -1,7 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-
+    signingConfigs {
+        wifisocket {
+            keyAlias 'wifisocket'
+            keyPassword 'startai'
+            storeFile file('D:/AS_project/key/startai-key-super-startai')
+            storePassword 'startai'
+        }
+    }
     compileSdkVersion 27
     compileOptions {
         sourceCompatibility 1.8
@@ -11,8 +18,8 @@ android {
         applicationId "cn.com.startai.wifisocket"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 16238
-        versionName "1.6.238"
+        versionCode 16245
+        versionName "1.6.245"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
@@ -21,6 +28,10 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.wifisocket
+        }
+        debug {
+            signingConfig signingConfigs.wifisocket
         }
     }
     android.applicationVariants.all { variant ->

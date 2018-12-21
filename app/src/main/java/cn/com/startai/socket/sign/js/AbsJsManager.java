@@ -2,6 +2,7 @@ package cn.com.startai.socket.sign.js;
 
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.mutual.js.bean.MobileLogin;
+import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
 import cn.com.startai.socket.mutual.js.bean.StatusBarBean;
 import cn.com.startai.socket.mutual.js.bean.UserRegister;
 import cn.com.startai.socket.mutual.js.bean.UserUpdateInfo;
@@ -242,11 +243,25 @@ public abstract class AbsJsManager implements Device.IJSDeviceCallBack,//
 
         void onJSTHSetTemperatureTimingAlarm(TimingTempHumiData obj);
 
-        void onJSTHQueryTemperatureTimingAlarm(String mac,int model);
+        void onJSTHQueryTemperatureTimingAlarm(String mac, int model);
 
         void onJSQueryColourLampRGB(String mac);
 
         void onJSTurnColourLamp(String mac, boolean state);
+
+        void onJSTQueryComTimingListData(String mac);
+
+        void onJSTQueryAdvTimingListData(String mac);
+
+        void onJSSetNightLightTiming(NightLightTiming mNightLightTiming);
+
+        void onJSSetNightLightWisdom(NightLightTiming mNightLightTiming);
+
+        void onJSQueryNightLight(String mac);
+
+        void onJSSetNightLight(String mac, boolean b);
+
+        void onJSQueryRunningNightLight(String mac);
     }
 
 }

@@ -107,7 +107,9 @@ public interface IControlWiFi {
 
     void wxLogin();
 
-    void onDeviceUpdateResult(boolean result,UpdateVersion mVersion);
+    void onDeviceUpdateResult(boolean result, UpdateVersion mVersion);
+
+    void onDeviceResponseDeviceSSID(String id, int rssi, String ssid);
 
     interface IWiFiResultCallBack {
 
@@ -117,7 +119,7 @@ public interface IControlWiFi {
 
         void onResultConfigureWiFi(boolean result);
 
-        void onResultDeviceConfigureWiFi(boolean result);
+        void onResultDeviceConfigureWiFi(boolean result, String mac);
 
         void onResultSocketInit(boolean result);
 
@@ -131,7 +133,7 @@ public interface IControlWiFi {
 
         void onResultEmailLogin(boolean result, String errorCode);
 
-        void onResultBindDevice(boolean result,String mac);
+        void onResultBindDevice(boolean result, String mac);
 
         void onResultGetMobileLoginCode(boolean result);
 

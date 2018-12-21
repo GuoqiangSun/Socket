@@ -56,7 +56,7 @@ public class CountdownQueryReceiveTask extends SocketResponseTask {
             mCountdownData.allTime += protocolParams[6] & 0xFF;
         }
 
-        Tlog.v(TAG, " CountdownQueryReceiveTask :" + mCountdownData.toString());
+        Tlog.v(TAG, " CountdownQueryReceiveTask :" + String.valueOf(mCountdownData));
 //        mCountdownData.checkAllTime();
 
         if (mCallBack != null) {

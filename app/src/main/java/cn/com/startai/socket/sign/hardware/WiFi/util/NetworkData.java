@@ -40,5 +40,6 @@ public class NetworkData extends BaseSpTool {
         return getString(KEY_LOGIN_USER, def);
     }
 
+    public static final String USERID_DEFAULT = "1234567890ABCDEF";
 
 }

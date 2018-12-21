@@ -10,7 +10,6 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.FileProvider;
 
 import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.Utils;
@@ -47,6 +46,7 @@ import cn.com.startai.mqttsdk.mqtt.request.MqttPublishRequest;
 import cn.com.startai.socket.db.gen.UserInfoDao;
 import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.debuger.Debuger;
+import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.FileManager;
 import cn.com.startai.socket.global.WXLoginHelper;
 import cn.com.startai.socket.mutual.js.bean.MobileLogin;
@@ -78,7 +78,15 @@ public class UserManager implements IService {
 
     @Override
     public void onSCreate() {
-        setLoginUserID(getLastLoginUserID());
+
+        if (CustomManager.getInstance().isAirtempNBProjectTest()) {
+            setLoginUserID(NetworkData.USERID_DEFAULT);
+//            setLoginUserID("d61a2ee17966d6f1b8b2f93c5a6d5eea");
+
+        } else {
+            setLoginUserID(getLastLoginUserID());
+        }
+
     }
 
     @Override
@@ -236,7 +244,7 @@ public class UserManager implements IService {
                 if (mResultCallBack != null) {
                     mResultCallBack.onResultMsgSendError(ERROR_CODE_WX_LOGIN_UNKNOWN);
                 }
-            }else {
+            } else {
                 Tlog.v(TAG, " wxApi  sendReq ");
                 wxApi.sendReq(req);
             }
@@ -595,21 +603,11 @@ public class UserManager implements IService {
             return;
         }
 
-
         Tlog.v(TAG, "takePhoto() " + savePhotoFile.getAbsolutePath());
 
-        Uri imageUri;
-        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            // 从文件中创建uri
-            imageUri = Uri.fromFile(savePhotoFile);
-        } else {
-            String authority = Utils.getApp().getPackageName() + ".utilcode.provider";
-            imageUri = FileProvider.getUriForFile(Utils.getApp(), authority, savePhotoFile);
-        }
-
+        Uri imageUri = PhotoUtils.getTakePhotoURI(app, savePhotoFile);
         Intent intent = PhotoUtils.requestTakePhoto(imageUri);
         takePhotoUri = imageUri;
-
 
         if (mResultCallBack != null) {
             mResultCallBack.onResultStartActivityForResult(intent, TAKE_PHOTO_CODE);
@@ -643,6 +641,11 @@ public class UserManager implements IService {
         Tlog.v(TAG, "localPhoto() ");
 
         Intent intent = PhotoUtils.requestLocalPhoto();
+
+//        Intent intent = new Intent(Intent.ACTION_PICK,null);
+//        intent.setDataAndType(
+//                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+//                "image/*");
 
         if (mResultCallBack != null) {
             mResultCallBack.onResultStartActivityForResult(intent, LOCAL_PHOTO_CODE);
@@ -742,12 +745,12 @@ public class UserManager implements IService {
         if (requestCode == LOCAL_PHOTO_CODE) {
 
             Uri imageUri = data.getData();
+            Tlog.d(TAG, " onActivityResult LOCAL_PHOTO_CODE success " + String.valueOf(imageUri));
 
-            Tlog.d(TAG, " onActivityResult LOCAL_PHOTO_CODE success ");
             localPhotoFile = crop(imageUri, CROP_LOCAL_PHOTO);
 
         } else if (requestCode == TAKE_PHOTO_CODE) {
-            Tlog.d(TAG, " onActivityResult TAKE_PHOTO_CODE success ");
+            Tlog.d(TAG, " onActivityResult TAKE_PHOTO_CODE success " + String.valueOf(takePhotoUri));
             takePhotoFile = crop(takePhotoUri, CROP_TAKE_PHOTO);
 
         } else if (requestCode == CROP_TAKE_PHOTO) {
@@ -1205,7 +1208,8 @@ public class UserManager implements IService {
                 PackageInfo packageInfo = applicationContext.getPackageManager()
                         .getPackageInfo(applicationContext.getPackageName(), 0);
 
-                Tlog.v(TAG, " myVersionCode:" + packageInfo.versionCode + " sVersionCode:" + resp.getContent().getVersionCode());
+                Tlog.v(TAG, " myVersionCode:" + packageInfo.versionCode
+                        + " sVersionCode:" + resp.getContent().getVersionCode());
 
                 isLatestVersion = packageInfo.versionCode < resp.getContent().getVersionCode();
 
@@ -1217,7 +1221,8 @@ public class UserManager implements IService {
             Tlog.v(TAG, " onGetLatestVersionResult:  downloadUrl" + downloadUrl);
 
             if (mResultCallBack != null) {
-                mResultCallBack.onResultIsLatestVersion(resp.getResult() == 1, resp.getContent().getErrcode(), isLatestVersion);
+                mResultCallBack.onResultIsLatestVersion(resp.getResult() == 1,
+                        resp.getContent().getErrcode(), isLatestVersion);
             }
 
         } else {

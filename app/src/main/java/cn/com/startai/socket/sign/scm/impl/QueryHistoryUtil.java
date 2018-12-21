@@ -13,7 +13,6 @@ import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.global.Utils.DateUtils;
 import cn.com.startai.socket.mutual.js.bean.CountAverageElectricity;
 import cn.com.startai.socket.mutual.js.bean.CountElectricity;
-import cn.com.startai.socket.sign.scm.IVirtualSocketScm;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
 import cn.com.startai.socket.sign.scm.util.MySocketDataCache;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
@@ -615,7 +614,145 @@ public class QueryHistoryUtil {
 //            scmDevice.sendQueryHistoryCountResult(1000, mCount);
 //        } else {
 //        }
-            scmDevice.sendQueryHistoryCountResult(100, mCount);
+        scmDevice.sendQueryHistoryCountResult(100, mCount);
+
+    }
+
+
+    public static void updateHistory(QueryHistoryCount mCount) {
+
+
+        ArrayList<QueryHistoryCount.Day> mDayArray = mCount.mDayArray;
+
+        if (mDayArray == null) {
+            return;
+        }
+
+
+        CountElectricityDao countElectricityDao =
+                DBManager.getInstance().getDaoSession().getCountElectricityDao();
+
+        List<CountElectricity> list0 = countElectricityDao.queryBuilder()
+                .where(CountElectricityDao.Properties.Mac.eq(mCount.mac),
+                        CountElectricityDao.Properties.Timestamp.eq(
+                                mCount.startTimeMillis - DateUtils.ONE_DAY)).list();
+
+        long sequence = 0L;
+        if (list0.size() > 0) {
+            CountElectricity countElectricity = list0.get(0);
+            sequence = countElectricity.getSequence();
+        }
+
+
+        long curMillis = DateUtils.fastFormatTsToDayTs(System.currentTimeMillis());
+
+        long startTimestampFromStr = mCount.getStartTimestampFromStr();
+
+//        long startTimestampFromStr = DateUtils.fastFormatTsToDayTs(mCount.startTimeMillis); // 有问题
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
+
+        Tlog.v(TAG, " updateHistory  curMillis:" + curMillis + " " + dateFormat.format(new Date(curMillis))
+                + " startTimestampFromStr:" + startTimestampFromStr + " " + dateFormat.format(new Date(startTimestampFromStr)));
+
+        for (QueryHistoryCount.Day mData : mDayArray) {
+
+            if (mData.countData == null || mData.countData.length <= 0) {
+                Tlog.v(TAG, " QueryHistoryCount.Day.countData ==null ");
+                continue;
+            }
+
+            List<CountElectricity> list = countElectricityDao.queryBuilder()
+                    .where(CountElectricityDao.Properties.Mac.eq(mCount.mac),
+                            CountElectricityDao.Properties.Timestamp.eq(mData.startTime)).list();
+
+            CountElectricity countElectricity = null;
+            if (list.size() > 0) {
+                countElectricity = list.get(0);
+            }
+
+            if (countElectricity == null) {
+                CountElectricity mCountElectricity = new CountElectricity();
+                mCountElectricity.setMac(mCount.mac);
+                mCountElectricity.setElectricity(mData.countData);
+                mCountElectricity.setTimestamp(mData.startTime);
+                mCountElectricity.setSequence(++sequence);
+                long insert = countElectricityDao.insert(mCountElectricity);
+                Tlog.v(TAG, " HistoryCount insert:" + insert);
+            } else {
+
+
+                if (curMillis == startTimestampFromStr) {
+
+                    byte[] electricity = countElectricity.getElectricity();
+                    int length = electricity.length;
+
+                    if (length < CountElectricity.ONE_DAY_BYTES) {
+
+                        byte[] cache = new byte[CountElectricity.ONE_DAY_BYTES];
+
+                        System.arraycopy(electricity, 0, cache, 0, length);
+
+                        byte[] countData = mData.countData;
+
+                        int length1 = countData.length;
+
+                        if (length1 > CountElectricity.ONE_DAY_BYTES) {
+                            length1 = CountElectricity.ONE_DAY_BYTES;
+                        }
+
+                        System.arraycopy(countData, 0, cache, 0, length1);
+
+                        countElectricity.setElectricity(cache);
+
+                        Tlog.v(TAG, " HistoryCount update oldLength:" + length + " newLength:" + length1);
+
+                    } else {
+
+                        byte[] countData = mData.countData;
+
+                        int length1 = countData.length;
+
+                        if (length1 > CountElectricity.ONE_DAY_BYTES) {
+                            length1 = CountElectricity.ONE_DAY_BYTES;
+                        }
+
+                        System.arraycopy(countData, 0, electricity, 0, length1);
+
+                        countElectricity.setElectricity(electricity);
+
+                        Tlog.v(TAG, " HistoryCount update oldLength:" + length + " newLength:" + length1);
+
+                    }
+
+                }
+
+                countElectricityDao.update(countElectricity);
+                Tlog.v(TAG, " HistoryCount update:" + countElectricity.getId());
+            }
+        }
+    }
+
+
+    public static void deleteOldHistory(String mac) {
+
+        CountElectricityDao countElectricityDao =
+                DBManager.getInstance().getDaoSession().getCountElectricityDao();
+
+        long currentTimeMillis = System.currentTimeMillis();
+
+        long l = DateUtils.fastFormatTsToDayTs(currentTimeMillis - DateUtils.ONE_DAY * 31 * 8);
+
+        List<CountElectricity> list = countElectricityDao.queryBuilder()
+                .where(CountElectricityDao.Properties.Mac.eq(mac),
+                        CountElectricityDao.Properties.Timestamp.lt(l)).list();
+
+        if (list != null && list.size() > 0) {
+            for (CountElectricity mCountElectricity : list) {
+                countElectricityDao.delete(mCountElectricity);
+            }
+        }
+
 
     }
 

@@ -23,7 +23,7 @@ public class DeviceDiscoveryTask extends SocketResponseTask {
 
     private OnTaskCallBack mOnTaskCallBack;
 
-    private  Application app;
+    private Application app;
 
     public DeviceDiscoveryTask(OnTaskCallBack mOnTaskCallBack, Application app) {
         this.mOnTaskCallBack = mOnTaskCallBack;
@@ -99,8 +99,12 @@ public class DeviceDiscoveryTask extends SocketResponseTask {
         if (protocolParams.length >= (46 + 16)) {
             String ssid = new String(protocolParams, 46, 16);
             mWiFiDevice.ssid = ssid.trim().replaceAll("\\s*", "");
-        }else {
-            mWiFiDevice.ssid = WiFiUtil.getConnectedWiFiSSID(app);
+        } else {
+            try {
+                mWiFiDevice.ssid = WiFiUtil.getConnectedWiFiSSID(app);
+            } catch (Exception e) {
+                Tlog.w(TAG, " DeviceDiscoveryTask.WiFiUtil.getConnectedWiFiSSID error", e);
+            }
         }
 
         if (Debuger.isLogDebug) {

@@ -1,9 +1,9 @@
 package cn.com.startai.socket.sign.scm.receivetask.impl.control;
 
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -28,7 +28,7 @@ public class CountdownSetReceiveTask extends SocketResponseTask {
         byte[] protocolParams = mSocketDataArray.getProtocolParams();
 
         if (protocolParams == null || protocolParams.length < 3) {
-            Tlog.e(TAG, " CountdownSetReceiveTask params is error ... " + mSocketDataArray.toString());
+            Tlog.e(TAG, " CountdownSetReceiveTask params is error ... " + String.valueOf(mSocketDataArray));
             return;
         }
 

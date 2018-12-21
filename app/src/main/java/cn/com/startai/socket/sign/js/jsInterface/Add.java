@@ -58,10 +58,11 @@ public class Add extends AbsHandlerJsInterface {
             return CONFIGURE_WIFI.replace("$result", String.valueOf(result));
         }
 
-        private static final String DEVICE_CON_RESULT = "javascript:connectionNetworkResponse($result)";
+        private static final String DEVICE_CON_RESULT = "javascript:connectionNetworkResponse($result,'$mac')";
 
-        public static String callJsDeviceConResult(boolean result) {
-            return DEVICE_CON_RESULT.replace("$result", String.valueOf(result));
+        public static String callJsDeviceConResult(boolean result,String mac) {
+            return DEVICE_CON_RESULT.replace("$result", String.valueOf(result))
+                    .replace("$mac", String.valueOf(mac));
         }
 
 

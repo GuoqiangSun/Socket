@@ -356,7 +356,8 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
                 }
                 return;
             } else if (CustomManager.getInstance().isTriggerBle()
-                    && !mBle.address.startsWith("90:00")) {
+                    && !mBle.address.startsWith("90:00")
+                    ) {
 
                 if (Debuger.isLogDebug) {
                     Tlog.w(TAG, " ScanBle isTriggerBle " + mBle.address + " not startsWith 90:00");
@@ -364,13 +365,13 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
                 return;
 
             }
-            if (!mBle.matchBroadUUID(mShowUuid)) {
-                if (Debuger.isLogDebug) {
-                    Tlog.w(TAG, " broadUuid not match " + mBle.address
-                            + "--" + mBle.name + "--" + mBle.getFirstBroadUUID());
-                }
+//            if (!mBle.matchBroadUUID(mShowUuid)) {
+//                if (Debuger.isLogDebug) {
+//                    Tlog.w(TAG, " broadUuid not match " + mBle.address
+//                            + "--" + mBle.name + "--" + mBle.getFirstBroadUUID());
+//                }
 //                return;
-            }
+//            }
 
 
             if (Debuger.isLogDebug) {

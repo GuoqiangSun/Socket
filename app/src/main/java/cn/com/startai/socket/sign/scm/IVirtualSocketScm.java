@@ -3,6 +3,7 @@ package cn.com.startai.socket.sign.scm;
 import java.util.ArrayList;
 
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
+import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
 import cn.com.startai.socket.mutual.js.bean.TimingSetResult;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
 import cn.com.startai.socket.sign.scm.bean.CostRate;
@@ -177,6 +178,8 @@ public interface IVirtualSocketScm {
 
     void rename(RenameBean obj);
 
+    void queryDeviceName(String mac);
+
     void querySpendingElectricity(String mac);
 
     void setSpendingCountdown(SpendingElectricityData obj);
@@ -214,9 +217,11 @@ public interface IVirtualSocketScm {
 
     void queryVersion(String mac);
 
+    void querySSID(String mac);
+
     void update(String mac);
 
-    void setLightRGB(String mac, int i, int r, int g, int b);
+    void setColorLamp(String mac, int i, int r, int g, int b);
 
     void setLightRGB(ColorLampRGB obj);
 
@@ -228,10 +233,33 @@ public interface IVirtualSocketScm {
 
     void setTemperatureTimingAlarm(TimingTempHumiData obj);
 
-    void queryTemperatureTimingAlarm(String mac,int model);
+    void queryTemperatureTimingAlarm(String mac, int model);
+
+    void queryYellowLightRGB(String mac);
 
     void queryColourLampRGB(String mac);
 
+    void queryComTimingListData(String mac);
+
+    void queryAdvTimingListData(String mac);
+
+    void setNightLightTiming(NightLightTiming nightLightTiming);
+
+    void setNightLightWisdom(NightLightTiming nightLightTiming);
+
+    void openWisdomNightLight(String mac);
+
+    void closeWisdomNightLight(String mac);
+
+    void queryWisdomNightLight(String mac);
+
+    void queryTimingNightLight(String mac);
+
+    void queryNightLight(String mac);
+
+    void switchNightLight(String mac, boolean b);
+
+    void queryRunningNightLight(String mac);
 
     /**
      * author: Guoqiang_Sun
@@ -335,6 +363,15 @@ public interface IVirtualSocketScm {
 
         void onResultQueryTimingTempHumi(boolean result, String id, ArrayList<TimingTempHumiData> mDataLst);
 
+        void onResultQueryRename(String id, boolean result, String name);
+
+        void onResultQueryDeviceSSID(String id, boolean result, int rssi, String ssid);
+
+        void onResultSetNightLight(boolean result, NightLightTiming mNightLightTiming);
+
+        void onResultQueryNightLight(boolean result, NightLightTiming mNightLightTiming);
+
+        void onNightLightResult(String id, boolean on);
     }
 
 

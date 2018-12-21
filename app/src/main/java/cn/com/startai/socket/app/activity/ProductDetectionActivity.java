@@ -18,11 +18,15 @@ import cn.com.startai.socket.app.adapter.FragmentPagerAdapter;
 import cn.com.startai.socket.app.fragment.DBFragment;
 import cn.com.startai.socket.app.fragment.DetectionFragment;
 import cn.com.startai.socket.app.fragment.DetectionReportFragment;
+import cn.com.startai.socket.app.fragment.TmpFunction2Fragment;
 import cn.com.startai.socket.app.fragment.TmpFunctionFragment;
 import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.debuger.impl.DetectInfo;
 import cn.com.startai.socket.debuger.impl.IProductDetectionCallBack;
 import cn.com.startai.socket.debuger.impl.ProductDetectionManager;
+import cn.com.startai.socket.global.CustomManager;
+import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
+import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -44,6 +48,8 @@ public class ProductDetectionActivity extends AppCompatActivity implements IProd
     private DetectionFragment mDetectionFragment;
     private TmpFunctionFragment mTmpFunctionFragment;
     private DBFragment mDbFragment;
+
+    private TmpFunction2Fragment mTmpFunctionFragment2;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -67,10 +73,16 @@ public class ProductDetectionActivity extends AppCompatActivity implements IProd
         mTmpFunctionFragment = new TmpFunctionFragment();
         mDbFragment = new DBFragment();
 
+
         mFragments.add(mDetectionFragment);
         mFragments.add(mDetectionReportFragment);
         mFragments.add(mTmpFunctionFragment);
         mFragments.add(mDbFragment);
+
+        if (CustomManager.getInstance().isMUSIK()) {
+            mTmpFunctionFragment2 = new TmpFunction2Fragment();
+            mFragments.add(mTmpFunctionFragment2);
+        }
 
         FragmentPagerAdapter mAdapter = new FragmentPagerAdapter(getSupportFragmentManager(), mFragments);
         mFrameVp.setAdapter(mAdapter);
@@ -161,7 +173,9 @@ public class ProductDetectionActivity extends AppCompatActivity implements IProd
 
     @Override
     public void flashModel(boolean on) {
-        mTmpFunctionFragment.flashModel(on);
+        if (mTmpFunctionFragment2 != null) {
+            mTmpFunctionFragment2.flashModel(on);
+        }
     }
 
     @Override
@@ -172,6 +186,27 @@ public class ProductDetectionActivity extends AppCompatActivity implements IProd
     @Override
     public void receiveProtocolAnalysisResult(byte[] protocolParams) {
         mTmpFunctionFragment.receiveProtocolAnalysisResult(protocolParams);
+    }
+
+    @Override
+    public void nightLightSetResult(NightLightTiming obj) {
+        if (mTmpFunctionFragment2 != null) {
+            mTmpFunctionFragment2.nightLightSetResult(obj);
+        }
+    }
+
+    @Override
+    public void nightLightQueryResult(NightLightTiming obj) {
+        if (mTmpFunctionFragment2 != null) {
+            mTmpFunctionFragment2.nightLightQueryResult(obj);
+        }
+    }
+
+    @Override
+    public void rgbQueryResult(ColorLampRGB obj) {
+        if (mTmpFunctionFragment2 != null) {
+            mTmpFunctionFragment2.rgbQueryResult(obj);
+        }
     }
 
 

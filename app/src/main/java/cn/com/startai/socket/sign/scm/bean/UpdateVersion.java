@@ -60,6 +60,14 @@ public class UpdateVersion {
         return v1;
     }
 
+    public static void main(String[] args) {
+        UpdateVersion mVersion = new UpdateVersion();
+        mVersion.curVersionMain = 0x04;
+        mVersion.curVersionSub = 0x00;
+        System.out.println(mVersion.getDoubleCurVersion());
+        System.out.println(String.valueOf(mVersion.getDoubleCurVersion()));
+    }
+
     @Override
     public String toString() {
         return "UpdateVersion{" +

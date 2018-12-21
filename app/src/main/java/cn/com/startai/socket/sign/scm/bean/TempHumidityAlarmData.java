@@ -94,4 +94,14 @@ public class TempHumidityAlarmData {
         return deci;
     }
 
+    @Override
+    public String toString() {
+        return "TempHumidityAlarmData{" +
+                "limit=" + limit +
+                ", type=" + type +
+                ", mac='" + mac + '\'' +
+                ", startup=" + startup +
+                ", alarmValue=" + alarmValue +
+                '}';
+    }
 }

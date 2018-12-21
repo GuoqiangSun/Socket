@@ -37,7 +37,10 @@ public class TempHumiAlarmSetReceiveTask extends SocketResponseTask {
         boolean result = SocketSecureKey.Util.resultIsOk(protocolParams[0]);
         boolean startup = SocketSecureKey.Util.startup(protocolParams[1]);
 
-        String modelStr = SocketSecureKey.Util.isTemperature(model) ? "temperature" : SocketSecureKey.Util.isHumidity(model) ? "humidity" : "unknown";
+        String modelStr = SocketSecureKey.Util.isTemperature(model)
+                ? "temperature"
+                : SocketSecureKey.Util.isHumidity(model) ? "humidity" : "unknown";
+
         Tlog.v(TAG, " result:" + result + " startup:" + startup + " model:" + modelStr + " limit:" + limit);
 
         if (mCallBack != null) {

@@ -13,6 +13,8 @@ public class ColorLampRGB {
     public int g;
     public int b;
 
+    public int model;
+
     @Override
     public String toString() {
         return "ColorLampRGB{" +
@@ -21,6 +23,7 @@ public class ColorLampRGB {
                 ", r=" + r +
                 ", g=" + g +
                 ", b=" + b +
+                ", model=" + model +
                 '}';
     }
 }

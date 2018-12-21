@@ -29,19 +29,32 @@ public class TimingTempHumiQueryReceiveTask extends SocketResponseTask {
 
         byte[] buf = mSocketDataArray.getProtocolParams();
 
-        if (buf == null || buf.length < 17) {
+        if (buf == null || buf.length < 3) {
             Tlog.e(TAG, " TimingTempHumiQueryReceiveTask params is error ... ");
-            if (mCallBack != null) {
-                mCallBack.onQueryTimingTempHumiResult(false, mSocketDataArray.getID(), null);
-            }
+//            if (mCallBack != null) {
+//                mCallBack.onQueryTimingTempHumiResult(false, mSocketDataArray.getID(), null);
+//            }
             return;
         }
 
         boolean result = SocketSecureKey.Util.resultIsOk(buf[0]);
 
-        int m = (buf.length - 1) / 16;
+        int start = 3; // 新的是从三开始
+        int m = (buf.length - start) / 16;
 
-        Tlog.v(TAG, " TimingTempHumiQueryReceiveTask.size:" + buf.length + " m:" + m);
+        byte type = 0x00; // 定温度 定湿度
+        byte model = 0x00; // 制冷，制热
+
+        if (m * 16 + 3 != buf.length) {
+            start = 1;
+            m = (buf.length - start) / 16;
+        }else {
+            type = buf[1];
+            model = buf[2];
+        }
+
+        Tlog.v(TAG, " TimingTempHumiQueryReceiveTask.size:" + buf.length
+                + " m:" + m + " start:" + start + " type:" + type + " model:" + model);
 
         TimingTempHumiData mAdvanceData;
 
@@ -54,37 +67,36 @@ public class TimingTempHumiQueryReceiveTask extends SocketResponseTask {
             mAdvanceData.mac = mSocketDataArray.getID();
             mAdvanceData.result = result;
 
-            mAdvanceData.type = buf[i * 16 + 1];
-            mAdvanceData.id = buf[i * 16 + 2];
+            type =  mAdvanceData.type = buf[i * 16 + start];
+            mAdvanceData.id = buf[i * 16 + start + 1];
 
-            mAdvanceData.confirm = buf[i * 16 + 3];
+            mAdvanceData.confirm = buf[i * 16 + start + 2];
 
-            mAdvanceData.startHour = buf[i * 16 + 4] & 0xFF;
-            mAdvanceData.startMinute = buf[i * 16 + 5] & 0xFF;
+            mAdvanceData.startHour = buf[i * 16 + start + 3] & 0xFF;
+            mAdvanceData.startMinute = buf[i * 16 + start + 4] & 0xFF;
             mAdvanceData.setOnTime(mAdvanceData.startHour + ":" + mAdvanceData.startMinute);
 
-            mAdvanceData.endHour = buf[i * 16 + 6] & 0xFF;
-            mAdvanceData.endMinute = buf[i * 16 + 7] & 0xFF;
+            mAdvanceData.endHour = buf[i * 16 + start + 5] & 0xFF;
+            mAdvanceData.endMinute = buf[i * 16 + start + 6] & 0xFF;
             mAdvanceData.setOffTime(mAdvanceData.endHour + ":" + mAdvanceData.endMinute);
 
-            mAdvanceData.on = SocketSecureKey.Util.on(buf[i * 16 + 8]);
+            mAdvanceData.on = SocketSecureKey.Util.on(buf[i * 16 + start + 7]);
 
-            mAdvanceData.onIntervalHour = buf[i * 16 + 9] & 0xFF;
-            mAdvanceData.onIntervalMinute = buf[i * 16 + 10] & 0xFF;
+            mAdvanceData.onIntervalHour = buf[i * 16 + start + 8] & 0xFF;
+            mAdvanceData.onIntervalMinute = buf[i * 16 + start + 9] & 0xFF;
             mAdvanceData.onIntervalTime = mAdvanceData.onIntervalHour + ":" + mAdvanceData.onIntervalMinute;
 
-            mAdvanceData.offIntervalHour = buf[i * 16 + 11] & 0xFF;
-            mAdvanceData.offIntervalMinute = buf[i * 16 + 12] & 0xFF;
+            mAdvanceData.offIntervalHour = buf[i * 16 + start + 10] & 0xFF;
+            mAdvanceData.offIntervalMinute = buf[i * 16 + start + 11] & 0xFF;
             mAdvanceData.offIntervalTime = mAdvanceData.offIntervalHour + ":" + mAdvanceData.offIntervalMinute;
 
-            mAdvanceData.startup = SocketSecureKey.Util.startup(buf[i * 16 + 13]);
-            mAdvanceData.week = buf[i * 16 + 14];
+            mAdvanceData.startup = SocketSecureKey.Util.startup(buf[i * 16 + start + 12]);
+            mAdvanceData.week = buf[i * 16 + start + 13];
 
-            mAdvanceData.alarmValue = buf[i * 16 + 15];
-            mAdvanceData.model = buf[i * 16 + 16];
+            mAdvanceData.alarmValue = buf[i * 16 + start + 14];
+            model= mAdvanceData.model = buf[i * 16 + start + 15];
 
             Tlog.v(TAG, " TimingTempHumiQueryReceiveTask :" + String.valueOf(mAdvanceData));
-
         }
 
         if (mCallBack != null) {

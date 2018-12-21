@@ -2,9 +2,9 @@ package cn.com.startai.socket.sign.scm.receivetask.impl.control;
 
 import cn.com.startai.socket.sign.scm.bean.CostRate;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain169.log.Tlog;
 
 /**
@@ -41,7 +41,7 @@ public class CostRateQueryReceiveTask extends SocketResponseTask {
         mCostRate.minute2 = protocolParams[6];
         mCostRate.price2 = (((protocolParams[7] << 8) & 0xFF) | (protocolParams[8] & 0xFF)) / 1000F;
 
-        Tlog.e(TAG, " CostRateQueryReceiveTask result:" + result + mCostRate.toString());
+        Tlog.e(TAG, " CostRateQueryReceiveTask result:" + result + String.valueOf(mCostRate));
 
         if (mTaskCallBack != null) {
             mTaskCallBack.onQueryCostRateResult(result, mCostRate);

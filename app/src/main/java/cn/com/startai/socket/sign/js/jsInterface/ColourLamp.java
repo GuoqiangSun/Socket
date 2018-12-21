@@ -7,6 +7,7 @@ import org.xwalk.core.JavascriptInterface;
 
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.sign.js.util.H5Config;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.baselib.jsInterface.AbsHandlerJsInterface;
 import cn.com.swain169.log.Tlog;
 
@@ -76,9 +77,9 @@ public class ColourLamp extends AbsHandlerJsInterface {
         if (msg.what == MSG_QUERY_COLOUR_LAMP) {
 
             String mac = (String) msg.obj;
-//            if (mCallBack != null) {
-//                mCallBack.onJSQueryColourLampRGB(mac, state);
-//            }
+            if (mCallBack != null) {
+                mCallBack.onJSQueryColourLampRGB(mac);
+            }
 
         } else if (msg.what == MSG_SET_COLOUR_LAMP) {
 
@@ -104,6 +105,7 @@ public class ColourLamp extends AbsHandlerJsInterface {
     @JavascriptInterface
     public void colourLampSwitchStateRequest(String mac) {
         Tlog.v(TAG, " colourLampSwitchStateRequest ");
+        getHandler().obtainMessage(MSG_QUERY_COLOUR_LAMP_RGB, mac).sendToTarget();
     }
 
     //    colourLampSwitchRequest
@@ -123,6 +125,7 @@ public class ColourLamp extends AbsHandlerJsInterface {
             mColorLampRGB.g = 0;
             mColorLampRGB.b = 0;
         }
+        mColorLampRGB.model = SocketSecureKey.Model.MODEL_COLOR_LAMP;
         getHandler().obtainMessage(MSG_SET_COLOUR_LAMP_RGB, mColorLampRGB).sendToTarget();
 
         getHandler().obtainMessage(MSG_SET_COLOUR_LAMP, state ? 1 : 0, state ? 1 : 0, mac).sendToTarget();
@@ -138,6 +141,7 @@ public class ColourLamp extends AbsHandlerJsInterface {
         mColorLampRGB.r = r;
         mColorLampRGB.g = g;
         mColorLampRGB.b = b;
+        mColorLampRGB.model = SocketSecureKey.Model.MODEL_COLOR_LAMP;
         getHandler().obtainMessage(MSG_SET_COLOUR_LAMP_RGB, mColorLampRGB).sendToTarget();
     }
 

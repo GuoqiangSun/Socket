@@ -1,5 +1,7 @@
 package cn.com.startai.socket.debuger.impl;
 
+import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
+import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
 import cn.com.swain.support.protocolEngine.pack.ReceivesData;
 import cn.com.swain.support.protocolEngine.pack.ResponseData;
 import cn.com.swain.support.protocolEngine.task.FailTaskResult;
@@ -71,4 +73,10 @@ public interface IDebugerProtocolStream {
     void receiveQueryFlashState(Object obj, String id, boolean on);
 
     void receiveProtocolAnalysisResult(byte[] protocolParams);
+
+    void receiveNightLightSet(Object obj, NightLightTiming mNightLightTiming);
+
+    void receiveNightLightQuery(Object obj, NightLightTiming mNightLightTiming);
+
+    void receiveQueryRGB(Object obj, boolean result, ColorLampRGB mRGB);
 }

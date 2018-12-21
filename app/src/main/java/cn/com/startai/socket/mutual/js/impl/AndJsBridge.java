@@ -26,6 +26,7 @@ import cn.com.startai.socket.mutual.js.IAndJSCallBack;
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.mutual.js.bean.DisplayBleDevice;
 import cn.com.startai.socket.mutual.js.bean.MobileLogin;
+import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
 import cn.com.startai.socket.mutual.js.bean.StatusBarBean;
 import cn.com.startai.socket.mutual.js.bean.TimingSetResult;
 import cn.com.startai.socket.mutual.js.bean.UpdateProgress;
@@ -46,6 +47,7 @@ import cn.com.startai.socket.sign.js.jsInterface.Language;
 import cn.com.startai.socket.sign.js.jsInterface.Login;
 import cn.com.startai.socket.sign.js.jsInterface.Main;
 import cn.com.startai.socket.sign.js.jsInterface.Network;
+import cn.com.startai.socket.sign.js.jsInterface.NightLight;
 import cn.com.startai.socket.sign.js.jsInterface.ReName;
 import cn.com.startai.socket.sign.js.jsInterface.Setting;
 import cn.com.startai.socket.sign.js.jsInterface.SpendingCountdown;
@@ -192,7 +194,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onJSQueryTimingData(String mac) {
-        Tlog.v(TAG, " onJSQueryTimingData() ");
+        Tlog.v(TAG, " onJSQueryTimingData() " + mac);
         if (mScmVirtual != null) {
             mScmVirtual.queryTimingData(mac);
         }
@@ -646,7 +648,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onResultNeedRequestToken(String mac, String userID) {
-        Tlog.v(TAG, " onResultServerConnectState() mac" + mac + " userID:" + userID);
+        Tlog.v(TAG, " onResultNeedRequestToken() mac" + mac + " userID:" + userID);
 
         if (mScmVirtual != null) {
             mScmVirtual.requestToken(mac, userID);
@@ -1009,8 +1011,60 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onJSTurnColourLamp(String mac, boolean state) {
+        if (mScmVirtual != null) {
+        }
 
+    }
 
+    @Override
+    public void onJSTQueryComTimingListData(String mac) {
+        if (mScmVirtual != null) {
+            mScmVirtual.queryComTimingListData(mac);
+        }
+    }
+
+    @Override
+    public void onJSTQueryAdvTimingListData(String mac) {
+        if (mScmVirtual != null) {
+            mScmVirtual.queryAdvTimingListData(mac);
+        }
+    }
+
+    @Override
+    public void onJSSetNightLightTiming(NightLightTiming mNightLightTiming) {
+        if (mScmVirtual != null) {
+            mScmVirtual.setNightLightTiming(mNightLightTiming);
+        }
+    }
+
+    @Override
+    public void onJSSetNightLightWisdom(NightLightTiming mNightLightTiming) {
+        if (mScmVirtual != null) {
+            mScmVirtual.setNightLightWisdom(mNightLightTiming);
+        }
+    }
+
+    @Override
+    public void onJSQueryNightLight(String mac) {
+        if (mScmVirtual != null) {
+            mScmVirtual.queryNightLight(mac);
+        }
+
+    }
+
+    @Override
+    public void onJSSetNightLight(String mac, boolean b) {
+
+        if (mScmVirtual != null) {
+            mScmVirtual.switchNightLight(mac, b);
+        }
+    }
+
+    @Override
+    public void onJSQueryRunningNightLight(String mac) {
+        if (mScmVirtual != null) {
+            mScmVirtual.queryRunningNightLight(mac);
+        }
     }
 
     @Override
@@ -1433,7 +1487,12 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onResultWiFiDeviceListDisplay(DisplayDeviceList mList) {
         Tlog.v(TAG, " onResultWiFiDeviceListDisplay() ");
 
-        String str = mList.toJsonStr();
+        String str;
+        if (mList != null) {
+            str = mList.toJsonStr();
+        } else {
+            str = "{}";
+        }
         String method = DeviceList.Method.callJsDeviceList(str);
         loadJs(method);
 
@@ -1443,7 +1502,12 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onResultLanDeviceListDisplay(boolean result, DisplayDeviceList mList) {
         Tlog.v(TAG, " onResultLanDeviceListDisplay() ");
 
-        String str = mList.toJsonStr();
+        String str;
+        if (mList != null) {
+            str = mList.toJsonStr();
+        } else {
+            str = "{}";
+        }
         String method = Add.Method.callJsLanDeviceList(result, str);
         loadJs(method);
 
@@ -1634,6 +1698,58 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
+    public void onResultQueryRename(String id, boolean result, String name) {
+
+        Tlog.v(TAG, " onResultQueryRename() result:" + result);
+
+        if (result) {
+            if (mNetworkManager != null) {
+                mNetworkManager.onDeviceResponseRename(id, name);
+            }
+        }
+    }
+
+    @Override
+    public void onResultQueryDeviceSSID(String id, boolean result, int rssi, String ssid) {
+        Tlog.v(TAG, " onResultQueryDeviceSSID() result:" + result + " mac:" + id + " ssid:" + ssid);
+        if (result) {
+            if (mNetworkManager != null) {
+                mNetworkManager.onDeviceResponseDeviceSSID(id, rssi, ssid);
+            }
+        }
+
+    }
+
+    @Override
+    public void onResultSetNightLight(boolean result, NightLightTiming mNightLightTiming) {
+        Tlog.v(TAG, " onResultSetNightLight() result:" + result + String.valueOf(mNightLightTiming));
+
+        if (mNightLightTiming != null) {
+            String method = NightLight.Method.callNightLightData(mNightLightTiming.mac,
+                    mNightLightTiming.toJsonStr());
+            loadJs(method);
+        }
+
+    }
+
+    @Override
+    public void onResultQueryNightLight(boolean result, NightLightTiming mNightLightTiming) {
+        Tlog.v(TAG, " onResultQueryNightLight() result:" + result + " " + String.valueOf(mNightLightTiming));
+        if (mNightLightTiming != null) {
+            String method = NightLight.Method.callNightLightData(mNightLightTiming.mac,
+                    mNightLightTiming.toJsonStr());
+            loadJs(method);
+        }
+    }
+
+    @Override
+    public void onNightLightResult(String id, boolean on) {
+        Tlog.v(TAG, " onResultRename() id:" + id + " on:" + on);
+        String method = NightLight.Method.callNightLightSwitch(id, on);
+        loadJs(method);
+    }
+
+    @Override
     public void onResultRename(String id, boolean result, String name) {
         Tlog.v(TAG, " onResultRename() result:" + result);
         String method = ReName.Method.callJsRename(id, result);
@@ -1648,7 +1764,9 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
-    public void onResultQuerySpendingElectricity(String id, boolean result, SpendingElectricityData mElectricityData, SpendingElectricityData mSpendingData) {
+    public void onResultQuerySpendingElectricity(String id, boolean result,
+                                                 SpendingElectricityData mElectricityData,
+                                                 SpendingElectricityData mSpendingData) {
         Tlog.v(TAG, " onResultQuerySpendingElectricity() result:" + result);
 
         JSONObject jsonObject = null;
@@ -1879,23 +1997,20 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onResultQueryTimingTempHumi(boolean result, String mac, ArrayList<TimingTempHumiData> mDataLst) {
 //        TemperatureAndHumidity.Method.callJsTempTimingQueryAlarmValue(mac,mAdvanceData.id,mAdvanceData.on,mAdvanceData.)
 
-        String data;
+        JSONArray mArray = new JSONArray();
         if (mDataLst != null) {
-            JSONArray mArray = new JSONArray();
-
             for (TimingTempHumiData mTimingData : mDataLst) {
                 JSONObject jsonObject = mTimingData.toJsonObj();
                 mArray.put(jsonObject);
             }
-
-            data = mArray.toString();
         } else {
             Tlog.w(TAG, " onResultQueryTimingTempHumi mAdvanceData=null ");
-            data = "{}";
         }
+        String data = mArray.toString();
         String method = TemperatureAndHumidity.Method.callJsTempTimingQueryAlarmValue(mac, data);
         loadJs(method);
     }
+
 
     @Override
     public void loadJs(String method) {
@@ -1926,9 +2041,9 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
-    public void onResultDeviceConfigureWiFi(boolean result) {
-        Tlog.v(TAG, " onResultDeviceConfigureWiFi() :" + result);
-        String method = Add.Method.callJsDeviceConResult(result);
+    public void onResultDeviceConfigureWiFi(boolean result, String mac) {
+        Tlog.v(TAG, " onResultDeviceConfigureWiFi() :" + result + " mac:" + mac);
+        String method = Add.Method.callJsDeviceConResult(result, mac);
         loadJs(method);
     }
 

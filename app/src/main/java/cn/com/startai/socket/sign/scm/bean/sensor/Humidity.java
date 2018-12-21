@@ -9,7 +9,7 @@ package cn.com.startai.socket.sign.scm.bean.sensor;
 public class Humidity {
 
     public float value;
-    public int alarmValue;
+    public float alarmValue;
 
     public void clear(){
         this.value = 0;

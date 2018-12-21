@@ -2,8 +2,10 @@ package cn.com.startai.socket.sign.scm.receivetask;
 
 import android.app.Application;
 
+import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.sign.scm.receivetask.impl.MyErrorTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.MyTestTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.NullTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.ScmErrorTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.CostRateQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.CostRateSetReceiveTask;
@@ -12,6 +14,8 @@ import cn.com.startai.socket.sign.scm.receivetask.impl.control.CountdownSetRecei
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.CumuParamQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.HistoryCountTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.MaxOutputQueryReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.control.NightLightQueryReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.control.NightLightSetReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.RGBQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.RGBSetReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.SpendingElectricityQueryReceiveTask;
@@ -49,6 +53,8 @@ import cn.com.startai.socket.sign.scm.receivetask.impl.system.ControlReceiveTask
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.DeviceBindTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.DeviceDiscoveryTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.DisControlReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.system.QueryNameReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.system.QuerySSIDReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.QueryTimezoneReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.RecoverySettingReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.RenameReceiveTask;
@@ -100,6 +106,30 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
         if (mTaskCallBack != null) {
             mTaskCallBack.onFail(failTaskResult);
         }
+        parseCrcError(failTaskResult);
+    }
+
+    private void parseCrcError(FailTaskResult failTaskResult) {
+
+        if(CustomManager.getInstance().isAirtempNBProjectTest()){
+            if (failTaskResult.type == SocketSecureKey.Type.TYPE_REPORT
+                    && failTaskResult.cmd == SocketSecureKey.Cmd.CMD_TEMP_HUMI_REPORT) {
+
+                if (failTaskResult.data != null && failTaskResult.data.length >= 14) {
+
+                    int temp_int = failTaskResult.data[13];
+                    int temp_deci = failTaskResult.data[14] & 0xFF;
+                    float tempF = Float.valueOf(temp_int + "." + temp_deci);
+                    float temp = (float) (Math.round(tempF * 100)) / 100;
+
+                    if (mTaskCallBack != null) {
+                        mTaskCallBack.onTempHumiResult(failTaskResult.mac, temp, 0);
+                    }
+                }
+
+            }
+        }
+
     }
 
     @Override
@@ -148,12 +178,14 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                     case SocketSecureKey.Cmd.CMD_RENAME_RESPONSE:
                         new RenameReceiveTask(mTaskCallBack).execute(mParam);
                         break;
-
+                    case SocketSecureKey.Cmd.CMD_QUERY_NAME_RESPONSE:
+                        new QueryNameReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
                     case SocketSecureKey.Cmd.CMD_SET_RECOVERY_SCM_RESPONSE:
                         new RecoverySettingReceiveTask(mTaskCallBack).execute(mParam);
                         break;
                     case SocketSecureKey.Cmd.CMD_REGISTER_SCM_RESPONSE:
-                        //
+                        new NullTask(mTaskCallBack).execute(mParam);
                         break;
                     case SocketSecureKey.Cmd.CMD_REQUEST_TOKEN_RESPONSE:
                         new RequestTokenReceiveTask(mTaskCallBack).execute(mParam);
@@ -182,11 +214,14 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                         new QueryTimezoneReceiveTask(mTaskCallBack).execute(mParam);
                         break;
 
-                    case SocketSecureKey.Cmd.CMD_SET_UNIT_TEMPERATURE_RESPONSE:
+                    case SocketSecureKey.Cmd.CMD_SET_UNIT_TEMPERATURE_RESPONSE_BLE:
                         new TemperatureUnitSettingReceiveTask(mTaskCallBack).execute(mParam);
                         break;
-                    case SocketSecureKey.Cmd.CMD_QUERY_UNIT_TEMPERATURE_RESPONSE:
+                    case SocketSecureKey.Cmd.CMD_QUERY_UNIT_TEMPERATURE_RESPONSE_BLE:
                         new TemperatureUnitQueryReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_QUERY_SSID_RESPONSE:
+                        new QuerySSIDReceiveTask(mTaskCallBack).execute(mParam);
                         break;
 
                     default:
@@ -259,6 +294,12 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                         break;
                     case SocketSecureKey.Cmd.CMD_QUERY_TEMP_HUMI_ALARM_RESPONSE:
                         new TimingTempHumiQueryReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_SET_NIGHT_LIGHT_RESPONSE:
+                        new NightLightSetReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_QUERY_NIGHT_LIGHT_RESPONSE:
+                        new NightLightQueryReceiveTask(mTaskCallBack).execute(mParam);
                         break;
 
                     default:

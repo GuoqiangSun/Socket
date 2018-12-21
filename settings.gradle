@@ -1,4 +1,4 @@
-include ':app', ':blesocket', ':test', ':wifisocket',  ':smartplug', ':superplug'
+include ':app', ':blesocket', ':test', ':wifisocket',  ':smartplug', ':superplug', ':airtempnb'
 
 //include ':commonLibary'
 //project(":commonLibary").projectDir = new File('../CommonLibary/support')

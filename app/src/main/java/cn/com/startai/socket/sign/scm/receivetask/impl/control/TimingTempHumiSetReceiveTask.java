@@ -29,9 +29,9 @@ public class TimingTempHumiSetReceiveTask extends SocketResponseTask {
 
         if (buf == null || buf.length < 16) {
             Tlog.e(TAG, " TimingSetReceiveTask params is error ... ");
-            if (mCallBack != null) {
-                mCallBack.onSetTimingTempHumiResult(false, mSocketDataArray.getID(), null);
-            }
+//            if (mCallBack != null) {
+//                mCallBack.onSetTimingTempHumiResult(false, mSocketDataArray.getID(), null);
+//            }
             return;
         }
 

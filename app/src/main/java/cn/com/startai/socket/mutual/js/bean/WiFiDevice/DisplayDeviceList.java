@@ -23,6 +23,16 @@ public class DisplayDeviceList {
 
     }
 
+    private String userID;
+
+    public void setUserID(String userID) {
+        this.userID = userID;
+    }
+
+    public String getUserID() {
+        return userID;
+    }
+
     public DisplayDeviceList(LanDeviceInfo mDevice) {
         LanDeviceInfo clone = mDevice.clone();
         if (clone != null) {
@@ -43,6 +53,10 @@ public class DisplayDeviceList {
      * obj LanDeviceInfo
      */
     private final Map<String, LanDeviceInfo> mMacArray = Collections.synchronizedMap(new HashMap<>());
+
+    public Map<String, LanDeviceInfo> getDisplayMacArray() {
+        return new HashMap<>(mMacArray);
+    }
 
     /**
      * key deviceIP
@@ -118,7 +132,9 @@ public class DisplayDeviceList {
             boolean relayState = displayLanDevice.relayState;
             boolean isWanBind = displayLanDevice.isWanBind;
             boolean isLanBind = displayLanDevice.isLanBind;
+
             displayLanDevice.copy(mDevice);
+
             displayLanDevice.isWanBind = isWanBind;
             displayLanDevice.isLanBind = isLanBind;
             displayLanDevice.relayState = relayState;
@@ -225,7 +241,7 @@ public class DisplayDeviceList {
             displayDeviceByMac.setMainVersion((version >> 8) & 0xFF);
             displayDeviceByMac.setSubVersion(version & 0xFF);
 
-            if(displayDeviceByMac.getDeviceID()!=null){
+            if (displayDeviceByMac.getDeviceID() != null) {
                 LanDeviceInfo displayDeviceById = getDisplayDeviceById(displayDeviceByMac.getDeviceID());
                 if (displayDeviceById != null) {
                     displayDeviceById.setMainVersion((version >> 8) & 0xFF);
