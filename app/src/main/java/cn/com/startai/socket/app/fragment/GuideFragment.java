@@ -34,6 +34,9 @@ public class GuideFragment extends BaseFragment {
             return View.inflate(getActivity(), R.layout.framgment_guide_smart_socket,
                     null);
 
+        } else if(CustomManager.getInstance().isMUSIK()){
+            return View.inflate(getActivity(), R.layout.framgment_guide_super_socket,
+                    null);
         } else {
             return View.inflate(getActivity(), R.layout.framgment_guide,
                     null);

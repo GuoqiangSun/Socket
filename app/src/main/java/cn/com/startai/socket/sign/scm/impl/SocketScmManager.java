@@ -26,6 +26,7 @@ import cn.com.startai.socket.mutual.js.bean.CountElectricity;
 import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
 import cn.com.startai.socket.mutual.js.bean.TimingSetResult;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
+import cn.com.startai.socket.sign.hardware.WiFi.util.ShakeUtils;
 import cn.com.startai.socket.sign.scm.AbsSocketScm;
 import cn.com.startai.socket.sign.scm.bean.CostRate;
 import cn.com.startai.socket.sign.scm.bean.CountdownData;
@@ -148,15 +149,9 @@ public class SocketScmManager extends AbsSocketScm
 
         int version = CustomManager.getInstance().getProtocolVersion();
 
-//        pm = ProtocolProcessorFactory.newSingleTaskLargerPkg(
-//                LooperManager.getInstance().getProtocolLooper(),
-//                new ProtocolTaskImpl(this, this),
-//                version);
-
         pm = ProtocolProcessorFactory.newMultiChannelSingleTask(LooperManager.getInstance().getProtocolLooper(),
                 new ProtocolTaskImpl(this, this, app),
                 version, true);
-
 
     }
 
@@ -1475,6 +1470,10 @@ public class SocketScmManager extends AbsSocketScm
 
     @Override
     public void onNightLightResult(String id, boolean on) {
+
+        ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(id);
+        scmDevice.putNightLightState(on);
+
         if (mScmResultCallBack != null) {
             mScmResultCallBack.onNightLightResult(id, on);
         }

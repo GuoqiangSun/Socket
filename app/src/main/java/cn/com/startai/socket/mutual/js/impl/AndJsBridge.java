@@ -1068,6 +1068,20 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
+    public void onJSShakeNightLight(String mac, boolean b) {
+        if (mNetworkManager != null) {
+            mNetworkManager.shakeNightLight(mac, b);
+        }
+    }
+
+    @Override
+    public void onJSQueryShakeNightLight(String mac) {
+        if (mNetworkManager != null) {
+            mNetworkManager.queryShakeNightLight(mac);
+        }
+    }
+
+    @Override
     public void onJSDisableGoBack(boolean status) {
         if (mCallBack != null) {
             mCallBack.ajDisableGoBack(status);
@@ -1601,6 +1615,12 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
+    public void onResultShakeNightLight(String mac, boolean b) {
+        String method = NightLight.Method.callNightLightShake(mac, b);
+        loadJs(method);
+    }
+
+    @Override
     public void onResultEmailLogin(boolean result, String errorCode) {
         Tlog.v(TAG, " onResultEmailLogin() ");
 
@@ -1744,9 +1764,13 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onNightLightResult(String id, boolean on) {
-        Tlog.v(TAG, " onResultRename() id:" + id + " on:" + on);
+        Tlog.v(TAG, " onNightLightResult() id:" + id + " on:" + on);
         String method = NightLight.Method.callNightLightSwitch(id, on);
         loadJs(method);
+
+        if (mNetworkManager != null) {
+            mNetworkManager.onDeviceResponseNightLightState(id, on);
+        }
     }
 
     @Override

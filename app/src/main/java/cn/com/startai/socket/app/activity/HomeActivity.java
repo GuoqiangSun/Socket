@@ -104,7 +104,9 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         StatusBarUtil.fullscreenShowBarFontWhite(getWindow());
 
         setContentView(R.layout.activity_home);
+        restoreFragment(savedInstanceState);
 
+        Tlog.d(TAG, "activity mFragment : " + mFragments.hashCode());
 
         if (mPermissionRequest == null) {
             Tlog.v(TAG, "HomeActivity new PermissionRequest() ");
@@ -135,9 +137,6 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         Controller.getInstance().init(getApplication(), this);
         Controller.getInstance().onSCreate();
 
-        restoreFragment(savedInstanceState);
-
-        Tlog.d(TAG, "activity mFragment : " + mFragments.hashCode());
     }
 
     private synchronized void restoreFragment(Bundle savedInstanceState) {
@@ -437,7 +436,7 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
     @Override
     public void onWebLoadFinish() {
         mWebLoaded = true;
-        showWeb(200);
+        showWeb(800);
     }
 
     @Override

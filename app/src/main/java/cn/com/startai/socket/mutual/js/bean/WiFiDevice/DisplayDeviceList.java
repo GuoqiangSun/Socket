@@ -121,9 +121,9 @@ public class DisplayDeviceList {
     }
 
 
-    public synchronized void deviceDiscoveryUpdateDevice(LanDeviceInfo mDevice) {
+    public synchronized void deviceDiscoveryUpdateDevice(LanDeviceInfo mWiFiDevice) {
 
-        LanDeviceInfo displayLanDevice = getDisplayDeviceByMac(mDevice.mac);
+        LanDeviceInfo displayLanDevice = getDisplayDeviceByMac(mWiFiDevice.mac);
 
         if (displayLanDevice != null) {
 
@@ -132,18 +132,28 @@ public class DisplayDeviceList {
             boolean relayState = displayLanDevice.relayState;
             boolean isWanBind = displayLanDevice.isWanBind;
             boolean isLanBind = displayLanDevice.isLanBind;
+            boolean nightLightOn = displayLanDevice.nightLightOn;
+            boolean nightLightShake = displayLanDevice.nightLightShake;
 
-            displayLanDevice.copy(mDevice);
+            displayLanDevice.copy(mWiFiDevice);
 
             displayLanDevice.isWanBind = isWanBind;
             displayLanDevice.isLanBind = isLanBind;
             displayLanDevice.relayState = relayState;
             displayLanDevice.deviceID = deviceID;
             displayLanDevice.state = true;
+            displayLanDevice.nightLightOn = nightLightOn;
+            displayLanDevice.nightLightShake = nightLightShake;
 
-            if (mLastIp != null && !mLastIp.equalsIgnoreCase(mDevice.ip)) {
-                mIPArray.remove(mLastIp);
-                mIPArray.put(mDevice.ip, mDevice);
+            if (mLastIp != null) {
+                if (!mLastIp.equalsIgnoreCase(mWiFiDevice.ip)) {
+                    mIPArray.remove(mLastIp);
+                    mIPArray.put(displayLanDevice.ip, displayLanDevice);
+                } else {
+                    // ignore
+                }
+            } else {
+                mIPArray.put(displayLanDevice.ip, displayLanDevice);
             }
 
         }

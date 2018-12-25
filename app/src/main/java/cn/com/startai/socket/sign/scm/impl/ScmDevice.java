@@ -54,6 +54,16 @@ class ScmDevice implements Heartbeat.OnHeartbeatCallBack {
         }
     }
 
+    private boolean nightLightOn;
+
+    public void putNightLightState(boolean on) {
+        nightLightOn = on;
+    }
+
+    public boolean isNightLightOn() {
+        return nightLightOn;
+    }
+
     public interface OnScmCallBack {
         void onStartSendHeartbeat(ScmDevice mScmDevice);
 

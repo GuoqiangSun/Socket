@@ -41,12 +41,13 @@ public class ShakeUtils {
         mShakeListener.setOnShakeListener(new ShakeListener.OnShakeListener() {
 
             public void onShake() {
-
                 mShakeListener.pause();
 
                 Tlog.e(TAG, "startVibrato() ");
 
                 startVibrato(); // 开始 震动
+
+                exeShake();
 
                 if (Handler != null) {
                     Handler.postDelayed(new Runnable() {
@@ -62,6 +63,10 @@ public class ShakeUtils {
 
             }
         });
+    }
+
+    protected void exeShake(){
+
     }
 
 

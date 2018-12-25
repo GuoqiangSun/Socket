@@ -6,10 +6,6 @@ import org.greenrobot.greendao.annotation.Id;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.DateFormat;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-
 /**
  * author: Guoqiang_Sun
  * date : 2018/6/6 0006
@@ -52,6 +48,10 @@ public class LanDeviceInfo implements Cloneable {
 
     public String cpuInfo; // 设备cpuInfo
 
+    public boolean nightLightOn; // 小夜灯是否是开启状态
+
+    public boolean nightLightShake;// 小夜灯摇一摇开关
+
     @Override
     public String toString() {
         return "LanDeviceInfo{" +
@@ -80,13 +80,12 @@ public class LanDeviceInfo implements Cloneable {
     }
 
 
-    @Generated(hash = 1914885960)
-    public LanDeviceInfo(Long id, int model, int mainVersion, int subVersion,
-                         boolean hasAdmin, boolean isAdmin, boolean hasRemote,
-                         boolean bindNeedPwd, boolean hasActivate, boolean isLanBind,
-                         boolean isWanBind, boolean state, String deviceID, String mac,
-                         String name, String ip, int port, String ssid, int rssi,
-                         boolean relayState, String cpuInfo) {
+    @Generated(hash = 965635540)
+    public LanDeviceInfo(Long id, int model, int mainVersion, int subVersion, boolean hasAdmin,
+            boolean isAdmin, boolean hasRemote, boolean bindNeedPwd, boolean hasActivate,
+            boolean isLanBind, boolean isWanBind, boolean state, String deviceID, String mac,
+            String name, String ip, int port, String ssid, int rssi, boolean relayState, String cpuInfo,
+            boolean nightLightOn, boolean nightLightShake) {
         this.id = id;
         this.model = model;
         this.mainVersion = mainVersion;
@@ -108,7 +107,10 @@ public class LanDeviceInfo implements Cloneable {
         this.rssi = rssi;
         this.relayState = relayState;
         this.cpuInfo = cpuInfo;
+        this.nightLightOn = nightLightOn;
+        this.nightLightShake = nightLightShake;
     }
+
 
     @Generated(hash = 126986990)
     public LanDeviceInfo() {
@@ -141,6 +143,10 @@ public class LanDeviceInfo implements Cloneable {
 
         this.ssid = mWiFiDevice.ssid;
         this.rssi = mWiFiDevice.rssi;
+
+        this.nightLightOn = mWiFiDevice.nightLightOn;
+        this.nightLightShake = mWiFiDevice.nightLightShake;
+
         return this;
     }
 
@@ -397,6 +403,26 @@ public class LanDeviceInfo implements Cloneable {
 
     public void setCpuInfo(String cpuInfo) {
         this.cpuInfo = cpuInfo;
+    }
+
+
+    public boolean getNightLightOn() {
+        return this.nightLightOn;
+    }
+
+
+    public void setNightLightOn(boolean nightLightOn) {
+        this.nightLightOn = nightLightOn;
+    }
+
+
+    public boolean getNightLightShake() {
+        return this.nightLightShake;
+    }
+
+
+    public void setNightLightShake(boolean nightLightShake) {
+        this.nightLightShake = nightLightShake;
     }
 
 }

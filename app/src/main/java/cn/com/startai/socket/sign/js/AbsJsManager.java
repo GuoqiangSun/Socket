@@ -262,6 +262,10 @@ public abstract class AbsJsManager implements Device.IJSDeviceCallBack,//
         void onJSSetNightLight(String mac, boolean b);
 
         void onJSQueryRunningNightLight(String mac);
+
+        void onJSShakeNightLight(String mac, boolean b);
+
+        void onJSQueryShakeNightLight(String mac);
     }
 
 }

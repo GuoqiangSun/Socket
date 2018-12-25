@@ -111,6 +111,12 @@ public interface IControlWiFi {
 
     void onDeviceResponseDeviceSSID(String id, int rssi, String ssid);
 
+    void onDeviceResponseNightLightState(String id, boolean on);
+
+    void shakeNightLight(String mac, boolean b);
+
+    void queryShakeNightLight(String mac);
+
     interface IWiFiResultCallBack {
 
         void onResultWiFiConState(boolean state);
@@ -182,6 +188,8 @@ public interface IControlWiFi {
         void onResultNeedReBind(String mac);
 
         void onResultWxLogin(boolean b, String errcode);
+
+        void onResultShakeNightLight(String mac, boolean b);
     }
 
 }

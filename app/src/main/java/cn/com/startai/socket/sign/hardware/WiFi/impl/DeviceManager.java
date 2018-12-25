@@ -24,6 +24,7 @@ import cn.com.startai.socket.db.gen.LanDeviceInfoDao;
 import cn.com.startai.socket.db.gen.WanBindingDeviceDao;
 import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.debuger.Debuger;
+import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.LooperManager;
 import cn.com.startai.socket.mutual.Controller;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.DisplayDeviceList;
@@ -57,6 +58,8 @@ public class DeviceManager implements IService {
     private static final int MAG_WHAT_WIFI_CONFIG_SUCCESS = 0x03;
 
     private static final int MAG_WHAT_AUTO_BIND = 0x04;
+
+    private static final int MAG_WHAT_SHAKE = 0x05;
 
     private Handler mDisplayHandler;
 
@@ -121,6 +124,10 @@ public class DeviceManager implements IService {
 
                     }
 
+                } else if (msg.what == MAG_WHAT_SHAKE) {
+                    String id = (String) msg.obj;
+                    switchNight(id);
+
                 }
             }
         };
@@ -153,6 +160,61 @@ public class DeviceManager implements IService {
 
     }
 
+    public void exeShake(String mid) {
+
+        if (null != mDisplayHandler) {
+            mDisplayHandler.obtainMessage(MAG_WHAT_SHAKE, mid).sendToTarget();
+        }
+
+    }
+
+    public void shakeNightLight(String mac, boolean b) {
+
+        LanDeviceInfo displayDeviceByMac = mDisplayDeviceLst.getDisplayDeviceByMac(mac);
+
+        if (displayDeviceByMac != null) {
+            displayDeviceByMac.nightLightShake = b;
+        }
+
+        LanDeviceInfoDao lanDeviceInfoDao = DBManager.getInstance().getDaoSession().getLanDeviceInfoDao();
+        List<LanDeviceInfo> list = lanDeviceInfoDao.queryBuilder().where(LanDeviceInfoDao.Properties.Mac.eq(mac)).list();
+
+        if (list.size() > 0) {
+            LanDeviceInfo lanDeviceInfo = list.get(0);
+            lanDeviceInfo.nightLightShake = b;
+            lanDeviceInfoDao.update(lanDeviceInfo);
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultShakeNightLight(mac, b);
+            }
+        } else {
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultShakeNightLight(mac, false);
+            }
+        }
+
+
+    }
+
+    public void queryShakeNightLight(String mac) {
+
+        LanDeviceInfoDao lanDeviceInfoDao = DBManager.getInstance().getDaoSession().getLanDeviceInfoDao();
+        List<LanDeviceInfo> list = lanDeviceInfoDao.queryBuilder().where(LanDeviceInfoDao.Properties.Mac.eq(mac)).list();
+
+        boolean b;
+
+        if (list.size() > 0) {
+            LanDeviceInfo lanDeviceInfo = list.get(0);
+            b = lanDeviceInfo.nightLightShake;
+        } else {
+            b = false;
+        }
+
+        if (mResultCallBack != null) {
+            mResultCallBack.onResultShakeNightLight(mac, b);
+
+        }
+
+    }
 
     public void onNetworkStateChange() {
 
@@ -382,6 +444,32 @@ public class DeviceManager implements IService {
 
         } else {
             Tlog.e(TAG, "updateLanDeviceInfoDao()  listInfo==0 ");
+        }
+
+    }
+
+
+    public void onDeviceResponseNightLightState(String id, boolean on) {
+
+        LanDeviceInfo displayDeviceByMac = mDisplayDeviceLst.getDisplayDeviceByMac(id);
+        if (displayDeviceByMac != null) {
+            boolean nightLightOn = displayDeviceByMac.nightLightOn;
+            displayDeviceByMac.nightLightOn = on;
+
+            if (nightLightOn != on) {
+
+                LanDeviceInfoDao lanDeviceInfoDao = DBManager.getInstance().getDaoSession().getLanDeviceInfoDao();
+                List<LanDeviceInfo> listInfo = lanDeviceInfoDao.queryBuilder()
+                        .where(LanDeviceInfoDao.Properties.Mac.eq(id)).list();
+
+                if (listInfo.size() > 0) {
+                    LanDeviceInfo lanDeviceInfo = listInfo.get(0);
+                    lanDeviceInfo.nightLightOn = on;
+                    lanDeviceInfoDao.update(lanDeviceInfo);
+                }
+
+            }
+
         }
 
     }
@@ -1055,6 +1143,54 @@ public class DeviceManager implements IService {
 
     private final DisplayDeviceList mDisplayDeviceLst = new DisplayDeviceList();
 
+
+    private void switchNight(String mid) {
+        Tlog.v(TAG, "flushDevice() " + mid);
+
+        if (mid == null || !mid.equals(mDisplayDeviceLst.getUserID())) {
+            Tlog.e(TAG, "flushDevice() mid not equals cache id:" + mDisplayDeviceLst.getUserID());
+            return;
+        }
+
+        Map<String, LanDeviceInfo> displayMacArray = mDisplayDeviceLst.getDisplayMacArray();
+
+        SocketScmManager scmManager = Controller.getInstance().getScmManager();
+
+        for (Map.Entry<String, LanDeviceInfo> entries : displayMacArray.entrySet()) {
+
+            PersistentConnectState connectState = StartAI.getInstance().getConnectState();
+
+            String key = entries.getKey();
+
+            LanDeviceInfo value = entries.getValue();
+            if (value == null || !value.isWanBind) {
+                Tlog.e(TAG, "flushDevice not wan bind " + String.valueOf(value));
+                continue;
+            }
+
+            if (!value.nightLightShake) {
+                Tlog.d(TAG, " continue shake; " + String.valueOf(value));
+                continue;
+            }
+
+            LanDeviceInfo lanDeviceByMac = mDiscoveryDeviceLst.getLanDeviceByMac(key);
+
+            if (lanDeviceByMac != null || connectState == PersistentConnectState.CONNECTED) {
+
+                if (CustomManager.getInstance().isMUSIK()) {
+                    Tlog.w(TAG, "switchNightLight " + key);
+
+                    scmManager.switchNightLight(key, !value.nightLightOn);
+                }
+
+
+            }
+
+        }
+
+    }
+
+
     private void flushDevice(String mid) {
         Tlog.v(TAG, "flushDevice() " + mid);
 
@@ -1100,6 +1236,12 @@ public class DeviceManager implements IService {
                     Tlog.w(TAG, "querySSID " + key);
 
                     scmManager.querySSID(key);
+
+                    if (CustomManager.getInstance().isMUSIK()) {
+                        Tlog.w(TAG, "queryNightLight " + key);
+
+                        scmManager.queryNightLight(key);
+                    }
 
                 } else {
                     Tlog.w(TAG, " flush device info " + key + " mqtt not con:" + String.valueOf(connectState));
@@ -1427,8 +1569,6 @@ public class DeviceManager implements IService {
             mDisplayHandler.sendMessageDelayed(message, 1000 * 6L);
         }
     }
-
-
 
         /*C_0x8001.Req.ContentBean contentBean = new C_0x8001.Req.ContentBean();
         contentBean.setAppid("ae6529f2fc52782a6d75db3259257084");

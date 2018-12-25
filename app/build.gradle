@@ -102,7 +102,7 @@ android {
     greendao {
 
         //数据库版本
-        schemaVersion 30
+        schemaVersion 32
         //设置DaoMaster、DaoSession、Dao包名
         daoPackage "cn.com.startai.socket.db.gen"
         //设置DaoMaster、DaoSession、Dao目录

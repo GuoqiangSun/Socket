@@ -29,6 +29,11 @@ public class NightLight extends AbsHandlerJsInterface {
         void onJSSetNightLight(String obj, boolean b);
 
         void onJSQueryRunningNightLight(String mac);
+
+        void onJSShakeNightLight(String mac, boolean b);
+
+        void onJSQueryShakeNightLight(String mac);
+
     }
 
 
@@ -46,6 +51,13 @@ public class NightLight extends AbsHandlerJsInterface {
         public static String callNightLightSwitch(String mac, boolean on) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
             return NIGHT_LIGHT_SWITCH.replace("$mac", mac).replace("$state", String.valueOf(on));
+        }
+
+        private static final String NIGHT_LIGHT_SHAKE = "javascript:shakeItNightLightResponse('$mac',$state)";
+
+        public static String callNightLightShake(String mac, boolean on) {
+            if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
+            return NIGHT_LIGHT_SHAKE.replace("$mac", mac).replace("$state", String.valueOf(on));
         }
 
     }
@@ -68,6 +80,8 @@ public class NightLight extends AbsHandlerJsInterface {
     private static final int MSG_SET_NIGHT_LIGHT_TIMING = 0x2F;
     private static final int MSG_SWITCH_NIGHT_LIGHT = 0x30;
     private static final int MSG_QUERY_NIGHT_LIGHT = 0x31;
+    private static final int MSG_NIGHT_LIGHT_SHAKE = 0x32;
+    private static final int MSG_QUERY_NIGHT_LIGHT_SHAKE = 0x33;
 
     @Override
     protected void handleMessage(Message msg) {
@@ -100,8 +114,30 @@ public class NightLight extends AbsHandlerJsInterface {
             if (mCallBack != null) {
                 mCallBack.onJSQueryNightLight((String) msg.obj);
             }
+        } else if (msg.what == MSG_NIGHT_LIGHT_SHAKE) {
+            if (mCallBack != null) {
+                mCallBack.onJSShakeNightLight((String) msg.obj, msg.arg1 == 1);
+            }
+        } else if (msg.what == MSG_QUERY_NIGHT_LIGHT_SHAKE) {
+            if (mCallBack != null) {
+                mCallBack.onJSQueryShakeNightLight((String) msg.obj);
+            }
         }
 
+    }
+
+
+    @JavascriptInterface
+    public void shakeItNightLightDataRequest(String mac) {
+        Tlog.v(TAG, " shakeItNightLightDataRequest ");
+        getHandler().obtainMessage(MSG_QUERY_NIGHT_LIGHT_SHAKE, mac).sendToTarget();
+    }
+
+    @JavascriptInterface
+    public void shakeItNightLightRequest(String mac, boolean state) {
+        Tlog.v(TAG, " shakeItNightLightRequest " + state);
+        int a = state ? 1 : 0;
+        getHandler().obtainMessage(MSG_NIGHT_LIGHT_SHAKE, a, a, mac).sendToTarget();
     }
 
     @JavascriptInterface

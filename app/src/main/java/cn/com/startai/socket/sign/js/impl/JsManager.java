@@ -855,7 +855,7 @@ public class JsManager extends AbsJsManager implements IService {
     @Override
     public void onJSSetNightLight(String mac, boolean b) {
         if (mJSManagerCallBack != null) {
-            mJSManagerCallBack.onJSSetNightLight(mac,b);
+            mJSManagerCallBack.onJSSetNightLight(mac, b);
         }
     }
 
@@ -863,6 +863,20 @@ public class JsManager extends AbsJsManager implements IService {
     public void onJSQueryRunningNightLight(String mac) {
         if (mJSManagerCallBack != null) {
             mJSManagerCallBack.onJSQueryRunningNightLight(mac);
+        }
+    }
+
+    @Override
+    public void onJSShakeNightLight(String mac, boolean b) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSShakeNightLight(mac, b);
+        }
+    }
+
+    @Override
+    public void onJSQueryShakeNightLight(String mac) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSQueryShakeNightLight(mac);
         }
     }
 

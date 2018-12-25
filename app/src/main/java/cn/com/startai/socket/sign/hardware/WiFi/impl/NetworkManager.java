@@ -254,7 +254,14 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
         app.registerReceiver(mNetWorkStateReceiver, filter);
 
         if (CustomManager.getInstance().isMUSIK()) {
-            mShakeUtils = new ShakeUtils(app);
+            mShakeUtils = new ShakeUtils(app) {
+                @Override
+                protected void exeShake() {
+                    super.exeShake();
+
+                    mDeviceManager.exeShake(getLoginUserID());
+                }
+            };
             mShakeUtils.onCreate();
         }
 
@@ -719,6 +726,21 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
     @Override
     public void onDeviceResponseDeviceSSID(String id, int rssi, String ssid) {
         mDeviceManager.onDeviceResponseDeviceSSID(id, rssi, ssid);
+    }
+
+    @Override
+    public void onDeviceResponseNightLightState(String id, boolean on) {
+        mDeviceManager.onDeviceResponseNightLightState(id, on);
+    }
+
+    @Override
+    public void shakeNightLight(String mac, boolean b) {
+        mDeviceManager.shakeNightLight(mac,b);
+    }
+
+    @Override
+    public void queryShakeNightLight(String mac) {
+        mDeviceManager.queryShakeNightLight(mac);
     }
 
     @Override

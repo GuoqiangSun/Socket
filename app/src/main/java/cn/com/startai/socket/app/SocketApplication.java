@@ -11,7 +11,6 @@ import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.FileManager;
 import cn.com.startai.socket.global.LooperManager;
-import cn.com.startai.socket.java.JavaTestMain;
 import cn.com.startai.socket.sign.js.jsInterface.Language;
 import cn.com.swain169.log.Tlog;
 
@@ -40,9 +39,11 @@ public class SocketApplication extends MultiDexApplication implements Thread.Unc
         LooperManager.getInstance().init(this);
         DBManager.getInstance().init(this);
 
-        Stetho.initializeWithDefaults(this); //chrome://inspect
+        if (Debuger.isDebug || Debuger.isLogDebug) {
+            Stetho.initializeWithDefaults(this); //chrome://inspect
+        }
 
-        Tlog.i("SocketApplication onCreate(); pid:"+ android.os.Process.myPid()
+        Tlog.i("SocketApplication onCreate(); pid:" + android.os.Process.myPid()
                 + "; Build.VERSION.SDK_INT :" + Build.VERSION.SDK_INT);
 
     }
