@@ -45,8 +45,7 @@ public class LanDeviceInfoDao extends AbstractDao<LanDeviceInfo, Long> {
         public final static Property Rssi = new Property(18, int.class, "rssi", false, "RSSI");
         public final static Property RelayState = new Property(19, boolean.class, "relayState", false, "RELAY_STATE");
         public final static Property CpuInfo = new Property(20, String.class, "cpuInfo", false, "CPU_INFO");
-        public final static Property NightLightOn = new Property(21, boolean.class, "nightLightOn", false, "NIGHT_LIGHT_ON");
-        public final static Property NightLightShake = new Property(22, boolean.class, "nightLightShake", false, "NIGHT_LIGHT_SHAKE");
+        public final static Property NightLightShake = new Property(21, boolean.class, "nightLightShake", false, "NIGHT_LIGHT_SHAKE");
     }
 
 
@@ -83,8 +82,7 @@ public class LanDeviceInfoDao extends AbstractDao<LanDeviceInfo, Long> {
                 "\"RSSI\" INTEGER NOT NULL ," + // 18: rssi
                 "\"RELAY_STATE\" INTEGER NOT NULL ," + // 19: relayState
                 "\"CPU_INFO\" TEXT," + // 20: cpuInfo
-                "\"NIGHT_LIGHT_ON\" INTEGER NOT NULL ," + // 21: nightLightOn
-                "\"NIGHT_LIGHT_SHAKE\" INTEGER NOT NULL );"); // 22: nightLightShake
+                "\"NIGHT_LIGHT_SHAKE\" INTEGER NOT NULL );"); // 21: nightLightShake
     }
 
     /** Drops the underlying database table. */
@@ -145,8 +143,7 @@ public class LanDeviceInfoDao extends AbstractDao<LanDeviceInfo, Long> {
         if (cpuInfo != null) {
             stmt.bindString(21, cpuInfo);
         }
-        stmt.bindLong(22, entity.getNightLightOn() ? 1L: 0L);
-        stmt.bindLong(23, entity.getNightLightShake() ? 1L: 0L);
+        stmt.bindLong(22, entity.getNightLightShake() ? 1L: 0L);
     }
 
     @Override
@@ -201,8 +198,7 @@ public class LanDeviceInfoDao extends AbstractDao<LanDeviceInfo, Long> {
         if (cpuInfo != null) {
             stmt.bindString(21, cpuInfo);
         }
-        stmt.bindLong(22, entity.getNightLightOn() ? 1L: 0L);
-        stmt.bindLong(23, entity.getNightLightShake() ? 1L: 0L);
+        stmt.bindLong(22, entity.getNightLightShake() ? 1L: 0L);
     }
 
     @Override
@@ -234,8 +230,7 @@ public class LanDeviceInfoDao extends AbstractDao<LanDeviceInfo, Long> {
             cursor.getInt(offset + 18), // rssi
             cursor.getShort(offset + 19) != 0, // relayState
             cursor.isNull(offset + 20) ? null : cursor.getString(offset + 20), // cpuInfo
-            cursor.getShort(offset + 21) != 0, // nightLightOn
-            cursor.getShort(offset + 22) != 0 // nightLightShake
+            cursor.getShort(offset + 21) != 0 // nightLightShake
         );
         return entity;
     }
@@ -263,8 +258,7 @@ public class LanDeviceInfoDao extends AbstractDao<LanDeviceInfo, Long> {
         entity.setRssi(cursor.getInt(offset + 18));
         entity.setRelayState(cursor.getShort(offset + 19) != 0);
         entity.setCpuInfo(cursor.isNull(offset + 20) ? null : cursor.getString(offset + 20));
-        entity.setNightLightOn(cursor.getShort(offset + 21) != 0);
-        entity.setNightLightShake(cursor.getShort(offset + 22) != 0);
+        entity.setNightLightShake(cursor.getShort(offset + 21) != 0);
      }
     
     @Override

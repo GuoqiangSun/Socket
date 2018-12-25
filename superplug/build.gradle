@@ -18,8 +18,8 @@ android {
         applicationId "cn.com.startai.superplug"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 16042
-        versionName "1.6.042"
+        versionCode 16043
+        versionName "1.6.043"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true

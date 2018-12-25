@@ -3,6 +3,7 @@ package cn.com.startai.socket.mutual.js.bean.WiFiDevice;
 import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Generated;
 import org.greenrobot.greendao.annotation.Id;
+import org.greenrobot.greendao.annotation.Transient;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -48,6 +49,7 @@ public class LanDeviceInfo implements Cloneable {
 
     public String cpuInfo; // 设备cpuInfo
 
+    @Transient
     public boolean nightLightOn; // 小夜灯是否是开启状态
 
     public boolean nightLightShake;// 小夜灯摇一摇开关
@@ -80,12 +82,12 @@ public class LanDeviceInfo implements Cloneable {
     }
 
 
-    @Generated(hash = 965635540)
+    @Generated(hash = 261228929)
     public LanDeviceInfo(Long id, int model, int mainVersion, int subVersion, boolean hasAdmin,
             boolean isAdmin, boolean hasRemote, boolean bindNeedPwd, boolean hasActivate,
             boolean isLanBind, boolean isWanBind, boolean state, String deviceID, String mac,
             String name, String ip, int port, String ssid, int rssi, boolean relayState, String cpuInfo,
-            boolean nightLightOn, boolean nightLightShake) {
+            boolean nightLightShake) {
         this.id = id;
         this.model = model;
         this.mainVersion = mainVersion;
@@ -107,7 +109,6 @@ public class LanDeviceInfo implements Cloneable {
         this.rssi = rssi;
         this.relayState = relayState;
         this.cpuInfo = cpuInfo;
-        this.nightLightOn = nightLightOn;
         this.nightLightShake = nightLightShake;
     }
 
