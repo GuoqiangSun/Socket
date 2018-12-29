@@ -22,7 +22,7 @@ import cn.com.startai.socket.sign.hardware.WiFi.impl.NetworkManager;
 import cn.com.startai.socket.sign.scm.impl.SocketScmManager;
 import cn.com.swain.baselib.util.IpUtil;
 import cn.com.swain.support.protocolEngine.pack.ComModel;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun

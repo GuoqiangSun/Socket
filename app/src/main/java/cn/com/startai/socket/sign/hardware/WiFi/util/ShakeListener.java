@@ -12,7 +12,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 
 /**

@@ -9,7 +9,7 @@ import java.lang.ref.WeakReference;
 import cn.com.startai.socket.global.LooperManager;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
 import cn.com.startai.socket.sign.hardware.IControlWiFi;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun

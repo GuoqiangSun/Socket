@@ -27,7 +27,7 @@ import cn.com.startai.socket.debuger.impl.ProductDetectionManager;
 import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun

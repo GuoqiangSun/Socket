@@ -69,7 +69,7 @@ import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.result.SimpleProtocolResult;
 import cn.com.swain.support.protocolEngine.task.FailTaskResult;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun
@@ -111,7 +111,7 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
 
     private void parseCrcError(FailTaskResult failTaskResult) {
 
-        if(CustomManager.getInstance().isAirtempNBProjectTest()){
+        if (CustomManager.getInstance().isAirtempNBProjectTest()) {
             if (failTaskResult.type == SocketSecureKey.Type.TYPE_REPORT
                     && failTaskResult.cmd == SocketSecureKey.Cmd.CMD_TEMP_HUMI_REPORT) {
 
@@ -122,8 +122,17 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                     float tempF = Float.valueOf(temp_int + "." + temp_deci);
                     float temp = (float) (Math.round(tempF * 100)) / 100;
 
+                    float humi = 0F;
+
+                    if (failTaskResult.data.length >= 16) {
+                        int humi_int = failTaskResult.data[14];
+                        int humi_deci = failTaskResult.data[16] & 0xFF;
+                        float humiF = Float.valueOf(humi_int + "." + humi_deci);
+                        humi = (float) (Math.round(humiF * 100)) / 100;
+                    }
+
                     if (mTaskCallBack != null) {
-                        mTaskCallBack.onTempHumiResult(failTaskResult.mac, temp, 0);
+                        mTaskCallBack.onTempHumiResult(failTaskResult.mac, temp, humi);
                     }
                 }
 

@@ -1,11 +1,9 @@
 package cn.com.startai.socket.app.activity;
 
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 import android.widget.Toast;
 
 import java.io.File;
@@ -18,7 +16,7 @@ import cn.com.startai.socket.app.fragment.GuideFragment;
 import cn.com.startai.socket.app.fragment.WebFragment;
 import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.sign.js.util.H5Config;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun

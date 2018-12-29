@@ -8,12 +8,19 @@ android {
         targetCompatibility 1.8
     }
 
+    lintOptions {
+        checkReleaseBuilds false
+        // Or, if you prefer, you can continue to check for errors in release builds,
+        // but continue the build even when errors are found:
+        abortOnError false
+    }
+
     defaultConfig {
         applicationId "cn.com.startai.aritempnb"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 16102
-        versionName "1.6.102"
+        versionCode 16106
+        versionName "1.6.106"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
@@ -30,6 +37,18 @@ android {
         variant.outputs.all {
             outputFileName = "AirTempNB-${variant.versionName}-${variant.buildType.name}.apk"
         }
+    }
+}
+
+allprojects {
+    repositories {
+        flatDir {
+            dirs 'libs'
+        }
+        jcenter()
+//        mavenCentral()
+//        maven { url 'https://maven.fabric.io/public' }
+
     }
 }
 

@@ -37,7 +37,7 @@ import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
 import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.startai.socket.sign.scm.impl.SocketScmManager;
 import cn.com.swain.baselib.app.IApp.IService;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun

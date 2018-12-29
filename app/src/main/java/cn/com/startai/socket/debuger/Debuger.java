@@ -17,10 +17,10 @@ import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.FileManager;
 import cn.com.swain.baselib.app.IApp.IApp;
 import cn.com.swain.baselib.app.IApp.IService;
+import cn.com.swain.baselib.log.TFlog;
+import cn.com.swain.baselib.log.Tlog;
+import cn.com.swain.baselib.log.logRecord.impl.LogRecordManager;
 import cn.com.swain.baselib.util.AppUtils;
-import cn.com.swain169.log.TFlog;
-import cn.com.swain169.log.Tlog;
-import cn.com.swain169.log.logRecord.impl.LogRecordManager;
 
 /**
  * author: Guoqiang_Sun
@@ -189,7 +189,7 @@ public class Debuger implements IApp, IService {
                     + String.valueOf(CustomManager.getInstance().getProduct());
             if (!TFlog.hasILogRecordImpl()) {
                 LogRecordManager mLogRecord = new LogRecordManager(logPath, prefix, 1024 * 1024 * 8);
-                Tlog.regIRecordMsgFile(mLogRecord);
+                Tlog.set(mLogRecord);
             }
         } else {
             Tlog.e(" recordLog logPath not exit");

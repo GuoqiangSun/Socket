@@ -12,7 +12,7 @@ import java.net.URL;
 
 import cn.com.startai.socket.global.FileManager;
 import cn.com.startai.socket.sign.hardware.WiFi.impl.UserManager;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun

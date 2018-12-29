@@ -25,7 +25,7 @@ import cn.com.startai.socket.db.gen.CountElectricityDao;
 import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.mutual.js.bean.CountElectricity;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun

@@ -13,7 +13,7 @@ import cn.com.startai.socket.global.WXLoginHelper;
 import cn.com.startai.socket.mutual.Controller;
 import cn.com.startai.socket.sign.hardware.WiFi.impl.NetworkManager;
 import cn.com.startai.socket.sign.hardware.WiFi.impl.UserManager;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 public class WXEntryActivity extends Activity implements IWXAPIEventHandler {
 

@@ -1,8 +1,15 @@
 package cn.com.startai.socket.sign.scm.impl;
 
 import android.app.Application;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
+import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
@@ -12,6 +19,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import cn.com.startai.socket.R;
 import cn.com.startai.socket.db.gen.CountElectricityDao;
 import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.debuger.Debuger;
@@ -26,7 +34,6 @@ import cn.com.startai.socket.mutual.js.bean.CountElectricity;
 import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
 import cn.com.startai.socket.mutual.js.bean.TimingSetResult;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
-import cn.com.startai.socket.sign.hardware.WiFi.util.ShakeUtils;
 import cn.com.startai.socket.sign.scm.AbsSocketScm;
 import cn.com.startai.socket.sign.scm.bean.CostRate;
 import cn.com.startai.socket.sign.scm.bean.CountdownData;
@@ -61,7 +68,7 @@ import cn.com.swain.support.protocolEngine.pack.ReceivesData;
 import cn.com.swain.support.protocolEngine.pack.ResponseData;
 import cn.com.swain.support.protocolEngine.resolve.AbsProtocolProcessor;
 import cn.com.swain.support.protocolEngine.task.FailTaskResult;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun
@@ -1506,6 +1513,87 @@ public class SocketScmManager extends AbsSocketScm
             mScmResultCallBack.onResultQueryTemperatureHumidityData(mac, mTempHumi);
         }
 
+
+        if (CustomManager.getInstance().isAirtempNBProjectTest()) {
+            // 温度=100 发送设备离线通知;
+            if (temp == 100F) {
+                notifyDeviceOffline(mac);
+            }
+
+        }
+
+    }
+
+
+    private void notifyDeviceOffline(String mac) {
+
+        if (app == null) {
+            return;
+        }
+
+        /**
+         *  创建通知栏管理工具
+         */
+
+        Context applicationContext = app.getApplicationContext();
+
+        NotificationManager notificationManager = (NotificationManager) applicationContext.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        String ticker;
+        if (mac != null) {
+            ticker = String.valueOf(mac) + " 离线";
+
+        } else {
+            ticker = " 设备离线";
+        }
+
+        if (notificationManager == null) {
+            //发送通知请求
+            Toast.makeText(app, "设备离线", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            //创建通知渠道
+            CharSequence name = "渠道名称1";
+
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;//重要性级别
+            NotificationChannel mChannel = new NotificationChannel(ticker, name, importance);
+
+//            String description = "渠道描述1";
+//            mChannel.setDescription(description);//渠道描述
+//            mChannel.enableLights(true);//是否显示通知指示灯
+//            mChannel.enableVibration(true);//是否振动
+
+            //创建通知渠道
+            notificationManager.createNotificationChannel(mChannel);
+        }
+
+        /**
+         *  实例化通知栏构造器
+         */
+
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(app, ticker);
+
+        /**
+         *  设置Builder
+         */
+        //设置标题
+        mBuilder.setContentTitle("设备离线")
+                //设置内容
+                .setContentText(String.valueOf(mac) + " 离线")
+                //设置大图标
+                .setLargeIcon(BitmapFactory.decodeResource(app.getResources(), R.mipmap.ic_launcher))
+                //设置小图标
+                .setSmallIcon(R.mipmap.ic_launcher_round)
+                //设置通知时间
+                .setWhen(System.currentTimeMillis())
+                //首次进入时显示效果
+                .setTicker(ticker)
+                //设置通知方式，声音，震动，呼吸灯等效果，这里通知方式为声音
+                .setDefaults(Notification.DEFAULT_SOUND);
+        notificationManager.notify(10, mBuilder.build());
     }
 
     private static final long DIFF = 1000 * 32; //32s

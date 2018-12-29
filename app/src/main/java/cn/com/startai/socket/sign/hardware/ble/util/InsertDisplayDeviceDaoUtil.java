@@ -9,7 +9,7 @@ import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.mutual.js.bean.DisplayBleDevice;
 import cn.com.startai.socket.sign.hardware.ble.impl.BleManager;
 import cn.com.swain.support.ble.scan.ScanBle;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun

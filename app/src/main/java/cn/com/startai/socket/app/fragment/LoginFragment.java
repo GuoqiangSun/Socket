@@ -45,7 +45,7 @@ import com.twitter.sdk.android.core.models.User;
 import com.twitter.sdk.android.core.services.AccountService;
 
 import cn.com.startai.socket.R;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 import retrofit2.Call;
 
 /**

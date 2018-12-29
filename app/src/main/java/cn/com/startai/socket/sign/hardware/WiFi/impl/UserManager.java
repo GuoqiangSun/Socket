@@ -59,7 +59,7 @@ import cn.com.startai.socket.sign.hardware.WiFi.util.NetworkData;
 import cn.com.startai.socket.sign.js.JsUserInfo;
 import cn.com.swain.baselib.app.IApp.IService;
 import cn.com.swain.baselib.util.PhotoUtils;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun

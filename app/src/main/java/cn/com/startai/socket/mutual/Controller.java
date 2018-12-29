@@ -15,7 +15,7 @@ import cn.com.startai.socket.sign.hardware.ble.impl.BleManager;
 import cn.com.startai.socket.sign.js.impl.JsManager;
 import cn.com.startai.socket.sign.scm.impl.SocketScmManager;
 import cn.com.swain.baselib.app.IApp.IService;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun

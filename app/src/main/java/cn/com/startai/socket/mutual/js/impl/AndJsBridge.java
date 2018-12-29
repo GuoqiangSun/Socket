@@ -77,7 +77,7 @@ import cn.com.startai.socket.sign.scm.bean.sensor.SensorData;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.TempHumidityData;
 import cn.com.swain.baselib.app.IApp.IService;
 import cn.com.swain.baselib.file.FileUtil;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun

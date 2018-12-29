@@ -7,7 +7,7 @@ import cn.com.startai.socket.sign.js.AbsJsManager;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.AbsSocketScm;
 import cn.com.startai.socket.sign.scm.IVirtualSocketScm;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun

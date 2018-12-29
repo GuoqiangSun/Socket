@@ -9,7 +9,7 @@ import cn.com.startai.socket.mutual.js.bean.MobileLogin;
 import cn.com.startai.socket.mutual.js.bean.UserRegister;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.swain.baselib.jsInterface.AbsHandlerJsInterface;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun

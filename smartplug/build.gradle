@@ -40,14 +40,12 @@ android {
     }
 }
 
-
-
 allprojects {
     repositories {
         flatDir {
             dirs 'libs'
         }
-
+        jcenter()
 //        mavenCentral()
 //        maven { url 'https://maven.fabric.io/public' }
 

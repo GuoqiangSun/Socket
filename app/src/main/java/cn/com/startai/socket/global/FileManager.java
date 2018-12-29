@@ -7,7 +7,7 @@ import android.net.Uri;
 import java.io.File;
 
 import cn.com.swain.baselib.file.FileTemplate;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun

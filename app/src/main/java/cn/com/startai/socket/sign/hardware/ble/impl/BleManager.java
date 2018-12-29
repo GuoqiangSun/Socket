@@ -25,6 +25,7 @@ import cn.com.startai.socket.sign.hardware.ble.array.BleArrayUtils;
 import cn.com.startai.socket.sign.hardware.ble.util.DeviceEnablePost;
 import cn.com.startai.socket.sign.hardware.ble.util.InsertDisplayDeviceDaoUtil;
 import cn.com.startai.socket.sign.hardware.ble.xml.ConBleSp;
+import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.baselib.util.PermissionHelper;
 import cn.com.swain.baselib.util.PermissionRequest;
 import cn.com.swain.baselib.util.StrUtil;
@@ -47,7 +48,6 @@ import cn.com.swain.support.ble.send.SendDataQueue;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolInput;
 import cn.com.swain.support.protocolEngine.pack.ReceivesData;
 import cn.com.swain.support.protocolEngine.pack.ResponseData;
-import cn.com.swain169.log.Tlog;
 
 
 /**
@@ -355,7 +355,9 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
                             + "--" + mBle.name + "--" + mBle.getFirstBroadUUID());
                 }
                 return;
-            } else if (CustomManager.getInstance().isTriggerBle()
+            }
+
+            if (CustomManager.getInstance().isTriggerBle()
                     && !mBle.address.startsWith("90:00")
                     ) {
 
@@ -365,6 +367,7 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
                 return;
 
             }
+
 //            if (!mBle.matchBroadUUID(mShowUuid)) {
 //                if (Debuger.isLogDebug) {
 //                    Tlog.w(TAG, " broadUuid not match " + mBle.address

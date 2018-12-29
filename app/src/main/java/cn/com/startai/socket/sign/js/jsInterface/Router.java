@@ -4,7 +4,7 @@ import org.xwalk.core.JavascriptInterface;
 
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.swain.baselib.jsInterface.AbsJsInterface;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun

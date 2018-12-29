@@ -27,7 +27,7 @@ import cn.com.startai.socket.global.DeveloperBuilder;
 import cn.com.startai.socket.mutual.js.bean.DisplayBleDevice;
 import cn.com.startai.socket.sign.hardware.ble.impl.BleManager;
 import cn.com.startai.socket.sign.hardware.ble.xml.ConBleSp;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun
@@ -182,7 +182,7 @@ public class DeviceEnablePost extends AsyncTask<Void, Void, String> {
 
 
         try {
-            URL url = new URL("http://47.98.166.119:8080/service/device/simpleactivate");
+            URL url = new URL("https://bs.startai.cn/device/v1.0/simble_activate");
 //            URL url = new URL("http://192.168.1.148:8080/service/device/simpleactivate");
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();

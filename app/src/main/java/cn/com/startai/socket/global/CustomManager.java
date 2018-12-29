@@ -5,7 +5,7 @@ import android.app.Application;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.baselib.app.IApp.IApp;
 import cn.com.swain.support.protocolEngine.ProtocolBuild;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun
@@ -54,7 +54,7 @@ public class CustomManager implements IApp {
     }
 
     public boolean isAirtempNBProjectTest() {
-        return false;
+        return isAirtempNBProject;
     }
 
     public boolean isTestProject() {

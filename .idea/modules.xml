@@ -4,11 +4,11 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/airtempnb/airtempnb.iml" filepath="$PROJECT_DIR$/airtempnb/airtempnb.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/blesocket/blesocket.iml" filepath="$PROJECT_DIR$/blesocket/blesocket.iml" />
       <module fileurl="file://$PROJECT_DIR$/smartplug/smartplug.iml" filepath="$PROJECT_DIR$/smartplug/smartplug.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/startaiSocketProject.iml" filepath="$PROJECT_DIR$/.idea/startaiSocketProject.iml" />
       <module fileurl="file://$PROJECT_DIR$/superplug/superplug.iml" filepath="$PROJECT_DIR$/superplug/superplug.iml" />
       <module fileurl="file://$PROJECT_DIR$/test/test.iml" filepath="$PROJECT_DIR$/test/test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/triggerhomeble/triggerhomeble.iml" filepath="$PROJECT_DIR$/triggerhomeble/triggerhomeble.iml" />
       <module fileurl="file://$PROJECT_DIR$/wifisocket/wifisocket.iml" filepath="$PROJECT_DIR$/wifisocket/wifisocket.iml" />
     </modules>
   </component>

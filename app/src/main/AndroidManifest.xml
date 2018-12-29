@@ -127,6 +127,7 @@
         </service>
 
         <service android:name=".app.service.CancelNotificationService" />
+        <service android:name=".app.service.MutualService" />
 
         <activity
             android:name="cn.com.startai.wifisocket.wxapi.WXEntryActivity"

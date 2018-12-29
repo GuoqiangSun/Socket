@@ -11,7 +11,7 @@ import android.widget.TextView;
 
 import cn.com.startai.socket.R;
 import cn.com.startai.socket.app.activity.ProductDetectionActivity;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun

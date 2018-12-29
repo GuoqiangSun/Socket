@@ -10,10 +10,10 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/airtempnb" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/blesocket" />
             <option value="$PROJECT_DIR$/smartplug" />
             <option value="$PROJECT_DIR$/superplug" />
             <option value="$PROJECT_DIR$/test" />
+            <option value="$PROJECT_DIR$/triggerhomeble" />
             <option value="$PROJECT_DIR$/wifisocket" />
           </set>
         </option>

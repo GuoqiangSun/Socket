@@ -1,11 +1,15 @@
 package cn.com.startai.socket.app.activity;
 
 import android.Manifest;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.PersistableBundle;
@@ -26,8 +30,8 @@ import cn.com.startai.socket.app.SocketApplication;
 import cn.com.startai.socket.app.fragment.BaseFragment;
 import cn.com.startai.socket.app.fragment.GuideFragment;
 import cn.com.startai.socket.app.fragment.WebFragment;
+import cn.com.startai.socket.app.service.MutualService;
 import cn.com.startai.socket.debuger.Debuger;
-import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.FileManager;
 import cn.com.startai.socket.global.LoginHelp;
 import cn.com.startai.socket.mutual.Controller;
@@ -40,9 +44,10 @@ import cn.com.startai.socket.sign.js.jsInterface.Login;
 import cn.com.startai.socket.sign.js.jsInterface.Router;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.swain.baselib.Queue.LimitQueue;
+import cn.com.swain.baselib.app.IApp.IService;
 import cn.com.swain.baselib.util.PermissionRequest;
 import cn.com.swain.baselib.util.StatusBarUtil;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun
@@ -95,6 +100,10 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         Tlog.v(TAG, "HomeActivity  onWindowFocusChanged() ");
     }
 
+    private boolean isDistributed = false;
+
+    IService IService;
+    ServiceConnection connection;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +113,27 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         StatusBarUtil.fullscreenShowBarFontWhite(getWindow());
 
         setContentView(R.layout.activity_home);
-        restoreFragment(savedInstanceState);
+
+        if (mUiHandler == null) {
+            Tlog.d(TAG, "activity new UiHandler(this);");
+            mUiHandler = new UiHandler(this);
+        }
+
+        if (isDistributed) {
+            showGuideFragment(savedInstanceState);
+
+            if (savedInstanceState != null) {
+                Fragment fragmentWeb = getFragmentByCache(savedInstanceState, String.valueOf(ID_WEB));
+                if (fragmentWeb != null) {
+                    Tlog.e(TAG, " savedInstanceState!=null, add cache web fragment ");
+
+                    mFragments.add(ID_WEB, (BaseFragment) fragmentWeb);
+                }
+            }
+
+        } else {
+            restoreFragment(savedInstanceState);
+        }
 
         Tlog.d(TAG, "activity mFragment : " + mFragments.hashCode());
 
@@ -125,24 +154,65 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
             Tlog.v(TAG, "HomeActivity permission :" + permission + " granted:" + granted);
         }, per);
 
-        if (mUiHandler == null) {
-            Tlog.d(TAG, "activity new UiHandler(this);");
-            mUiHandler = new UiHandler(this);
-        }
-
 //        startService(new Intent(this, CoreService.class));
 
         Tlog.v(TAG, " Controller hashCode: " + Controller.getInstance().hashCode());
 
         Controller.getInstance().init(getApplication(), this);
-        Controller.getInstance().onSCreate();
+
+        if (isDistributed) {
+            Intent mutualService = new Intent(this, MutualService.class);
+            connection = new ServiceConnection() {
+                @Override
+                public void onServiceConnected(ComponentName name, IBinder service) {
+
+                    Tlog.d(TAG, " onServiceConnected:" + name);
+
+                    MutualService.MBinder service1 = (MutualService.MBinder) service;
+                    IService = service1.getIService();
+                    IService.onSCreate();
+                    resLoadFinish();
+                }
+
+                @Override
+                public void onServiceDisconnected(ComponentName name) {
+                    Tlog.d(TAG, " onServiceDisconnected:" + name);
+                }
+            };
+            bindService(mutualService, connection, Context.BIND_AUTO_CREATE);
+        } else {
+            IService = Controller.getInstance();
+            IService.onSCreate();
+        }
+
 
     }
 
-    private synchronized void restoreFragment(Bundle savedInstanceState) {
+    protected void resLoadFinish() {
+
+        if (mFragments.size() > ID_WEB && mFragments.get(ID_WEB) != null) {
+            Tlog.e(" resLoadFinish but web fragment not null ");
+            return;
+        }
 
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        addWebFragment(fragmentTransaction, null);
+        if (mCurFrame == ID_GUIDE) {
+            fragmentTransaction.hide(mFragments.get(ID_WEB));
+        }
+        fragmentTransaction.commit();
+    }
 
+    private void showGuideFragment(Bundle savedInstanceState) {
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        addGuideFragment(fragmentTransaction, savedInstanceState);
+        if (mCurFrame == ID_GUIDE) {
+            fragmentTransaction.show(mFragments.get(ID_GUIDE));
+        }
+        fragmentTransaction.commit();
+    }
+
+    private void addGuideFragment(FragmentTransaction fragmentTransaction, Bundle savedInstanceState) {
         Fragment fragmentGuide = getFragmentByCache(savedInstanceState, String.valueOf(ID_GUIDE));
         if (fragmentGuide == null) {
             Tlog.w(TAG, " mFragments add new guideFragment");
@@ -154,6 +224,10 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
                 mFragments.add(ID_GUIDE, (BaseFragment) fragmentGuide);
             }
         }
+
+    }
+
+    private void addWebFragment(FragmentTransaction fragmentTransaction, Bundle savedInstanceState) {
 
         Fragment fragmentWeb = getFragmentByCache(savedInstanceState, String.valueOf(ID_WEB));
         if (fragmentWeb == null) {
@@ -167,16 +241,6 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
                 mFragments.add(ID_WEB, (BaseFragment) fragmentWeb);
             }
         }
-
-        if (mCurFrame == ID_GUIDE) {
-            fragmentTransaction.show(mFragments.get(ID_GUIDE));
-            fragmentTransaction.hide(mFragments.get(ID_WEB));
-        } else if (mCurFrame == ID_WEB) {
-            fragmentTransaction.hide(mFragments.get(ID_GUIDE));
-            fragmentTransaction.show(mFragments.get(ID_WEB));
-        }
-
-        fragmentTransaction.commit();
 
     }
 
@@ -200,7 +264,9 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         if (!mWebShowed && mWebLoaded) {
             showWeb(600);
         }
-        Controller.getInstance().onSResume();
+        if (IService != null) {
+            IService.onSResume();
+        }
     }
 
     @Override
@@ -208,7 +274,9 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         super.onPause();
         Tlog.v(TAG, "HomeActivity onPause() ");
         mActPause = true;
-        Controller.getInstance().onSPause();
+        if (IService != null) {
+            IService.onSPause();
+        }
     }
 
     @Override
@@ -240,6 +308,24 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         restoreFragment(savedInstanceState);
     }
 
+    private synchronized void restoreFragment(Bundle savedInstanceState) {
+
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        addGuideFragment(fragmentTransaction, savedInstanceState);
+        addWebFragment(fragmentTransaction, savedInstanceState);
+
+        if (mCurFrame == ID_GUIDE) {
+            fragmentTransaction.show(mFragments.get(ID_GUIDE));
+            fragmentTransaction.hide(mFragments.get(ID_WEB));
+        } else if (mCurFrame == ID_WEB) {
+            fragmentTransaction.hide(mFragments.get(ID_GUIDE));
+            fragmentTransaction.show(mFragments.get(ID_WEB));
+        }
+
+        fragmentTransaction.commit();
+
+    }
+
     @Override
     public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
         super.onSaveInstanceState(outState, outPersistentState);
@@ -266,7 +352,9 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
             mPermissionRequest = null;
         }
 
-        Controller.getInstance().onSDestroy();
+        if (IService != null) {
+            IService.onSDestroy();
+        }
 
         if (mUiHandler != null) {
             mUiHandler.removeCallbacksAndMessages(null);
@@ -277,6 +365,11 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
 
         mFragments.clear();
         mMethodCache.clear();
+
+
+        if (null != connection) {
+            unbindService(connection);
+        }
 
     }
 

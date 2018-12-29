@@ -12,7 +12,7 @@ import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.FileManager;
 import cn.com.startai.socket.global.LooperManager;
 import cn.com.startai.socket.sign.js.jsInterface.Language;
-import cn.com.swain169.log.Tlog;
+import cn.com.swain.baselib.log.Tlog;
 
 
 /**
