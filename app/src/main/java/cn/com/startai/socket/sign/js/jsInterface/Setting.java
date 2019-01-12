@@ -49,116 +49,155 @@ public class Setting extends AbsJsInterface {
     }
 
     public static final class Method {
-        private static final String METHOD_ALARM_VOLTAGE_RESPONSE = "javascript:settingAlarmVoltageResponse('$mac',$result)";
+        private static final String METHOD_ALARM_VOLTAGE_RESPONSE
+                = "javascript:settingAlarmVoltageResponse('$mac',$result)";
 
-        public static final String callJsSetAlarmVoltageResult(String mac, boolean result) {
+        public static String callJsSetAlarmVoltageResult(String mac, boolean result) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return METHOD_ALARM_VOLTAGE_RESPONSE.replace("$mac", mac).replace("$result", String.valueOf(result));
+            return METHOD_ALARM_VOLTAGE_RESPONSE.replace("$mac", mac)
+                    .replace("$result", String.valueOf(result));
         }
 
-        private static final String METHOD_ALARM_CURRENT_RESPONSE = "javascript:settingAlarmCurrentResponse('$mac',$result)";
+        private static final String METHOD_ALARM_CURRENT_RESPONSE
+                = "javascript:settingAlarmCurrentResponse('$mac',$result)";
 
-        public static final String callJsSetAlarmCurrentResult(String mac, boolean result) {
+        public static String callJsSetAlarmCurrentResult(String mac, boolean result) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return METHOD_ALARM_CURRENT_RESPONSE.replace("$mac", mac).replace("$result", String.valueOf(result));
+            return METHOD_ALARM_CURRENT_RESPONSE.replace("$mac", mac)
+                    .replace("$result", String.valueOf(result));
         }
 
-        private static final String METHOD_ALARM_POWER_RESPONSE = "javascript:settingAlarmPowerResponse('$mac',$result)";
+        private static final String METHOD_ALARM_POWER_RESPONSE
+                = "javascript:settingAlarmPowerResponse('$mac',$result)";
 
-        public static final String callJsSetAlarmPowerResult(String mac, boolean result) {
+        public static String callJsSetAlarmPowerResult(String mac, boolean result) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return METHOD_ALARM_POWER_RESPONSE.replace("$mac", mac).replace("$result", String.valueOf(result));
+            return METHOD_ALARM_POWER_RESPONSE.replace("$mac", mac)
+                    .replace("$result", String.valueOf(result));
         }
 
-        private static final String METHOD_TEMPERATURE_UNIT_RESPONSE = "javascript:settingTemperatureUnitResponse('$mac',$result)";
+        private static final String METHOD_TEMPERATURE_UNIT_RESPONSE
+                = "javascript:settingTemperatureUnitResponse('$mac',$result)";
 
-        public static final String callJsSetTemperatureUnitResult(String mac, boolean result) {
+        public static String callJsSetTemperatureUnitResult(String mac, boolean result) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return METHOD_TEMPERATURE_UNIT_RESPONSE.replace("$mac", mac).replace("$result", String.valueOf(result));
+            return METHOD_TEMPERATURE_UNIT_RESPONSE.replace("$mac", mac)
+                    .replace("$result", String.valueOf(result));
         }
 
-        private static final String METHOD_MONETARY_UNIT_RESPONSE = "javascript:settingMonetarytUnitResponse('$mac',$result)";
+        private static final String METHOD_MONETARY_UNIT_RESPONSE
+                = "javascript:settingMonetarytUnitResponse('$mac',$result)";
 
-        public static final String callJsSetMonetaryUnitResult(String mac, boolean result) {
+        public static String callJsSetMonetaryUnitResult(String mac, boolean result) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return METHOD_MONETARY_UNIT_RESPONSE.replace("$mac", mac).replace("$result", String.valueOf(result));
+            return METHOD_MONETARY_UNIT_RESPONSE.replace("$mac", mac)
+                    .replace("$result", String.valueOf(result));
         }
 
-        private static final String METHOD_LOCAL_ELECTRICITY_RESPONSE = "javascript:settingLocalElectricityResponse('$mac',$result)";
+        private static final String METHOD_LOCAL_ELECTRICITY_RESPONSE
+                = "javascript:settingLocalElectricityResponse('$mac',$result)";
 
-        public static final String callJsSetElectricityResult(String mac, boolean result) {
+        public static String callJsSetElectricityResult(String mac, boolean result) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return METHOD_LOCAL_ELECTRICITY_RESPONSE.replace("$mac", mac).replace("$result", String.valueOf(result));
+            return METHOD_LOCAL_ELECTRICITY_RESPONSE.replace("$mac", mac)
+                    .replace("$result", String.valueOf(result));
         }
 
-        private static final String METHOD_RESUME_SETUP_RESPONSE = "javascript:settingResumeSetupResponse('$mac',$result)";
+        private static final String METHOD_RESUME_SETUP_RESPONSE
+                = "javascript:settingResumeSetupResponse('$mac',$result)";
 
-        public static final String callJsSetRecoveryResult(String mac, boolean result) {
+        public static String callJsSetRecoveryResult(String mac, boolean result) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return METHOD_RESUME_SETUP_RESPONSE.replace("$mac", mac).replace("$result", String.valueOf(result));
+            return METHOD_RESUME_SETUP_RESPONSE.replace("$mac", mac)
+                    .replace("$result", String.valueOf(result));
         }
 
-        private static final String METHOD_QUERY_VOLTAGE_ALARM_VALUE = "javascript:queryAlarmVoltageResponse('$mac',$result,$value)";
+        private static final String METHOD_QUERY_VOLTAGE_ALARM_VALUE
+                = "javascript:queryAlarmVoltageResponse('$mac',$result,$value)";
 
-        public static final String callJsQueryVoltageAlarmValue(String mac, boolean result, int value) {
+        public static String callJsQueryVoltageAlarmValue(String mac, boolean result, int value) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return METHOD_QUERY_VOLTAGE_ALARM_VALUE.replace("$mac", mac).replace("$result", String.valueOf(result)).replace("$value", String.valueOf(value));
+            return METHOD_QUERY_VOLTAGE_ALARM_VALUE.replace("$mac", mac)
+                    .replace("$result", String.valueOf(result))
+                    .replace("$value", String.valueOf(value));
         }
 
-        private static final String METHOD_QUERY_CURRENT_ALARM_VALUE = "javascript:queryAlarmCurrentResponse('$mac',$result,$value)";
+        private static final String METHOD_QUERY_CURRENT_ALARM_VALUE
+                = "javascript:queryAlarmCurrentResponse('$mac',$result,$value)";
 
-        public static final String callJsQueryCurrentAlarmValue(String mac, boolean result, float value) {
+        public static String callJsQueryCurrentAlarmValue(String mac, boolean result, float value) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return METHOD_QUERY_CURRENT_ALARM_VALUE.replace("$mac", mac).replace("$result", String.valueOf(result)).replace("$value", String.valueOf(value));
+            return METHOD_QUERY_CURRENT_ALARM_VALUE.replace("$mac", mac)
+                    .replace("$result", String.valueOf(result))
+                    .replace("$value", String.valueOf(value));
         }
 
-        private static final String METHOD_QUERY_POWER_ALARM_VALUE = "javascript:queryAlarmPowerResponse('$mac',$result,$value)";
+        private static final String METHOD_QUERY_POWER_ALARM_VALUE
+                = "javascript:queryAlarmPowerResponse('$mac',$result,$value)";
 
-        public static final String callJsQueryPowerAlarmValue(String mac, boolean result, int value) {
+        public static String callJsQueryPowerAlarmValue(String mac, boolean result, int value) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return METHOD_QUERY_POWER_ALARM_VALUE.replace("$mac", mac).replace("$result", String.valueOf(result)).replace("$value", String.valueOf(value));
+            return METHOD_QUERY_POWER_ALARM_VALUE.replace("$mac", mac)
+                    .replace("$result", String.valueOf(result))
+                    .replace("$value", String.valueOf(value));
         }
 
-        private static final String METHOD_QUERY_TEMPERATURE_UNIT = "javascript:queryTemperatureUnitResponse('$mac',$result,$value)";
+        private static final String METHOD_QUERY_TEMPERATURE_UNIT
+                = "javascript:queryTemperatureUnitResponse('$mac',$result,$value)";
 
-        public static final String callJsQueryTemperatureUnit(String mac, boolean result, int value) {
+        public static String callJsQueryTemperatureUnit(String mac, boolean result, int value) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return METHOD_QUERY_TEMPERATURE_UNIT.replace("$mac", mac).replace("$result", String.valueOf(result)).replace("$value", String.valueOf(value));
+            return METHOD_QUERY_TEMPERATURE_UNIT.replace("$mac", mac)
+                    .replace("$result", String.valueOf(result))
+                    .replace("$value", String.valueOf(value));
         }
 
-        private static final String METHOD_QUERY_MONETARY_UNIT = "javascript:queryMonetarytUnitResponse('$mac',$result,$value)";
+        private static final String METHOD_QUERY_MONETARY_UNIT
+                = "javascript:queryMonetarytUnitResponse('$mac',$result,$value)";
 
-        public static final String callJsQueryMonetaryUnit(String mac, boolean result, int value) {
+        public static String callJsQueryMonetaryUnit(String mac, boolean result, int value) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return METHOD_QUERY_MONETARY_UNIT.replace("$mac", mac).replace("$result", String.valueOf(result)).replace("$value", String.valueOf(value));
+            return METHOD_QUERY_MONETARY_UNIT.replace("$mac", mac)
+                    .replace("$result", String.valueOf(result))
+                    .replace("$value", String.valueOf(value));
         }
 
-        private static final String METHOD_QUERY_ELECTRICITY_PRICES = "javascript:queryLocalElectricityResponse('$mac',$result,$value)";
+        private static final String METHOD_QUERY_ELECTRICITY_PRICES
+                = "javascript:queryLocalElectricityResponse('$mac',$result,$value)";
 
-        public static final String callJsQueryElectricityPrices(String mac, boolean result, int value) {
+        public static String callJsQueryElectricityPrices(String mac, boolean result, int value) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return METHOD_QUERY_ELECTRICITY_PRICES.replace("$mac", mac).replace("$result", String.valueOf(result)).replace("$value", String.valueOf(value));
+            return METHOD_QUERY_ELECTRICITY_PRICES.replace("$mac", mac)
+                    .replace("$result", String.valueOf(result))
+                    .replace("$value", String.valueOf(value));
         }
 
-        private static final String METHOD_QUERY_BACKUPDIR_RESPONSE = "javascript:BackupTimeAndDirectoryResponse('$mac',$timestamp,'$dir')";
+        private static final String METHOD_QUERY_BACKUPDIR_RESPONSE
+                = "javascript:BackupTimeAndDirectoryResponse('$mac',$timestamp,'$dir')";
 
-        public static final String callJsQueryBackupdir(String mac, long timestamp, String dir) {
+        public static String callJsQueryBackupdir(String mac, long timestamp, String dir) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return METHOD_QUERY_BACKUPDIR_RESPONSE.replace("$mac", mac).replace("$timestamp", String.valueOf(timestamp)).replace("$dir", dir);
+            return METHOD_QUERY_BACKUPDIR_RESPONSE.replace("$mac", mac)
+                    .replace("$timestamp", String.valueOf(timestamp))
+                    .replace("$dir", dir);
         }
 
-        private static final String METHOD_SAVE_BACKUPDATA_RESPONSE = "javascript:BackupDataResponse('$mac',$result)";
+        private static final String METHOD_SAVE_BACKUPDATA_RESPONSE
+                = "javascript:BackupDataResponse('$mac',$result)";
 
-        public static final String callJsSaveBackupdir(String mac, boolean result) {
+        public static String callJsSaveBackupdir(String mac, boolean result) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return METHOD_SAVE_BACKUPDATA_RESPONSE.replace("$mac", mac).replace("$result", String.valueOf(result));
+            return METHOD_SAVE_BACKUPDATA_RESPONSE.replace("$mac", mac)
+                    .replace("$result", String.valueOf(result));
         }
 
-        private static final String METHOD_BACKUPRECOVERY_RESPONSE = "javascript:BackupRecoveryDataResponse('$mac','$data')";
+        private static final String METHOD_BACKUPRECOVERY_RESPONSE
+                = "javascript:BackupRecoveryDataResponse('$mac','$data')";
 
-        public static final String callJsRecoveryData(String mac, String data) {
+        public static String callJsRecoveryData(String mac, String data) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
-            return METHOD_BACKUPRECOVERY_RESPONSE.replace("$mac", mac).replace("$data", String.valueOf(data));
+            return METHOD_BACKUPRECOVERY_RESPONSE.replace("$mac", mac)
+                    .replace("$data", String.valueOf(data));
         }
     }
 

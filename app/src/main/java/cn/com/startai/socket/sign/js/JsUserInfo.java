@@ -1,7 +1,12 @@
 package cn.com.startai.socket.sign.js;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.List;
+
+import cn.com.startai.mqttsdk.busi.entity.C_0x8024;
 
 /**
  * author: Guoqiang_Sun
@@ -47,10 +52,33 @@ public class JsUserInfo {
                 data.put("isHavePwd", isHavePwd == 1);
             }
 
+            if (thirdInfos != null && thirdInfos.size() > 0) {
+                JSONArray array = new JSONArray();
+
+                for (C_0x8024.Resp.ContentBean.ThirdInfosBean mThirdInfos : thirdInfos) {
+                    JSONObject obj = new JSONObject();
+                    String nickName = mThirdInfos.getNickName();
+                    int type = mThirdInfos.getType();
+                    obj.put("nickName", nickName);
+                    obj.put("type", type);
+                    array.put(obj);
+                }
+
+                data.put("thirdInfos",array);
+
+            }
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return data.toString();
+    }
+
+
+    private List<C_0x8024.Resp.ContentBean.ThirdInfosBean> thirdInfos;
+
+    public void setThirdInfos(List<C_0x8024.Resp.ContentBean.ThirdInfosBean> thirdInfos) {
+        this.thirdInfos = thirdInfos;
     }
 
     public String getEmail() {
@@ -202,6 +230,5 @@ public class JsUserInfo {
                 ", lastName='" + lastName + '\'' +
                 '}';
     }
-
 
 }

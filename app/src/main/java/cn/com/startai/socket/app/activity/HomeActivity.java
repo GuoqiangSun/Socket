@@ -1,6 +1,7 @@
 package cn.com.startai.socket.app.activity;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -45,9 +46,11 @@ import cn.com.startai.socket.sign.js.jsInterface.Router;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.swain.baselib.Queue.LimitQueue;
 import cn.com.swain.baselib.app.IApp.IService;
+import cn.com.swain.baselib.log.Tlog;
+import cn.com.swain.baselib.util.PermissionGroup;
+import cn.com.swain.baselib.util.PermissionHelper;
 import cn.com.swain.baselib.util.PermissionRequest;
 import cn.com.swain.baselib.util.StatusBarUtil;
-import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun
@@ -105,6 +108,8 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
     IService IService;
     ServiceConnection connection;
 
+    private long createTs;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -113,6 +118,8 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         StatusBarUtil.fullscreenShowBarFontWhite(getWindow());
 
         setContentView(R.layout.activity_home);
+
+        createTs = System.currentTimeMillis();
 
         if (mUiHandler == null) {
             Tlog.d(TAG, "activity new UiHandler(this);");
@@ -143,8 +150,9 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         }
 
         String[] per = new String[2];
-        per[0] = Manifest.permission.WRITE_EXTERNAL_STORAGE;
-        per[1] = Manifest.permission.ACCESS_COARSE_LOCATION; // 开启蓝牙,wifi配网 需要此权限
+//        per[1] = Manifest.permission.ACCESS_COARSE_LOCATION; // 开启蓝牙,wifi配网 需要此权限
+        per[0] = PermissionGroup.LOCATION;
+        per[1] = Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
         mPermissionRequest.requestPermissions(() -> {
             Tlog.v(TAG, "HomeActivity onPermissionRequestFinish() ");
@@ -524,24 +532,46 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         }
     }
 
+    @Override
+    public Activity getActivity() {
+        return this;
+    }
+
     /*******************/
+
+    private static final long MAX_DELAY_SHOW_WEB = 1000 * 3 + 200;//ms
 
     @Override
     public void onWebLoadFinish() {
         mWebLoaded = true;
-        showWeb(800);
+
+        long loadDuration = (System.currentTimeMillis() - createTs);
+        long delay;
+        if (loadDuration >= MAX_DELAY_SHOW_WEB) {
+            delay = 0L;
+        } else if (loadDuration <= 0) {
+            delay = MAX_DELAY_SHOW_WEB;
+        } else {
+            delay = MAX_DELAY_SHOW_WEB - loadDuration;
+        }
+
+        Tlog.d(TAG, " onWebLoadFinish delay " + delay + " show");
+
+        showWeb(delay);
     }
 
     @Override
     public String getLoadUrl() {
 
-        File localH5Resource = Debuger.getInstance().getLocalH5Resource();
-        if (localH5Resource != null) {
-            Toast.makeText(getApplicationContext(), "load from sdcard", Toast.LENGTH_LONG).show();
-            return "file://" + localH5Resource.getAbsolutePath();
-        } else {
-            return H5Config.URL_H5_SOCKET_INDEX;
+        if (Debuger.isH5Debug && PermissionHelper.isGranted(getApplication(), Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            File localH5Resource = Debuger.getInstance().getLocalH5Resource();
+            if (localH5Resource != null) {
+                Toast.makeText(getApplicationContext(), "load from sdcard", Toast.LENGTH_LONG).show();
+                return "file://" + localH5Resource.getAbsolutePath();
+            }
         }
+
+        return H5Config.URL_H5_SOCKET_INDEX;
     }
 
     private void showWeb(long delay) {

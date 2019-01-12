@@ -27,11 +27,13 @@ import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.LooperManager;
 import cn.com.startai.socket.mutual.Controller;
+import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.DisplayDeviceList;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
 import cn.com.startai.socket.sign.hardware.IControlWiFi;
 import cn.com.startai.socket.sign.hardware.WiFi.bean.WanBindingDevice;
 import cn.com.startai.socket.sign.hardware.WiFi.util.LanDeviceLst;
+import cn.com.startai.socket.sign.hardware.WiFi.util.ShakeUtils;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
 import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
@@ -126,7 +128,7 @@ public class DeviceManager implements IService {
 
                 } else if (msg.what == MAG_WHAT_SHAKE) {
                     String id = (String) msg.obj;
-                    switchNight(id);
+                    shakeSwitchNight(id);
 
                 }
             }
@@ -168,12 +170,53 @@ public class DeviceManager implements IService {
 
     }
 
-    public void shakeNightLight(String mac, boolean b) {
+
+    public void setShakeNightLight(String mac, boolean b) {
 
         LanDeviceInfo displayDeviceByMac = mDisplayDeviceLst.getDisplayDeviceByMac(mac);
 
+        NetworkManager networkManager = Controller.getInstance().getNetworkManager();
+
         if (displayDeviceByMac != null) {
             displayDeviceByMac.nightLightShake = b;
+
+            if (b) {
+                ShakeUtils shakeUtils = networkManager.getShakeUtils();
+                shakeUtils.setYaoyiyao(true);
+            } else {
+
+                Map<String, LanDeviceInfo> displayMacArray = mDisplayDeviceLst.getDisplayMacArray();
+
+                boolean yaoyiyao = false;
+
+                for (Map.Entry<String, LanDeviceInfo> entries : displayMacArray.entrySet()) {
+
+                    LanDeviceInfo value = entries.getValue();
+                    if (value == null) {
+                        continue;
+                    }
+
+                    if (value.nightLightShake) {
+                        yaoyiyao = true;
+                        ShakeUtils shakeUtils = networkManager.getShakeUtils();
+                        if (shakeUtils != null) {
+                            shakeUtils.setYaoyiyao(true);
+                            break;
+                        }
+                    }
+
+                }
+
+                if (!yaoyiyao) {
+                    ShakeUtils shakeUtils = networkManager.getShakeUtils();
+                    if (shakeUtils != null) {
+                        shakeUtils.setYaoyiyao(false);
+                    }
+                }
+
+
+            }
+
         }
 
         LanDeviceInfoDao lanDeviceInfoDao = DBManager.getInstance().getDaoSession().getLanDeviceInfoDao();
@@ -218,7 +261,6 @@ public class DeviceManager implements IService {
 
     public void onNetworkStateChange() {
 
-        hasRequestBindLst = false;
         mDiscoveryDeviceLst.clear();
 
     }
@@ -241,8 +283,6 @@ public class DeviceManager implements IService {
         public void onFailed(MqttPublishRequest mqttPublishRequest, StartaiError startaiError) {
             Tlog.e(TAG, " getBindList msg send failed " + startaiError.getErrorCode());
 
-            hasRequestBindLst = false;
-
             if (mResultCallBack != null && 5001 != startaiError.getErrorCode()) {
                 mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
             }
@@ -254,8 +294,6 @@ public class DeviceManager implements IService {
         }
     };
 
-    private boolean hasRequestBindLst = false;
-
     /**
      * 查询绑定列表关系
      */
@@ -263,9 +301,7 @@ public class DeviceManager implements IService {
 
         Tlog.v(TAG, " queryBindDeviceList() " + mid);
 
-        if (!hasRequestBindLst) {
-            StartAI.getInstance().getBaseBusiManager().getBindList(mid, 1, mGetBindingLsn);
-        }
+        StartAI.getInstance().getBaseBusiManager().getBindList(mid, 1, mGetBindingLsn);
 
         if (mDisplayHandler != null) {
             mDisplayHandler.obtainMessage(MAG_WHAT_DISPLAY_BIND_DEVICE, mid).sendToTarget();
@@ -1069,8 +1105,6 @@ public class DeviceManager implements IService {
             return;
         }
 
-        hasRequestBindLst = true;
-
         ArrayList<C_0x8005.Resp.ContentBean> bindList = response.getResp();
 
         WanBindingDeviceDao bindingDeviceDao = DBManager.getInstance().getDaoSession().getWanBindingDeviceDao();
@@ -1144,7 +1178,7 @@ public class DeviceManager implements IService {
     private final DisplayDeviceList mDisplayDeviceLst = new DisplayDeviceList();
 
 
-    private void switchNight(String mid) {
+    private void shakeSwitchNight(String mid) {
         Tlog.v(TAG, "flushDevice() " + mid);
 
         if (mid == null || !mid.equals(mDisplayDeviceLst.getUserID())) {
@@ -1180,7 +1214,22 @@ public class DeviceManager implements IService {
                 if (CustomManager.getInstance().isMUSIK()) {
                     Tlog.w(TAG, "switchNightLight " + key);
 
-                    scmManager.switchNightLight(key, !value.nightLightOn);
+//                    scmManager.switchNightLight(key, !value.nightLightOn);
+
+                    ColorLampRGB color = new ColorLampRGB();
+                    color.mac = key;
+                    color.seq = 1;
+                    if (value.nightLightOn) {
+                        color.r = 0;
+                        color.g = 0;
+                        color.b = 0;
+                    } else {
+                        color.r = 0xFF;
+                        color.g = 0xFF;
+                        color.b = 0;
+                    }
+                    scmManager.setNightLightColor(color);
+
                 }
 
 
@@ -1203,6 +1252,10 @@ public class DeviceManager implements IService {
 
         SocketScmManager scmManager = Controller.getInstance().getScmManager();
 
+        NetworkManager networkManager = Controller.getInstance().getNetworkManager();
+
+        boolean yaoyiyao = false;
+
         for (Map.Entry<String, LanDeviceInfo> entries : displayMacArray.entrySet()) {
 
             PersistentConnectState connectState = StartAI.getInstance().getConnectState();
@@ -1211,13 +1264,29 @@ public class DeviceManager implements IService {
 
             LanDeviceInfo lanDeviceByMac = mDiscoveryDeviceLst.getLanDeviceByMac(key);
 
+            LanDeviceInfo value = entries.getValue();
+
+            if (value != null) {
+                if (value.nightLightShake && networkManager != null) {
+                    yaoyiyao = true;
+                    ShakeUtils shakeUtils = networkManager.getShakeUtils();
+                    if (shakeUtils != null) {
+                        shakeUtils.setYaoyiyao(true);
+                    }
+                }
+            }
+
+            if (scmManager == null) {
+                continue;
+            }
+
             if (lanDeviceByMac == null) {
 
-                LanDeviceInfo value = entries.getValue();
                 if (value == null || !value.isWanBind) {
                     Tlog.e(TAG, "flushDevice not wan bind " + String.valueOf(value));
                     continue;
                 }
+
 
                 if (connectState == PersistentConnectState.CONNECTED) {
 
@@ -1254,6 +1323,13 @@ public class DeviceManager implements IService {
                 scmManager.quickQueryRelay(key);
             }
 
+        }
+
+        if (!yaoyiyao && networkManager != null) {
+            ShakeUtils shakeUtils = networkManager.getShakeUtils();
+            if (shakeUtils != null) {
+                shakeUtils.setYaoyiyao(false);
+            }
         }
 
     }
@@ -1371,7 +1447,6 @@ public class DeviceManager implements IService {
 
     void onLogoutResult(int result) {
         Tlog.d(TAG, " onLogoutResult " + result);
-        hasRequestBindLst = false;
         tokenMap.clear();
 
         if (result == 1) {
@@ -1385,7 +1460,6 @@ public class DeviceManager implements IService {
 
     void onLoginResult(int result) {
         Tlog.e(TAG, " onLoginResult " + result);
-        hasRequestBindLst = false;
     }
 
     private final IOnCallListener mRenameDeviceLsn = new IOnCallListener() {
@@ -1563,7 +1637,6 @@ public class DeviceManager implements IService {
     public void onMqttConnected(String userID) {
         Tlog.d(TAG, " onMqttConnected userID :" + userID);
 
-        hasRequestBindLst = false;
         if (mDisplayHandler != null) {
             Message message = mDisplayHandler.obtainMessage(MAG_WHAT_AUTO_BIND, userID);
             mDisplayHandler.sendMessageDelayed(message, 1000 * 6L);

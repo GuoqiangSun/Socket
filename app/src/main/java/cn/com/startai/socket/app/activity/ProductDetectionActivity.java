@@ -15,11 +15,11 @@ import cn.com.startai.socket.R;
 import cn.com.startai.socket.app.SocketApplication;
 import cn.com.startai.socket.app.adapter.DetectionRecyclerAdapter;
 import cn.com.startai.socket.app.adapter.FragmentPagerAdapter;
+import cn.com.startai.socket.app.fragment.CheckThreadFragment;
 import cn.com.startai.socket.app.fragment.DBFragment;
 import cn.com.startai.socket.app.fragment.DetectionFragment;
 import cn.com.startai.socket.app.fragment.DetectionReportFragment;
 import cn.com.startai.socket.app.fragment.TmpFunction2Fragment;
-import cn.com.startai.socket.app.fragment.TmpFunctionFragment;
 import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.debuger.impl.DetectInfo;
 import cn.com.startai.socket.debuger.impl.IProductDetectionCallBack;
@@ -46,7 +46,7 @@ public class ProductDetectionActivity extends AppCompatActivity implements IProd
 
     private DetectionReportFragment mDetectionReportFragment;
     private DetectionFragment mDetectionFragment;
-    private TmpFunctionFragment mTmpFunctionFragment;
+    private CheckThreadFragment mTmpFunctionFragment;
     private DBFragment mDbFragment;
 
     private TmpFunction2Fragment mTmpFunctionFragment2;
@@ -70,7 +70,7 @@ public class ProductDetectionActivity extends AppCompatActivity implements IProd
 
         mDetectionFragment = new DetectionFragment();
         mDetectionReportFragment = new DetectionReportFragment();
-        mTmpFunctionFragment = new TmpFunctionFragment();
+        mTmpFunctionFragment = new CheckThreadFragment();
         mDbFragment = new DBFragment();
 
 

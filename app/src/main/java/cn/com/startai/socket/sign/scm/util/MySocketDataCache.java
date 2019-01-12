@@ -228,8 +228,7 @@ public class MySocketDataCache implements IService {
         repeatMsgModel.setProduct(mPack.getProduct());
         repeatMsgModel.setMsgWhat((mPack.getType() & 0xFF) << 8 | (mPack.getCmd() & 0xFF));
         repeatMsgModel.setNeedRepeatSend(record);
-        responseData.getSendModel().setModelIsLan();
-        responseData.getSendModel().setModelIsWan();
+        responseData.getSendModel().setModelIsLan().setModelIsWan();
         mPack.setISUnUsed();
         return responseData;
     }
@@ -1286,6 +1285,11 @@ public class MySocketDataCache implements IService {
     // 彩灯
     public static ResponseData getSetColorLamp(String mac, int seq, int r, int g, int b) {
         return getSetLightColor(mac, seq, r, g, b, SocketSecureKey.Model.MODEL_COLOR_LAMP);
+    }
+
+    // 彩灯
+    public static ResponseData getSeYellowLight(String mac, int seq, int r, int g, int b) {
+        return getSetLightColor(mac, seq, r, g, b, SocketSecureKey.Model.MODEL_YELLOW_LIGHT);
     }
 
     public static ResponseData getSetLightColor(String mac, int seq, int r, int g, int b, int model) {

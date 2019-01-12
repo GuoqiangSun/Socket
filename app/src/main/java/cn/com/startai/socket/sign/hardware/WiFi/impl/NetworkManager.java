@@ -40,6 +40,11 @@ import cn.com.startai.mqttsdk.busi.entity.C_0x8022;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8023;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8024;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8025;
+import cn.com.startai.mqttsdk.busi.entity.C_0x8033;
+import cn.com.startai.mqttsdk.busi.entity.C_0x8034;
+import cn.com.startai.mqttsdk.busi.entity.C_0x8035;
+import cn.com.startai.mqttsdk.busi.entity.C_0x8036;
+import cn.com.startai.mqttsdk.busi.entity.C_0x8037;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8200;
 import cn.com.startai.mqttsdk.event.AOnStartaiMessageArriveListener;
 import cn.com.startai.mqttsdk.event.ICommonStateListener;
@@ -53,6 +58,7 @@ import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.DeveloperBuilder;
 import cn.com.startai.socket.global.LooperManager;
+import cn.com.startai.socket.mutual.js.bean.MobileBind;
 import cn.com.startai.socket.mutual.js.bean.MobileLogin;
 import cn.com.startai.socket.mutual.js.bean.UserRegister;
 import cn.com.startai.socket.mutual.js.bean.UserUpdateInfo;
@@ -69,7 +75,6 @@ import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.bean.LanBindInfo;
 import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
 import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
-import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.baselib.util.IpUtil;
 import cn.com.swain.baselib.util.MacUtil;
@@ -197,6 +202,10 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
 
     private ShakeUtils mShakeUtils;
 
+    ShakeUtils getShakeUtils() {
+        return mShakeUtils;
+    }
+
     @Override
     public void onSCreate() {
 
@@ -206,27 +215,7 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
         // mqtt
         PersistentEventDispatcher.getInstance().registerOnTunnelStateListener(mConnectionStateListener);
         PersistentEventDispatcher.getInstance().registerOnPushListener(mComMessageListener);
-
-        MqttInitParam mqttInitParam = null;
-
-        if (CustomManager.getInstance().getCustom() == SocketSecureKey.Custom.CUSTOM_WAN) {
-
-            if (CustomManager.getInstance().getProduct() == SocketSecureKey.Custom.PRODUCT_GROWROOMATE) {
-                mqttInitParam = new DeveloperBuilder.SmartSocketDeveloper();
-            } else if (CustomManager.getInstance().getProduct() == SocketSecureKey.Custom.PRODUCT_TRIGGER_WIFI) {
-                mqttInitParam = new DeveloperBuilder.WiFiSocketDeveloper();
-            } else if (CustomManager.getInstance().getProduct() == SocketSecureKey.Custom.PRODUCT_NB_AIRTEMP) {
-                mqttInitParam = new DeveloperBuilder.AirtempNBDeveloper();
-            }
-
-        } else if (CustomManager.getInstance().getCustom() == SocketSecureKey.Custom.CUSTOM_STARTAI) {
-            if (CustomManager.getInstance().getProduct() == SocketSecureKey.Custom.PRODUCT_MUSIK) {
-                mqttInitParam = new DeveloperBuilder.SuperSocketDeveloper();
-            }
-        }
-//        else {
-//            mqttInitParam = DeveloperBuilder.buildMqttInitParam(new DeveloperBuilder.SuperSocketDeveloper());
-//        }
+        MqttInitParam mqttInitParam = DeveloperBuilder.getMqttInitParam();
 
         if (mqttInitParam == null) {
             throw new NullPointerException(" no custom ");
@@ -428,6 +417,7 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
     @Override
     public void configureWiFi(WiFiConfig mConfig) {
 
+
 //        PermissionUtils permission = PermissionUtils.permission(PermissionConstants.LOCATION);
 //        permission.callback(new PermissionUtils.SimpleCallback() {
 //            @Override
@@ -441,6 +431,8 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
 //            }
 //        });
 //        permission.request();
+
+        // 用上面的会黑屏
 
         PermissionHelper.requestPermission(app, new PermissionRequest.OnPermissionResult() {
             @Override
@@ -580,8 +572,8 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
     }
 
     @Override
-    public void getMobileLoginCode(String phone) {
-        mUserManager.getMobileLoginCode(phone);
+    public void getMobileLoginCode(String phone, int type) {
+        mUserManager.getMobileLoginCode(phone, type);
     }
 
     @Override
@@ -655,9 +647,58 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
         mUserManager.wxLogin();
     }
 
+    @Override
+    public void aliLogin() {
+        mUserManager.aliLogin();
+    }
+
+    @Override
+    public void updateNickName(String nickName) {
+        mUserManager.updateNickName(nickName);
+    }
+
+    @Override
+    public void bindWX() {
+        mUserManager.bindWX();
+    }
+
+    @Override
+    public void bindAli() {
+        mUserManager.bindAli();
+    }
 
     public void onWxLoginResult(BaseResp baseResp) {
         mUserManager.onWxLoginResult(baseResp);
+    }
+
+    @Override
+    public void bindPhone(MobileBind mMobileBind) {
+        mUserManager.bindPhone(mMobileBind);
+    }
+
+    @Override
+    public void requestWeather() {
+        mUserManager.requestWeather();
+    }
+
+    @Override
+    public void enableLocation() {
+        mUserManager.enableLocation();
+    }
+
+    @Override
+    public void queryLocationEnabled() {
+        mUserManager.queryLocationEnabled();
+    }
+
+    @Override
+    public void unbindWX() {
+        mUserManager.unbindWx();
+    }
+
+    @Override
+    public void unbindAli() {
+        mUserManager.unbindAli();
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -734,8 +775,8 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
     }
 
     @Override
-    public void shakeNightLight(String mac, boolean b) {
-        mDeviceManager.shakeNightLight(mac,b);
+    public void setShakeNightLight(String mac, boolean b) {
+        mDeviceManager.setShakeNightLight(mac, b);
     }
 
     @Override
@@ -807,8 +848,10 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
     public void onDeviceResponseLanBind(boolean result, LanBindingDevice mLanBindingDevice) {
         mDeviceManager.onDeviceResponseLanBind(result, mLanBindingDevice);
 
-        if (mResultCallBack != null) {
-            mResultCallBack.onResultNeedRequestToken(mLanBindingDevice.getOmac(), getLoginUserID());
+        if (result) {
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultNeedRequestToken(mLanBindingDevice.getOmac(), getLoginUserID());
+            }
         }
 
     }
@@ -1135,7 +1178,7 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
             DatagramPacket datagramPacket = new DatagramPacket(mResponseData.data,
                     mResponseData.data.length, byName, mDiscoveryDeviceByMac.port);
 
-            mUdpCom.sendDelay(datagramPacket, 150, 3000);
+            mUdpCom.sendDelay(datagramPacket, 200, 3000);
 
             if (Debuger.isLogDebug) {
                 Tlog.w(TAG, "onOutputDataToServerByLan() :" + String.valueOf(mResponseData));
@@ -1369,7 +1412,6 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
                     }
                 });
 
-
             }
 
         }
@@ -1452,9 +1494,7 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
         @Override
         public void onCheckIdetifyResult(C_0x8022.Resp resp) {
             super.onCheckIdetifyResult(resp);
-            if (Debuger.isLogDebug) {
-                Tlog.d(TAG, " onCheckIdentifyResult " + String.valueOf(resp));
-            }
+            mUserManager.onCheckIdetifyResult(resp);
         }
 
         @Override
@@ -1555,6 +1595,42 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
         public void onSendEmailResult(C_0x8023.Resp resp) {
             super.onSendEmailResult(resp);
             mUserManager.onSendEmailResult(resp);
+        }
+
+        @Override
+        public void onGetAlipayAuthInfoResult(C_0x8033.Resp resp) {
+            super.onGetAlipayAuthInfoResult(resp);
+            mUserManager.onGetAlipayAuthInfoResult(resp);
+        }
+
+        @Override
+        public void onBindThirdAccountResult(C_0x8037.Resp resp) {
+            super.onBindThirdAccountResult(resp);
+            mUserManager.onBindThirdAccountResult(resp);
+            if (resp.getResult() == 1) {
+                queryUserInfo();
+            }
+        }
+
+        @Override
+        public void onBindMobileNumResult(C_0x8034.Resp resp) {
+            super.onBindMobileNumResult(resp);
+            mUserManager.onBindMobileNumResult(resp);
+            if (resp.getResult() == 1) {
+                queryUserInfo();
+            }
+        }
+
+        @Override
+        public void onGetWeatherInfoResult(C_0x8035.Resp resp) {
+            super.onGetWeatherInfoResult(resp);
+            mUserManager.onGetWeatherInfoResult(resp);
+        }
+
+        @Override
+        public void onUnBindThirdAccountResult(C_0x8036.Resp resp) {
+            super.onUnBindThirdAccountResult(resp);
+            mUserManager.onUnBindThirdAccountResult(resp);
         }
     };
 

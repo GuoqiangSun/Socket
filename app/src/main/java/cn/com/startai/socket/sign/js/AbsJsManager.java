@@ -1,6 +1,7 @@
 package cn.com.startai.socket.sign.js;
 
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
+import cn.com.startai.socket.mutual.js.bean.MobileBind;
 import cn.com.startai.socket.mutual.js.bean.MobileLogin;
 import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
 import cn.com.startai.socket.mutual.js.bean.StatusBarBean;
@@ -30,6 +31,7 @@ import cn.com.startai.socket.sign.js.jsInterface.Timing;
 import cn.com.startai.socket.sign.js.jsInterface.USBSwitch;
 import cn.com.startai.socket.sign.js.jsInterface.User;
 import cn.com.startai.socket.sign.js.jsInterface.Version;
+import cn.com.startai.socket.sign.js.jsInterface.Weather;
 import cn.com.startai.socket.sign.scm.bean.LanBindInfo;
 import cn.com.startai.socket.sign.scm.bean.PowerCountdown;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
@@ -54,7 +56,7 @@ public abstract class AbsJsManager implements Device.IJSDeviceCallBack,//
         User.IJSUserCallBack, Store.IJSStoreCallBack, State.IJSStateCallBack,//
         StatusBar.IJSStatusBarCallBack, Version.IJSVersionCallBack,
         ColourLamp.IJSColourLampCallBack, NightLight.IJSNightLightCallBack,
-        USBSwitch.IJSUSBSwitchCallBack {
+        USBSwitch.IJSUSBSwitchCallBack ,Weather.IJSWeatherCallBack {
 
     public abstract void regJsManagerCallBack(IJSManagerCallback mJSManagerCallBack);
 
@@ -147,7 +149,7 @@ public abstract class AbsJsManager implements Device.IJSDeviceCallBack,//
 
         void onJSThirdLogin(String type);
 
-        void onJSGetMobileLoginCode(String phone);
+        void onJSGetMobileLoginCode(String phone,int type);
 
         void onJSMobileLogin(MobileLogin obj);
 
@@ -266,6 +268,28 @@ public abstract class AbsJsManager implements Device.IJSDeviceCallBack,//
         void onJSShakeNightLight(String mac, boolean b);
 
         void onJSQueryShakeNightLight(String mac);
+
+        void onJSUpdateNickName(String nickName);
+
+        void onJSAliLogin();
+
+        void onJSBindWX();
+
+        void onJSBindAli();
+
+        void onJSBindPhone(MobileBind mMobileBind);
+
+        void onJSQueryWeather();
+
+        void onJSQueryLocationEnabled();
+
+        void onJSEnableLocation();
+
+        void onJSUnBindWX();
+
+        void onJSUnBindAli();
+
+        void onJSSetNightLightColor(ColorLampRGB obj);
     }
 
 }

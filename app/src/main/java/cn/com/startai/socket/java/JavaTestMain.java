@@ -4,10 +4,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
+
+import cn.com.swain.baselib.util.HexUtils;
 
 /**
  * author: Guoqiang_Sun
@@ -18,9 +22,101 @@ public class JavaTestMain {
 
     public static void main(String[] args) {
 //        c();
+//        e();
+
+//        String s = "19502";
+//        String f = f(s);
+//        System.out.println(f);
+
+        g();
+
     }
 
-    public static void d() {
+    private static void g() {
+        ArrayList<String> dat = new ArrayList<>();
+
+        dat.add("1");
+        dat.add("2");
+
+        Object[] objects = dat.toArray();
+
+        String[] str = dat.toArray(new String[0]);
+
+        System.out.println(objects.length);
+
+        for (Object o : objects) {
+            System.out.println(String.valueOf(o));
+        }
+
+        System.out.println(str.length);
+
+        for (String o : str) {
+            System.out.println(String.valueOf(o));
+        }
+
+    }
+
+    private static String f(String intStr) {
+        int i = Integer.parseInt(intStr);
+
+        byte i1 = (byte) ((i >> 8) & 0xFF);
+
+        byte i2 = (byte) (i & 0xFF);
+        String s2 = Integer.toHexString(i1);
+        if (s2.length() == 1) {
+            s2 = "0" + s2;
+        }
+        System.out.println(s2);
+        String s1 = Integer.toHexString(i2);
+        if (s1.length() == 1) {
+            s1 = "0" + s1;
+        }
+        System.out.println(s1);
+
+        String s = s2 + s1;
+
+        return s;
+
+    }
+
+    private static void e() {
+
+//        5c2c6620
+        byte[] protocolParams = new byte[4];
+        protocolParams[0] = 0x5c;
+        protocolParams[1] = 0x2c;
+        protocolParams[2] = 0x66;
+        protocolParams[3] = 0x20;
+
+        byte[] buf2 = new byte[8];
+        buf2[0] = 0x00;
+        buf2[1] = 0x00;
+        buf2[2] = 0x00;
+        buf2[3] = 0x00;
+        buf2[4] = protocolParams[0];
+        buf2[5] = protocolParams[1];
+        buf2[6] = protocolParams[2];
+        buf2[7] = protocolParams[3];
+
+        long l = HexUtils.byteToLong(buf2);
+
+        System.out.println(l);
+
+        long ts = ByteBuffer.wrap(buf2, 0, 8).getLong();
+
+        System.out.println(ts);
+
+        long tsl = ts * 1000;
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault());
+        String format = dateFormat.format(new Date(tsl));
+
+        System.out.println(format);
+
+    }
+
+
+    private static void d() {
         JSONObject mObj = new JSONObject();
         try {
             mObj.put("name", "123");

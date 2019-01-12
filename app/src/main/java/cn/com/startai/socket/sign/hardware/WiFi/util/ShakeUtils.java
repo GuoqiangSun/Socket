@@ -45,7 +45,9 @@ public class ShakeUtils {
 
                 Tlog.e(TAG, "startVibrato() ");
 
-                startVibrato(); // 开始 震动
+                if (yaoyiyao) {
+                    startVibrato(); // 开始 震动
+                }
 
                 exeShake();
 
@@ -53,19 +55,21 @@ public class ShakeUtils {
                     Handler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            if (mVibrator != null) {
+                            if (mVibrator != null && yaoyiyao) {
                                 mVibrator.cancel();
                             }
                             mShakeListener.resume();
                         }
                     }, 2000);
+                }else {
+                    mShakeListener.resume();
                 }
 
             }
         });
     }
 
-    protected void exeShake(){
+    protected void exeShake() {
 
     }
 
@@ -87,11 +91,15 @@ public class ShakeUtils {
         }
     }
 
-
     public void onDestroy() {
         if (mShakeListener != null) {
             mShakeListener.stop();
         }
     }
 
+    private boolean yaoyiyao;
+
+    public void setYaoyiyao(boolean b) {
+        this.yaoyiyao = b;
+    }
 }

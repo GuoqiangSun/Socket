@@ -26,8 +26,8 @@ android {
         applicationId "cn.com.startai.bluetoothsocket"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 16187
-        versionName "1.6.187"
+        versionCode 16188
+        versionName "1.6.188"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
@@ -49,17 +49,17 @@ android {
     }
 }
 
-allprojects {
-    repositories {
-        flatDir {
-            dirs 'libs'
-        }
-        jcenter()
-//        mavenCentral()
-//        maven { url 'https://maven.fabric.io/public' }
-
-    }
-}
+//allprojects {
+//    repositories {
+//        flatDir {
+//            dirs 'libs'
+//        }
+//        jcenter()
+////        mavenCentral()
+////        maven { url 'https://maven.fabric.io/public' }
+//
+//    }
+//}
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')

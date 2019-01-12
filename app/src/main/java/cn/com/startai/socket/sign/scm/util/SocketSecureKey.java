@@ -409,6 +409,11 @@ public class SocketSecureKey {
         public static final byte MODEL_RESULT_FAIL = 0x01;
 
         /**
+         * 失败未绑定
+         */
+        public static final byte MODEL_RESULT_UNBIND = 0x02;
+
+        /**
          * token失效
          */
         public static final byte MODEL_RESULT_TOKEN_INVALID = 0x03;
@@ -466,7 +471,7 @@ public class SocketSecureKey {
         public static final byte MODEL_USB = 0x04;
 
         /**
-         * usb开关
+         * 睡眠灯
          */
         public static final byte MODEL_NIGHT_LIGHT = 0x05;
 
@@ -587,6 +592,11 @@ public class SocketSecureKey {
         public static boolean resultIsOk(byte result) {
 
             return (result == Model.MODEL_RESULT_SUCCESS);
+        }
+
+        public static boolean resultIsUnbind(byte result) {
+
+            return (result == Model.MODEL_RESULT_UNBIND);
         }
 
         public static boolean resultTokenInvalid(byte result) {

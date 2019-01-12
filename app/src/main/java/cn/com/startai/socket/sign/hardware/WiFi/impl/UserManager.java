@@ -1,18 +1,23 @@
 package cn.com.startai.socket.sign.hardware.WiFi.impl;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
-import android.os.Build;
-import android.support.v4.content.ContextCompat;
+import android.os.Bundle;
+import android.provider.Settings;
+import android.text.TextUtils;
 
+import com.alipay.sdk.app.AuthTask;
 import com.blankj.utilcode.util.AppUtils;
-import com.blankj.utilcode.util.Utils;
 import com.tencent.mm.opensdk.modelbase.BaseResp;
 import com.tencent.mm.opensdk.modelmsg.SendAuth;
 import com.tencent.mm.opensdk.openapi.IWXAPI;
@@ -23,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import cn.com.startai.fssdk.FSDownloadCallback;
 import cn.com.startai.fssdk.FSUploadCallback;
@@ -31,6 +37,7 @@ import cn.com.startai.fssdk.StartaiUploaderManager;
 import cn.com.startai.fssdk.db.entity.DownloadBean;
 import cn.com.startai.fssdk.db.entity.UploadBean;
 import cn.com.startai.mqttsdk.StartAI;
+import cn.com.startai.mqttsdk.base.BaseMessage;
 import cn.com.startai.mqttsdk.base.StartaiError;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8003;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8016;
@@ -38,9 +45,16 @@ import cn.com.startai.mqttsdk.busi.entity.C_0x8017;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8018;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8020;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8021;
+import cn.com.startai.mqttsdk.busi.entity.C_0x8022;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8023;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8024;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8025;
+import cn.com.startai.mqttsdk.busi.entity.C_0x8033;
+import cn.com.startai.mqttsdk.busi.entity.C_0x8034;
+import cn.com.startai.mqttsdk.busi.entity.C_0x8035;
+import cn.com.startai.mqttsdk.busi.entity.C_0x8036;
+import cn.com.startai.mqttsdk.busi.entity.C_0x8037;
+import cn.com.startai.mqttsdk.busi.entity.type.Type;
 import cn.com.startai.mqttsdk.listener.IOnCallListener;
 import cn.com.startai.mqttsdk.mqtt.request.MqttPublishRequest;
 import cn.com.startai.socket.db.gen.UserInfoDao;
@@ -48,18 +62,26 @@ import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.FileManager;
+import cn.com.startai.socket.global.LooperManager;
 import cn.com.startai.socket.global.WXLoginHelper;
+import cn.com.startai.socket.mutual.Controller;
+import cn.com.startai.socket.mutual.js.bean.MobileBind;
 import cn.com.startai.socket.mutual.js.bean.MobileLogin;
 import cn.com.startai.socket.mutual.js.bean.UpdateProgress;
 import cn.com.startai.socket.mutual.js.bean.UserRegister;
 import cn.com.startai.socket.mutual.js.bean.UserUpdateInfo;
+import cn.com.startai.socket.mutual.js.impl.AndJsBridge;
 import cn.com.startai.socket.sign.hardware.IControlWiFi;
 import cn.com.startai.socket.sign.hardware.WiFi.bean.UserInfo;
+import cn.com.startai.socket.sign.hardware.WiFi.util.AuthResult;
 import cn.com.startai.socket.sign.hardware.WiFi.util.NetworkData;
 import cn.com.startai.socket.sign.js.JsUserInfo;
 import cn.com.swain.baselib.app.IApp.IService;
-import cn.com.swain.baselib.util.PhotoUtils;
 import cn.com.swain.baselib.log.Tlog;
+import cn.com.swain.baselib.util.PermissionGroup;
+import cn.com.swain.baselib.util.PermissionHelper;
+import cn.com.swain.baselib.util.PermissionRequest;
+import cn.com.swain.baselib.util.PhotoUtils;
 
 /**
  * author: Guoqiang_Sun
@@ -117,6 +139,7 @@ public class UserManager implements IService {
     }
 
     synchronized String getLoginUserID() {
+//        return "b7e3c580dffe4f63";
         return mUserID;
     }
 
@@ -211,6 +234,196 @@ public class UserManager implements IService {
         });
     }
 
+    private boolean locationEnabled() {
+        final LocationManager locationManager;
+        locationManager = (LocationManager) app.getSystemService(Context.LOCATION_SERVICE);
+
+        if (locationManager == null) {
+            Tlog.e(TAG, " requestWeather locationManager =null ");
+            return false;
+        }
+
+        boolean providerEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean providerEnabled1 = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        Tlog.e(TAG, " requestWeather providerEnabled :" + providerEnabled + " providerEnabled1:" + providerEnabled1);
+        return providerEnabled || providerEnabled1;
+    }
+
+    public void queryLocationEnabled() {
+
+        if (mResultCallBack != null) {
+            mResultCallBack.onResultLocationEnabled(locationEnabled());
+        }
+
+    }
+
+    public void enableLocation() {
+        Intent i = new Intent();
+        i.setAction(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+
+        if (mResultCallBack != null) {
+            mResultCallBack.onResultStartActivityForResult(i, REUQEST_LOCATION);
+        }
+    }
+
+    private static final int REUQEST_LOCATION = 0x6598;
+
+    void requestWeather() {
+
+        String permission = null;
+
+        if (!PermissionHelper.isGranted(app, Manifest.permission.ACCESS_COARSE_LOCATION)
+                || !PermissionHelper.isGranted(app, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            permission = PermissionGroup.LOCATION;
+        }
+
+        //获取Location
+        if (permission != null) {
+            // for ActivityCompat#requestPermissions for more details.
+
+            PermissionHelper.requestPermission(app, new PermissionRequest.OnPermissionResult() {
+
+                @Override
+                public void onPermissionRequestResult(String permission, boolean granted) {
+
+                    Tlog.v(TAG, " requestWeather() PermissionHelper : " + permission + " granted:" + granted);
+
+                    if (granted) {
+                        requestWeatherSafe();
+                    }
+                }
+            }, permission);
+
+        } else {
+            requestWeatherSafe();
+        }
+
+    }
+
+    private void requestWeatherSafe() {
+
+//发送请求
+
+        final LocationManager locationManager;
+        locationManager = (LocationManager) app.getSystemService(Context.LOCATION_SERVICE);
+
+        if (locationManager == null) {
+            Tlog.e(TAG, " requestWeatherSafe locationManager =null ");
+            return;
+        }
+
+        //获取所有可用的位置提供器
+        List<String> providers = locationManager.getProviders(true);
+
+        String locationProvider = null;
+        if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
+            //如果是GPS
+            locationProvider = LocationManager.NETWORK_PROVIDER;
+        } else if (providers.contains(LocationManager.GPS_PROVIDER)) {
+            //如果是Network
+            locationProvider = LocationManager.GPS_PROVIDER;
+        } else {
+
+            Tlog.e(TAG, " requestWeatherSafe no location ");
+            return;
+        }
+
+        final String mlocationProvider = locationProvider;
+        requestWeather(locationManager, mlocationProvider);
+
+    }
+
+    @SuppressLint("MissingPermission")
+    private void requestWeather(LocationManager locationManager, String mlocationProvider) {
+
+        Tlog.d(TAG, " requestWeather " + mlocationProvider);
+
+        LocationListener locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                Tlog.e(TAG, " onLocationChanged " + String.valueOf(location));
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+                Tlog.e(TAG, " onStatusChanged " + provider);
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+                Tlog.e(TAG, " onProviderEnabled " + provider);
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+                Tlog.e(TAG, " onProviderDisabled " + provider);
+            }
+        };
+
+        //监视地理位置变化
+        locationManager.requestLocationUpdates(mlocationProvider, 3000, 1, locationListener);
+
+        int times = 0;
+        Location location = null;
+        do {
+            location = locationManager.getLastKnownLocation(mlocationProvider);
+            times++;
+
+            if (location == null) {
+                Tlog.e(TAG, " getLastKnownLocation(" + mlocationProvider + ") = null times:" + times);
+
+                // 获取不到location 切换下
+                if (LocationManager.NETWORK_PROVIDER.equalsIgnoreCase(mlocationProvider)) {
+                    mlocationProvider = LocationManager.GPS_PROVIDER;
+                } else {
+                    mlocationProvider = LocationManager.NETWORK_PROVIDER;
+                }
+
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                Tlog.e(TAG, " getLastKnownLocation(" + mlocationProvider + ") success times:" + times);
+            }
+
+        } while (location == null && times <= 5);
+
+        if (location == null) {
+            Tlog.e(TAG, " getLastKnownLocation = null ");
+            return;
+        }
+
+        String lat = String.valueOf(location.getLatitude());
+        String lng = String.valueOf(location.getLongitude());
+
+        Tlog.v(TAG, " lat:" + lat + " lng:" + lng);
+
+        locationManager.removeUpdates(locationListener);
+
+        C_0x8035.Req.ContentBean req = new C_0x8035.Req.ContentBean(lat, lng);
+        StartAI.getInstance().getBaseBusiManager().getWeatherInfo(req, new IOnCallListener() {
+            @Override
+            public void onSuccess(MqttPublishRequest request) {
+                Tlog.v(TAG, " getWeatherInfo msg send success ");
+            }
+
+            @Override
+            public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
+                Tlog.e(TAG, " getWeatherInfo msg send fail " + startaiError.getErrorCode());
+                if (mResultCallBack != null) {
+                    mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                }
+            }
+
+            @Override
+            public boolean needUISafety() {
+                return false;
+            }
+        });
+    }
+
     void isLogin() {
 
         boolean isLogin = getLastLoginUserID() != null;
@@ -220,13 +433,102 @@ public class UserManager implements IService {
 //            StartAI.getInstance().getBaseBusiManager().logout();
 //        }
 
-        Tlog.e(TAG, " isLogin " + isLogin + " " + getLoginUserID());
+        Tlog.e(TAG, " isLogin " + isLogin + " getLoginUserID:" + getLoginUserID());
 
         if (mResultCallBack != null) {
             mResultCallBack.onResultIsLogin(isLogin);
         }
 
     }
+
+    public void bindPhone(MobileBind mMobileBind) {
+        //发送请求 接口调用前需要先 调用 获取验证码，检验验证码
+        StartAI.getInstance().getBaseBusiManager().checkIdentifyCode(mMobileBind.phone, mMobileBind.code,
+                Type.CheckIdentifyCode.BIND_MOBILE_NUM, new IOnCallListener() {
+                    @Override
+                    public void onSuccess(MqttPublishRequest request) {
+                        if (Debuger.isLogDebug) {
+                            Tlog.v(TAG, "bind phone checkIdentifyCode msg send success ");
+                        }
+                    }
+
+                    @Override
+                    public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
+
+                        if (Debuger.isLogDebug) {
+                            Tlog.e(TAG, "bind phone checkIdentifyCode msg send fail " + String.valueOf(startaiError));
+                        }
+                        if (mResultCallBack != null) {
+                            mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                        }
+                    }
+
+                    @Override
+                    public boolean needUISafety() {
+                        return false;
+                    }
+                });
+
+    }
+
+    void bindAli() {
+        StartAI.getInstance().getBaseBusiManager().getAlipayAuthInfo(C_0x8033.AUTH_TYPE_AUTH, new IOnCallListener() {
+            @Override
+            public void onSuccess(MqttPublishRequest request) {
+                if (Debuger.isLogDebug) {
+                    Tlog.v(TAG, "getAlipayAuthInfo bind msg send success ");
+                }
+            }
+
+            @Override
+            public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
+
+                if (Debuger.isLogDebug) {
+                    Tlog.e(TAG, "getAlipayAuthInfo bind msg send fail " + String.valueOf(startaiError));
+                }
+                if (mResultCallBack != null) {
+                    mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                }
+            }
+
+            @Override
+            public boolean needUISafety() {
+                return false;
+            }
+        });
+    }
+
+    public void aliLogin() {
+
+        StartAI.getInstance().getBaseBusiManager().getAlipayAuthInfo(C_0x8033.AUTH_TYPE_LOGIN, new IOnCallListener() {
+            @Override
+            public void onSuccess(MqttPublishRequest request) {
+                if (Debuger.isLogDebug) {
+                    Tlog.v(TAG, "getAlipayAuthInfo login msg send success ");
+                }
+            }
+
+            @Override
+            public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
+
+                if (Debuger.isLogDebug) {
+                    Tlog.e(TAG, "getAlipayAuthInfo login msg send fail " + String.valueOf(startaiError));
+                }
+                if (mResultCallBack != null) {
+                    mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                }
+            }
+
+            @Override
+            public boolean needUISafety() {
+                return false;
+            }
+        });
+
+    }
+
+    private final String WX_LOGIN = "diandi_wx_login";
+    private final String WX_BIND = "diandi_wx_bind";
 
 
     void wxLogin() {
@@ -235,7 +537,7 @@ public class UserManager implements IService {
 
             SendAuth.Req req = new SendAuth.Req();
             req.scope = "snsapi_userinfo";
-            req.state = "diandi_wx_login";
+            req.state = WX_LOGIN;
             //向微信发送请求
 
             IWXAPI wxApi = WXLoginHelper.getInstance().getWXApi(app);
@@ -258,32 +560,148 @@ public class UserManager implements IService {
     }
 
 
+    public void bindWX() {
+
+        if (cn.com.swain.baselib.util.AppUtils.isAppInstalled(app, "com.tencent.mm")) {
+
+            SendAuth.Req req = new SendAuth.Req();
+            req.scope = "snsapi_userinfo";
+            req.state = WX_BIND;
+            //向微信发送请求
+
+            IWXAPI wxApi = WXLoginHelper.getInstance().getWXApi(app);
+
+            if (wxApi == null) {
+                if (mResultCallBack != null) {
+                    mResultCallBack.onResultMsgSendError(ERROR_CODE_WX_LOGIN_UNKNOWN);
+                }
+            } else {
+                Tlog.v(TAG, " wxApi  sendReq ");
+                wxApi.sendReq(req);
+            }
+
+        } else {
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError(ERROR_CODE_WX_LOGIN_NO_CLIENT);
+            }
+        }
+
+    }
+
+    public void unbindWx() {
+        //发送请求
+        C_0x8036.Req.ContentBean req = new C_0x8036.Req.ContentBean(getLoginUserID(), C_0x8036.THIRD_WECHAT);
+        //解绑 微信
+        StartAI.getInstance().getBaseBusiManager().unBindThirdAccount(req, new IOnCallListener() {
+            @Override
+            public void onSuccess(MqttPublishRequest request) {
+                Tlog.v(TAG, " unbindWx msg send success ");
+            }
+
+            @Override
+            public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
+                Tlog.e(TAG, " unbindWx msg send fail " + startaiError.getErrorCode());
+                if (mResultCallBack != null) {
+                    mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                }
+            }
+
+            @Override
+            public boolean needUISafety() {
+                return false;
+            }
+        });
+    }
+
+    public void unbindAli() {
+        //发送请求
+        C_0x8036.Req.ContentBean req = new C_0x8036.Req.ContentBean(getLoginUserID(), C_0x8036.THIRD_ALIPAY);
+        //解绑 微信
+        StartAI.getInstance().getBaseBusiManager().unBindThirdAccount(req, new IOnCallListener() {
+            @Override
+            public void onSuccess(MqttPublishRequest request) {
+                Tlog.v(TAG, " unbindAli msg send success ");
+            }
+
+            @Override
+            public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
+                Tlog.e(TAG, " unbindAli msg send fail " + startaiError.getErrorCode());
+                if (mResultCallBack != null) {
+                    mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                }
+            }
+
+            @Override
+            public boolean needUISafety() {
+                return false;
+            }
+        });
+    }
+
+
     public void onWxLoginResult(BaseResp baseResp) {
 
         if (baseResp.errCode == BaseResp.ErrCode.ERR_OK) {
 
+            String state = ((SendAuth.Resp) baseResp).state;
             String code = ((SendAuth.Resp) baseResp).code;
-            Tlog.e(TAG, "onWxLoginSuccess code: " + code);
 
-            StartAI.getInstance().getBaseBusiManager().loginWithThirdAccount(10, code, new IOnCallListener() {
-                @Override
-                public void onSuccess(MqttPublishRequest request) {
+            if (WX_LOGIN.equalsIgnoreCase(state)) {
+                Tlog.e(TAG, "onWxLoginSuccess code: " + code);
 
-                }
-
-                @Override
-                public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
-                    Tlog.e(TAG, " wxLogin msg send fail " + startaiError.getErrorCode());
-                    if (mResultCallBack != null) {
-                        mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                StartAI.getInstance().getBaseBusiManager().loginWithThirdAccount(10, code, new IOnCallListener() {
+                    @Override
+                    public void onSuccess(MqttPublishRequest request) {
+                        Tlog.v(TAG, " wxLogin msg send success ");
                     }
-                }
 
-                @Override
-                public boolean needUISafety() {
-                    return false;
-                }
-            });
+                    @Override
+                    public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
+                        Tlog.e(TAG, " wxLogin msg send fail " + startaiError.getErrorCode());
+                        if (mResultCallBack != null) {
+                            mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                        }
+                    }
+
+                    @Override
+                    public boolean needUISafety() {
+                        return false;
+                    }
+                });
+
+            } else if (WX_BIND.equalsIgnoreCase(state)) {
+
+                Tlog.e(TAG, "onWxBindSuccess code: " + code);
+
+                //发送请求 接口调用前需要调用 微信的第三方登录SDK 授权api 拿到 code
+
+                C_0x8037.Req.ContentBean req = new C_0x8037.Req.ContentBean();
+                req.setCode(code); //code 来自微信授权返回
+                req.setType(C_0x8037.THIRD_WECHAT); //绑定微信账号
+
+                StartAI.getInstance().getBaseBusiManager().bindThirdAccount(req, new IOnCallListener() {
+                    @Override
+                    public void onSuccess(MqttPublishRequest mqttPublishRequest) {
+                        Tlog.i(TAG, "bindThirdAccount wx msg send success ");
+                    }
+
+                    @Override
+                    public void onFailed(MqttPublishRequest mqttPublishRequest, StartaiError startaiError) {
+                        if (Debuger.isDebug) {
+                            Tlog.e(TAG, "bindThirdAccount wx msg send fail " + String.valueOf(startaiError));
+                        }
+                        if (mResultCallBack != null) {
+                            mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                        }
+                    }
+
+                    @Override
+                    public boolean needUISafety() {
+                        return false;
+                    }
+                });
+
+            }
 
         } else {
 
@@ -343,7 +761,30 @@ public class UserManager implements IService {
         public void onFailed(MqttPublishRequest mqttPublishRequest, StartaiError startaiError) {
             Tlog.e(TAG, " getIdentifyCode msg send failed: " + startaiError.getErrorCode());
             if (mResultCallBack != null) {
-                mResultCallBack.onResultGetMobileLoginCode(false);
+                mResultCallBack.onResultGetMobileLoginCode(false, 1);
+                mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+            }
+            mLastSendMillis = 0L;
+        }
+
+        @Override
+        public boolean needUISafety() {
+            return false;
+        }
+    };
+
+    private final IOnCallListener mGetBindCodeLsn = new IOnCallListener() {
+        @Override
+        public void onSuccess(MqttPublishRequest mqttPublishRequest) {
+            Tlog.v(TAG, " getIdentifyCode msg send success:");
+
+        }
+
+        @Override
+        public void onFailed(MqttPublishRequest mqttPublishRequest, StartaiError startaiError) {
+            Tlog.e(TAG, " getIdentifyCode msg send failed: " + startaiError.getErrorCode());
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultGetMobileLoginCode(false, 5);
                 mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
             }
             mLastSendMillis = 0L;
@@ -358,26 +799,35 @@ public class UserManager implements IService {
     private long mLastSendMillis;
     private String mLastSendPhone;
 
-    void getMobileLoginCode(String phone) {
+    void getMobileLoginCode(String phone, int type) {
         Tlog.e(TAG, " getMobileLoginCode " + phone);
+
+        IOnCallListener callBack;
+        if (type == 1) {
+            callBack = mGetLoginCodeLsn;
+        } else if (type == 5) {
+            callBack = mGetBindCodeLsn;
+        } else {
+            callBack = mGetLoginCodeLsn;
+        }
 
         long currentTimeMillis = System.currentTimeMillis();
 
         if (!phone.equalsIgnoreCase(mLastSendPhone)) {
 
-            StartAI.getInstance().getBaseBusiManager().getIdentifyCode(phone, 1, mGetLoginCodeLsn);
+            StartAI.getInstance().getBaseBusiManager().getIdentifyCode(phone, type, callBack);
 
         } else {
             if (Math.abs(currentTimeMillis - mLastSendMillis) > 1000 * 60) {
 
-                StartAI.getInstance().getBaseBusiManager().getIdentifyCode(phone, 1, mGetLoginCodeLsn);
+                StartAI.getInstance().getBaseBusiManager().getIdentifyCode(phone, type, callBack);
 
             } else {
 
                 Tlog.e(TAG, " getMobileLoginCode too fast ");
 
                 if (mResultCallBack != null) {
-                    mResultCallBack.onResultGetMobileLoginCode(false);
+                    mResultCallBack.onResultGetMobileLoginCode(false, type);
                 }
             }
 
@@ -539,6 +989,12 @@ public class UserManager implements IService {
         StartAI.getInstance().getBaseBusiManager().updateUserPwd(mPwd.oldPwd, mPwd.newPwd, mUpdatePwdLsn);
     }
 
+    public void updateNickName(String nickName) {
+        C_0x8020.Req.ContentBean contentBean = new C_0x8020.Req.ContentBean();
+        contentBean.setNickName(nickName);
+        StartAI.getInstance().getBaseBusiManager().updateUserInfo(contentBean, mUpdateNameLsn);
+    }
+
     private final IOnCallListener mUpdateNameLsn = new IOnCallListener() {
         @Override
         public void onSuccess(MqttPublishRequest mqttPublishRequest) {
@@ -556,6 +1012,7 @@ public class UserManager implements IService {
             return false;
         }
     };
+
 
     void updateUserName(UserUpdateInfo obj) {
 
@@ -615,16 +1072,11 @@ public class UserManager implements IService {
 
     }
 
-    private static boolean isGranted(final String permission) {
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.M
-                || PackageManager.PERMISSION_GRANTED
-                == ContextCompat.checkSelfPermission(Utils.getApp(), permission);
-    }
 
     private File getPhotoFile() {
         // 判断存储卡是否可以用，可用进行存储
 
-        if (!isGranted(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+        if (!PermissionHelper.isGranted(app, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
             return null;
         }
 
@@ -652,7 +1104,6 @@ public class UserManager implements IService {
         }
 
     }
-
 
     private final IOnCallListener mHeadLogoCallLsn = new IOnCallListener() {
         @Override
@@ -729,6 +1180,18 @@ public class UserManager implements IService {
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         Tlog.d(TAG, " onActivityResult requestCode:" + requestCode + " resultCode:" + resultCode);
+
+        if (requestCode == REUQEST_LOCATION) {
+
+            LooperManager.getInstance().getWorkHandler().post(new Runnable() {
+                @Override
+                public void run() {
+                    queryLocationEnabled();
+                }
+            });
+
+            return;
+        }
 
         if (resultCode == Activity.RESULT_CANCELED) {
             Tlog.d(TAG, " onActivityResult user cancel ");
@@ -881,7 +1344,7 @@ public class UserManager implements IService {
     private final FSDownloadCallback mDownloadAppListener = new FSDownloadCallback() {
         @Override
         public void onStart(DownloadBean downloadBean) {
-            Tlog.v(TAG, "FSDownloadCallback  onStart() " + downloadBean.toString());
+            Tlog.v(TAG, "FSDownloadCallback  onStart() " + String.valueOf(downloadBean));
             if (mResultCallBack != null) {
                 UpdateProgress mProgress = new UpdateProgress(downloadBean);
                 mResultCallBack.onResultUpdateProgress(true, mProgress);
@@ -890,7 +1353,7 @@ public class UserManager implements IService {
 
         @Override
         public void onSuccess(DownloadBean downloadBean) {
-            Tlog.v(TAG, "FSDownloadCallback  onSuccess() " + downloadBean.toString());
+            Tlog.v(TAG, "FSDownloadCallback  onSuccess() " + String.valueOf(downloadBean));
 
             if (mResultCallBack != null) {
                 UpdateProgress mProgress = new UpdateProgress(downloadBean);
@@ -916,7 +1379,7 @@ public class UserManager implements IService {
 
         @Override
         public void onProgress(DownloadBean downloadBean) {
-            Tlog.v(TAG, "FSDownloadCallback  onProgress() " + downloadBean.toString());
+            Tlog.v(TAG, "FSDownloadCallback  onProgress() " + String.valueOf(downloadBean));
 
             if (mResultCallBack != null) {
                 UpdateProgress mProgress = new UpdateProgress(downloadBean);
@@ -927,7 +1390,7 @@ public class UserManager implements IService {
 
         @Override
         public void onWaiting(DownloadBean downloadBean) {
-            Tlog.v(TAG, "FSDownloadCallback  onWaiting() " + downloadBean);
+            Tlog.v(TAG, "FSDownloadCallback  onWaiting() " + String.valueOf(downloadBean));
             if (mResultCallBack != null) {
                 UpdateProgress mProgress = new UpdateProgress(downloadBean);
                 mResultCallBack.onResultUpdateProgress(true, mProgress);
@@ -998,7 +1461,6 @@ public class UserManager implements IService {
             StartaiDownloaderManager.getInstance().stopDownloader(downloadUrl);
         }
     }
-
 
     /**************************/
 
@@ -1078,6 +1540,9 @@ public class UserManager implements IService {
                 case 10:
                     userInfo.setUserName(loginInfo.getuName());
                     break;
+                case Type.Login.THIRD_ALIPAY:
+                    userInfo.setUserName(loginInfo.getuName());
+                    break;
 
             }
 
@@ -1122,6 +1587,14 @@ public class UserManager implements IService {
                     mResultCallBack.onResultWxLogin(resp.getResult() == 1, resp.getContent().getErrcode());
                 }
                 break;
+            case Type.Login.THIRD_ALIPAY:
+
+                if (mResultCallBack != null) {
+                    mResultCallBack.onResultAliLogin(resp.getResult() == 1, resp.getContent().getErrcode());
+                }
+
+                break;
+
 
         }
 
@@ -1177,7 +1650,7 @@ public class UserManager implements IService {
         }
         mLastSendMillis = 0L;
         if (mResultCallBack != null) {
-            mResultCallBack.onResultGetMobileLoginCode(resp.getResult() == 1);
+            mResultCallBack.onResultGetMobileLoginCode(resp.getResult() == 1, resp.getContent().getType());
         }
     }
 
@@ -1218,7 +1691,7 @@ public class UserManager implements IService {
             }
 
             downloadUrl = resp.getContent().getUpdateUrl();
-            Tlog.v(TAG, " onGetLatestVersionResult:  downloadUrl" + downloadUrl);
+            Tlog.v(TAG, " onGetLatestVersionResult:  downloadUrl : " + downloadUrl);
 
             if (mResultCallBack != null) {
                 mResultCallBack.onResultIsLatestVersion(resp.getResult() == 1,
@@ -1288,6 +1761,9 @@ public class UserManager implements IService {
             mUserInfo.setIsHavePwd(contentBean.getIsHavePwd());
             mUserInfo.setEmail(contentBean.getEmail());
             mUserInfo.setMobile(contentBean.getMobile());
+            List<C_0x8024.Resp.ContentBean.ThirdInfosBean> thirdInfos = contentBean.getThirdInfos();
+            mUserInfo.setThirdInfos(thirdInfos);
+
             if (mResultCallBack != null) {
                 mResultCallBack.onResultGetUserInfo(true, mUserInfo);
             }
@@ -1313,6 +1789,310 @@ public class UserManager implements IService {
         } else {
             mResultCallBack.onResultMsgSendError(resp.getContent().getErrcode());
         }
+    }
+
+
+    public void onGetAlipayAuthInfoResult(C_0x8033.Resp resp) {
+
+        if (Debuger.isLogDebug) {
+            Tlog.d(TAG, " onGetAlipayPrivateKeyResult :" + String.valueOf(resp));
+        }
+
+
+        if (resp.getResult() == BaseMessage.RESULT_SUCCESS) {
+
+            Tlog.d(TAG, "支付宝密钥获取成功，准备登录 ");
+
+            String AUTH_INFO = resp.getContent().getAliPayAuthInfo();
+            aliAuthInfo(AUTH_INFO);
+
+        } else {
+
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError(resp.getContent().getErrcode());
+            }
+//
+//            String authTargetId = resp.getContent().getAuthTargetId(); // AUTH_1543265456453123 | LOGIN_15264564564
+//            if (authTargetId != null) {
+//                if (authTargetId.startsWith(C_0x8033.AUTH_TYPE_LOGIN)) {
+//
+//                } else if (authTargetId.startsWith(C_0x8033.AUTH_TYPE_AUTH)) {
+//                }
+//            } else {
+//                Tlog.e(TAG, " unknown auth ");
+//            }
+
+
+        }
+
+    }
+
+
+    // 支付宝登陆
+    private void aliAuthInfo(String AUTH_INFO) {
+
+        Tlog.d(TAG, " aliAuthInfo autoInfo = " + AUTH_INFO);
+
+        AndJsBridge andJsBridge = Controller.getInstance().getAndJsBridge();
+        Activity activity = andJsBridge != null ? andJsBridge.getActivity() : null;
+
+        if (activity == null) {
+            Tlog.e(TAG, " activity == null ");
+
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError("0x000000");
+            }
+
+            return;
+        }
+
+        // 调用授权接口，获取授权结果
+        AuthTask authTask = new AuthTask(activity);
+        Map<String, String> result = authTask.authV2(AUTH_INFO, true);
+        AuthResult authResult = new AuthResult(result, true);
+
+
+        String targetId = authResult.getTargetId();
+        if (targetId.startsWith(C_0x8033.AUTH_TYPE_LOGIN)) {
+            aliLogin(authResult);
+        } else if (targetId.startsWith(C_0x8033.AUTH_TYPE_AUTH)) {
+            // alibind
+            aliBind(authResult);
+        }
+
+    }
+
+    private void aliLogin(AuthResult authResult) {
+
+        String resultStatus = authResult.getResultStatus();
+        String resultCode = authResult.getResultCode();
+
+        // 判断resultStatus 为“9000”且result_code为“200”则代表授权成功，具体状态码代表含义可参考授权接口文档
+        Tlog.d(TAG, "aliLogin resultStatus:" + resultStatus + " resultCode:" + resultCode);
+
+        if (TextUtils.equals(resultStatus, "9000") && TextUtils.equals(resultCode, "200")) {
+            // 获取alipay_open_id，调支付时作为参数extern_token 的value
+            // 传入，则支付账户为该授权账户
+
+            StartAI.getInstance().getBaseBusiManager().loginWithThirdAccount(Type.Login.THIRD_ALIPAY, authResult.getAuthCode(), new IOnCallListener() {
+                @Override
+                public void onSuccess(MqttPublishRequest mqttPublishRequest) {
+                    Tlog.i(TAG, "loginWithThirdAccount ali msg send success ");
+                }
+
+                @Override
+                public void onFailed(MqttPublishRequest mqttPublishRequest, StartaiError startaiError) {
+                    if (Debuger.isDebug) {
+                        Tlog.e(TAG, "loginWithThirdAccount ali msg send fail " + String.valueOf(startaiError));
+                    }
+                    if (mResultCallBack != null) {
+                        mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                    }
+
+                }
+
+                @Override
+                public boolean needUISafety() {
+                    return false;
+                }
+            });
+
+
+        } else {
+            // 其他状态值则为授权失败
+//                            result_status
+//                            9000	请求处理成功
+//                            4000	系统异常
+//                            6001	用户中途取消
+//                            6002	网络连接出错
+
+//                            result_code
+//                            200	业务处理成功，会返回authCode
+//                            1005	账户已冻结，如有疑问，请联系支付宝技术支持
+//                            202	系统异常，请稍后再试或联系支付宝技术支持
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError(resultStatus);
+            }
+
+        }
+    }
+
+
+    private void aliBind(AuthResult authResult) {
+
+        String resultStatus = authResult.getResultStatus();
+        String resultCode = authResult.getResultCode();
+
+        // 判断resultStatus 为“9000”且result_code为“200”则代表授权成功，具体状态码代表含义可参考授权接口文档
+        Tlog.d(TAG, "aliBind resultStatus:" + resultStatus + " resultCode:" + resultCode);
+
+        if (TextUtils.equals(resultStatus, "9000") && TextUtils.equals(resultCode, "200")) {
+            // 获取alipay_open_id，调支付时作为参数extern_token 的value
+            // 传入，则支付账户为该授权账户
+
+            C_0x8037.Req.ContentBean req = new C_0x8037.Req.ContentBean();
+            req.setCode(authResult.getAuthCode()); //code 来自ali授权返回
+            req.setType(C_0x8037.THIRD_ALIPAY); //绑定ali账号
+
+            StartAI.getInstance().getBaseBusiManager().bindThirdAccount(req, new IOnCallListener() {
+                @Override
+                public void onSuccess(MqttPublishRequest mqttPublishRequest) {
+                    Tlog.i(TAG, "bindThirdAccount ali msg send success ");
+                }
+
+                @Override
+                public void onFailed(MqttPublishRequest mqttPublishRequest, StartaiError startaiError) {
+                    if (Debuger.isDebug) {
+                        Tlog.e(TAG, "bindThirdAccount ali msg send fail " + String.valueOf(startaiError));
+                    }
+                    if (mResultCallBack != null) {
+                        mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                    }
+
+                }
+
+                @Override
+                public boolean needUISafety() {
+                    return false;
+                }
+            });
+
+        } else {
+            // 其他状态值则为授权失败
+//                            result_status
+//                            9000	请求处理成功
+//                            4000	系统异常
+//                            6001	用户中途取消
+//                            6002	网络连接出错
+
+//                            result_code
+//                            200	业务处理成功，会返回authCode
+//                            1005	账户已冻结，如有疑问，请联系支付宝技术支持
+//                            202	系统异常，请稍后再试或联系支付宝技术支持
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError(resultStatus);
+            }
+
+        }
+    }
+
+    public void onBindThirdAccountResult(C_0x8037.Resp resp) {
+
+        if (Debuger.isLogDebug) {
+            Tlog.d(TAG, " onBindThirdAccountResult :" + String.valueOf(resp));
+        }
+
+        if (resp.getResult() != 1) {
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError(resp.getContent().getErrcode());
+            }
+        }
+
+    }
+
+    public void onCheckIdetifyResult(C_0x8022.Resp resp) {
+
+        if (Debuger.isLogDebug) {
+            Tlog.d(TAG, " onCheckIdentifyResult " + String.valueOf(resp));
+        }
+
+
+        if (resp.getResult() == 1) {
+
+            C_0x8022.Resp.ContentBean content = resp.getContent();
+
+            if (content.getType() == Type.CheckIdentifyCode.BIND_MOBILE_NUM) {
+                C_0x8034.Req.ContentBean req = new C_0x8034.Req.ContentBean(getLoginUserID(), content.getMobile());
+                //mobile 需要绑定的手机号
+                StartAI.getInstance().getBaseBusiManager().bindMobileNum(req, new IOnCallListener() {
+                    @Override
+                    public void onSuccess(MqttPublishRequest request) {
+                        Tlog.i(TAG, "bindMobileNum  msg send success ");
+                    }
+
+                    @Override
+                    public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
+
+                        if (Debuger.isDebug) {
+                            Tlog.e(TAG, "bindMobileNum msg send fail " + String.valueOf(startaiError));
+                        }
+                        if (mResultCallBack != null) {
+                            mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                        }
+                    }
+
+                    @Override
+                    public boolean needUISafety() {
+                        return false;
+                    }
+                });
+            }
+
+        } else {
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError(resp.getContent().getErrcode());
+            }
+        }
+
+    }
+
+    public void onBindMobileNumResult(C_0x8034.Resp resp) {
+
+        if (Debuger.isLogDebug) {
+            Tlog.d(TAG, " onBindMobileNumResult " + String.valueOf(resp));
+        }
+
+        if (resp.getResult() != 1) {
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError(resp.getContent().getErrcode());
+                mResultCallBack.onResultBindPhone(false);
+            }
+        } else {
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultBindPhone(true);
+            }
+        }
+
+    }
+
+    public void onGetWeatherInfoResult(C_0x8035.Resp resp) {
+        if (Debuger.isLogDebug) {
+            Tlog.d(TAG, " onGetWeatherInfoResult " + String.valueOf(resp));
+        }
+
+        if (resp.getResult() == 1) {
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultWeatherInfo(resp.getContent());
+            }
+        } else {
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError(resp.getContent().getErrcode());
+            }
+        }
+
+    }
+
+    public void onUnBindThirdAccountResult(C_0x8036.Resp resp) {
+        if (Debuger.isLogDebug) {
+            Tlog.d(TAG, " onUnBindThirdAccountResult " + String.valueOf(resp));
+        }
+
+        if (resp.getContent().getType() == C_0x8036.THIRD_WECHAT) {
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultUnbindWX(resp.getResult() == 1);
+            }
+        } else if (resp.getContent().getType() == C_0x8036.THIRD_ALIPAY) {
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultUnbindAli(resp.getResult() == 1);
+            }
+        }
+
+        if (resp.getResult() != 1) {
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError(resp.getContent().getErrcode());
+            }
+        }
+
     }
 
 }

@@ -30,18 +30,18 @@ import cn.com.swain.baselib.log.Tlog;
  * desc :
  */
 
-public class TmpFunctionFragment extends BaseFragment {
+public class CheckThreadFragment extends BaseFragment {
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Tlog.v(TAG, " TmpFunctionFragment onCreate() ");
+        Tlog.v(TAG, " CheckThreadFragment onCreate() ");
     }
 
 
     @Override
     protected View inflateView() {
-        Tlog.v(TAG, " TmpFunctionFragment inflateView() ");
+        Tlog.v(TAG, " CheckThreadFragment inflateView() ");
         View view = View.inflate(getActivity(), R.layout.framgment_function,
                 null);
 
@@ -150,7 +150,7 @@ public class TmpFunctionFragment extends BaseFragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        Tlog.v(TAG, " TmpFunctionFragment onCreateView() ");
+        Tlog.v(TAG, " CheckThreadFragment onCreateView() ");
         View view = super.onCreateView(inflater, container, savedInstanceState);
         return view;
     }
@@ -158,14 +158,14 @@ public class TmpFunctionFragment extends BaseFragment {
 
     @Override
     public void onDestroyView() {
-        Tlog.v(TAG, " TmpFunctionFragment onDestroyView() ");
+        Tlog.v(TAG, " CheckThreadFragment onDestroyView() ");
         super.onDestroyView();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Tlog.v(TAG, " TmpFunctionFragment onDestroy() ");
+        Tlog.v(TAG, " CheckThreadFragment onDestroy() ");
     }
 
 

@@ -115,7 +115,7 @@ public class State extends AbsHandlerJsInterface {
         mQueryCount.interval = interval;
         mQueryCount.needQueryFromServer = true;
         Message message = getHandler().obtainMessage(MSG_HISTORY, mQueryCount);
-        getHandler().sendMessageDelayed(message, 1000);
+        getHandler().sendMessage(message);
 
     }
 

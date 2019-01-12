@@ -45,11 +45,11 @@ public class SwitchQueryResponseTask extends SocketResponseTask {
         }
 
 
-        Tlog.v(TAG, "query switch result: " + SocketSecureKey.Util.resultIsOk(protocolParams[0])
+        Tlog.v(TAG, " switch result: " + SocketSecureKey.Util.resultIsOk(protocolParams[0])
                 + " on:" + on + " model:" + model);
 
         if (SocketSecureKey.Util.isRelayModel(model)) {
-            Tlog.e(TAG, "query switch model is relay ");
+            Tlog.e(TAG, " switch model is relay ");
 
             if (mCallBack != null) {
                 mCallBack.onRelayResult(mSocketDataArray.getID(), on);
@@ -62,10 +62,10 @@ public class SwitchQueryResponseTask extends SocketResponseTask {
 
 
         } else if (SocketSecureKey.Util.isBackLightModel(model)) {
-            Tlog.e(TAG, "query switch model is backLight ");
+            Tlog.e(TAG, " switch model is backLight ");
 
         } else if (SocketSecureKey.Util.isFlashLightModel(model)) {
-            Tlog.e(TAG, "control switch is FlashLight ");
+            Tlog.e(TAG, " switch is FlashLight ");
 
             IDebugerProtocolStream IDebugerStream = mCallBack.getIDebugerStream();
             if (IDebugerStream != null) {
@@ -73,12 +73,12 @@ public class SwitchQueryResponseTask extends SocketResponseTask {
             }
 
         } else if (SocketSecureKey.Util.isUSBModel(model)) {
-            Tlog.e(TAG, "control switch is USB ");
+            Tlog.e(TAG, " switch is USB ");
             if (mCallBack != null) {
                 mCallBack.onUSBResult(mSocketDataArray.getID(), on);
             }
         } else if (SocketSecureKey.Util.isNightLight(model)) {
-            Tlog.e(TAG, "control switch is nightLight ");
+            Tlog.e(TAG, " switch is nightLight ");
             if (mCallBack != null) {
                 mCallBack.onNightLightResult(mSocketDataArray.getID(), on);
             }

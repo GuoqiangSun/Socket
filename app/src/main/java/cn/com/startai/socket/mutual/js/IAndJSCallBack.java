@@ -1,5 +1,6 @@
 package cn.com.startai.socket.mutual.js;
 
+import android.app.Activity;
 import android.content.Intent;
 
 import cn.com.startai.socket.mutual.js.bean.StatusBarBean;
@@ -27,4 +28,6 @@ public interface IAndJSCallBack {
     void ajSkipWebActivity(String path);
 
     void ajSetStatusBar(StatusBarBean mStatusBar);
+
+    Activity getActivity();
 }

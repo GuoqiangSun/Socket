@@ -60,6 +60,7 @@ import cn.com.startai.socket.sign.scm.receivetask.ProtocolTaskImpl;
 import cn.com.startai.socket.sign.scm.util.MySocketDataCache;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.baselib.app.IApp.IService;
+import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.baselib.util.Bit;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolOutput;
 import cn.com.swain.support.protocolEngine.ProtocolProcessorFactory;
@@ -68,7 +69,6 @@ import cn.com.swain.support.protocolEngine.pack.ReceivesData;
 import cn.com.swain.support.protocolEngine.pack.ResponseData;
 import cn.com.swain.support.protocolEngine.resolve.AbsProtocolProcessor;
 import cn.com.swain.support.protocolEngine.task.FailTaskResult;
-import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun
@@ -401,7 +401,7 @@ public class SocketScmManager extends AbsSocketScm
         ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mQueryCount.mac);
         scmDevice.removeQueryHistory();
 
-        QueryHistoryUtil.queryHistoryCount(mQueryCount, scmDevice, this);
+        QueryHistoryUtil.queryHistoryCount(mQueryCount, scmDevice);
         if (Debuger.isDebug) {
             testReport(mQueryCount.mac);
         }
@@ -416,6 +416,8 @@ public class SocketScmManager extends AbsSocketScm
             }
         } else if (what == 1) {
             queryHistoryCount((QueryHistoryCount) obj);
+        } else if (what == 2) {
+            onOutputDataToServer((ResponseData) obj);
         }
 
     }
@@ -1069,7 +1071,10 @@ public class SocketScmManager extends AbsSocketScm
 
     @Override
     public void queryNightLight(String mac) {
-        ResponseData mResponseData = MySocketDataCache.getQueryNightLight(mac);
+//        ResponseData mResponseData = MySocketDataCache.getQueryNightLight(mac);
+
+        ResponseData mResponseData = MySocketDataCache.getQueryYellowLight(mac, 0);
+
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryNightLight  data:" + String.valueOf(mResponseData));
         }
@@ -1078,9 +1083,22 @@ public class SocketScmManager extends AbsSocketScm
 
     @Override
     public void switchNightLight(String mac, boolean b) {
+
         ResponseData mResponseData = MySocketDataCache.getSwitchNightLight(mac, b);
+
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " switchNightLight  data:" + String.valueOf(mResponseData));
+        }
+        onOutputDataToServer(mResponseData);
+    }
+
+
+    @Override
+    public void setNightLightColor(ColorLampRGB obj) {
+        ResponseData mResponseData = MySocketDataCache.getSeYellowLight(obj.mac, obj.seq, obj.r, obj.g, obj.b);
+
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " setNightLightColor  data:" + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
     }
@@ -1089,7 +1107,7 @@ public class SocketScmManager extends AbsSocketScm
     public void queryRunningNightLight(String mac) {
         ResponseData mResponseData = MySocketDataCache.getQueryRunningNightLight(mac);
         if (Debuger.isLogDebug) {
-            Tlog.v(TAG, " queryTimingNightLight  data:" + String.valueOf(mResponseData));
+            Tlog.v(TAG, " queryRunningNightLight  data:" + String.valueOf(mResponseData));
         }
         onOutputDataToServer(mResponseData);
 
@@ -1539,6 +1557,12 @@ public class SocketScmManager extends AbsSocketScm
 
         NotificationManager notificationManager = (NotificationManager) applicationContext.getSystemService(Context.NOTIFICATION_SERVICE);
 
+        if (notificationManager == null) {
+            //发送通知请求
+            Toast.makeText(app, "设备离线", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         String ticker;
         if (mac != null) {
             ticker = String.valueOf(mac) + " 离线";
@@ -1547,16 +1571,10 @@ public class SocketScmManager extends AbsSocketScm
             ticker = " 设备离线";
         }
 
-        if (notificationManager == null) {
-            //发送通知请求
-            Toast.makeText(app, "设备离线", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             //创建通知渠道
-            CharSequence name = "渠道名称1";
+            CharSequence name = ticker;
 
             int importance = NotificationManager.IMPORTANCE_DEFAULT;//重要性级别
             NotificationChannel mChannel = new NotificationChannel(ticker, name, importance);
@@ -2016,7 +2034,7 @@ public class SocketScmManager extends AbsSocketScm
     @Override
     public void onSettingMonetaryUnitResult(String mac, boolean result, int mMonetaryUnit) {
         if (mScmResultCallBack != null) {
-            mScmResultCallBack.onResultSettingMonetaryUnit(mac, result);
+            mScmResultCallBack.onResultSettingMonetaryUnit(mac, result, mMonetaryUnit);
         }
     }
 
@@ -2123,17 +2141,102 @@ public class SocketScmManager extends AbsSocketScm
 
 
     @Override
-    public void onRGBSetResult(boolean result, ColorLampRGB mColorLampRGB) {
-        if (mScmResultCallBack != null) {
-            mScmResultCallBack.onRGBSetResult(result, mColorLampRGB);
+    public void onRGBSetResult(boolean result, ColorLampRGB mColorLamp) {
+
+        if (result) {
+
+//            ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mColorLamp.mac);
+
+            if (mColorLamp.model == SocketSecureKey.Model.MODEL_COLOR_LAMP) {
+//                scmDevice.setColorLamp(mColorLamp);
+//
+//                ColorLampRGB yellowLightRGB = scmDevice.getYellowLightRGB();
+//
+//                if (mColorLamp.r == 0 && mColorLamp.g == 0 && mColorLamp.b == 0
+//                        && yellowLightRGB != null
+//                        && yellowLightRGB.r == 0 && yellowLightRGB.g == 0 && yellowLightRGB.b == 0
+//                        ) {
+//                    // 彩灯关,小夜灯没关,不通知UI.
+//                    return;
+//
+//                }
+
+                if (mScmResultCallBack != null) {
+                    mScmResultCallBack.onRGBSetResult(true, mColorLamp);
+                }
+
+
+            } else if (mColorLamp.model == SocketSecureKey.Model.MODEL_YELLOW_LIGHT) {
+//                scmDevice.setYellowLight(mColorLamp);
+//
+//                ColorLampRGB mColorLampRGB = scmDevice.getColorLampRGB();
+//
+//                if (mColorLamp.r == 0 && mColorLamp.g == 0 && mColorLamp.b == 0
+//                        && mColorLampRGB != null
+//                        && mColorLampRGB.r == 0 && mColorLampRGB.g == 0 && mColorLampRGB.b == 0
+//                        ) {
+//                    // 小夜灯关,彩灯没关,不通知UI.
+//                    return;
+//
+//                }
+                if (mScmResultCallBack != null) {
+                    mScmResultCallBack.onRGBYellowSetResult(true, mColorLamp);
+                }
+            }
+
         }
     }
 
     @Override
     public void onRGBQueryResult(boolean result, ColorLampRGB mColorLampRGB) {
-        if (mScmResultCallBack != null) {
-            mScmResultCallBack.onRGBQueryResult(result, mColorLampRGB);
+
+        if (result) {
+
+//            ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mColorLampRGB.mac);
+
+            if (mColorLampRGB.model == SocketSecureKey.Model.MODEL_COLOR_LAMP) {
+//                scmDevice.setColorLamp(mColorLampRGB);
+//
+//                ColorLampRGB yellowLightRGB = scmDevice.getYellowLightRGB();
+//                if (mColorLampRGB.r == 0 && mColorLampRGB.g == 0 && mColorLampRGB.b == 0) {
+//                    // 如果
+//                    if (yellowLightRGB != null) {
+//                        if (yellowLightRGB.r == 0 && yellowLightRGB.g == 0 && yellowLightRGB.b == 0) {
+//
+//                        } else {
+//                            // 彩灯关,小夜灯没关,不通知UI.
+//                            return;
+//                        }
+//                    }
+//
+//                }
+
+                if (mScmResultCallBack != null) {
+                    mScmResultCallBack.onRGBQueryResult(true, mColorLampRGB);
+                }
+
+            } else if (mColorLampRGB.model == SocketSecureKey.Model.MODEL_YELLOW_LIGHT) {
+//                scmDevice.setYellowLight(mColorLamp);
+//
+//                ColorLampRGB mColorLampRGB = scmDevice.getColorLampRGB();
+//
+//                if (mColorLamp.r == 0 && mColorLamp.g == 0 && mColorLamp.b == 0
+//                        && mColorLampRGB != null
+//                        && mColorLampRGB.r == 0 && mColorLampRGB.g == 0 && mColorLampRGB.b == 0
+//                        ) {
+//                    // 小夜灯关,彩灯没关,不通知UI.
+//                    return;
+//
+//                }
+
+                if (mScmResultCallBack != null) {
+                    mScmResultCallBack.onRGBYellowSetResult(true, mColorLampRGB);
+                }
+            }
+
         }
+
+
     }
 
 
@@ -2196,6 +2299,13 @@ public class SocketScmManager extends AbsSocketScm
     public void onQueryNightLightResult(boolean result, NightLightTiming mNightLightTiming) {
         if (mScmResultCallBack != null) {
             mScmResultCallBack.onResultQueryNightLight(result, mNightLightTiming);
+        }
+    }
+
+    @Override
+    public void onColorLamResult(String id, boolean b) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onResultColorLam(id, b);
         }
     }
 

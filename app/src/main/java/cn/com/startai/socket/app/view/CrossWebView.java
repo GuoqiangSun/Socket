@@ -1,10 +1,10 @@
 package cn.com.startai.socket.app.view;
 
-import android.app.Activity;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.View;
 
 import org.xwalk.core.XWalkPreferences;
 import org.xwalk.core.XWalkSettings;
@@ -36,15 +36,10 @@ public class CrossWebView extends XWalkView {
         init();
     }
 
-    public CrossWebView(Context context, Activity activity) {
-        super(context, activity);
-        init();
-    }
-
     private void init() {
 
         // crossWalk 在浏览器调试
-        if (Debuger.isDebug || Debuger.isLoadLocalH5) {
+        if (Debuger.isDebug || Debuger.isH5Debug) {
             XWalkPreferences.setValue(XWalkPreferences.REMOTE_DEBUGGING, true);
         }
 
@@ -82,7 +77,7 @@ public class CrossWebView extends XWalkView {
         settings.setDomStorageEnabled(true);
         settings.setCacheMode(XWalkSettings.LOAD_NO_CACHE);
 
-
+        setLayerType(View.LAYER_TYPE_HARDWARE,null);
     }
 
     private final String JAVA_SCRIPT = "javascript:";
@@ -135,4 +130,5 @@ public class CrossWebView extends XWalkView {
     public boolean onTouchEvent(MotionEvent event) {
         return super.onTouchEvent(event);
     }
+
 }

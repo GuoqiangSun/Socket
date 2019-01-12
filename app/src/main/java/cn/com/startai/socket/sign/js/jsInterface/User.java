@@ -5,6 +5,7 @@ import android.os.Message;
 
 import org.xwalk.core.JavascriptInterface;
 
+import cn.com.startai.socket.mutual.js.bean.MobileBind;
 import cn.com.startai.socket.mutual.js.bean.UserUpdateInfo;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.swain.baselib.jsInterface.AbsHandlerJsInterface;
@@ -19,6 +20,17 @@ public class User extends AbsHandlerJsInterface {
 
     public static class Method {
 
+        private static final String METHOD_UNBIND_ALI = "javascript:untiedAlipayResponse($result)";
+
+        public static String callJsUnbindAliResult(boolean result) {
+            return METHOD_UNBIND_ALI.replace("$result", String.valueOf(result));
+        }
+
+        private static final String METHOD_UNBIND_WX = "javascript:untiedWechatResponse($result)";
+
+        public static String callJsUnbindWXResult(boolean result) {
+            return METHOD_UNBIND_WX.replace("$result", String.valueOf(result));
+        }
 
         private static final String METHOD_PHOTO_PATH_RESULT = "javascript:getPhotoResponse('$path')";
 
@@ -33,7 +45,8 @@ public class User extends AbsHandlerJsInterface {
                     .replace("$errorCode", String.valueOf(errorCode));
         }
 
-        private static final String METHOD_CHECK_LATEST_VERSION_RESULT = "javascript:inspectVersionUpdateResponse($result,'$errorCode',$isLatest)";
+        private static final String METHOD_CHECK_LATEST_VERSION_RESULT
+                = "javascript:inspectVersionUpdateResponse($result,'$errorCode',$isLatest)";
 
         public static String callJsCheckIsLaterVersionResult(boolean result, String errorCode, boolean isLatest) {
             return METHOD_CHECK_LATEST_VERSION_RESULT
@@ -84,6 +97,13 @@ public class User extends AbsHandlerJsInterface {
             return METHOD_MODIFY_HEAD_LOGO_RESULT.replace("$result", String.valueOf(result));
         }
 
+
+        private static final String METHOD_BIND_PHONE_RESULT = "javascript:bindMobilePhoneResponse($result)";
+
+        public static String callJsBindPhoneResult(boolean result) {
+            return METHOD_BIND_PHONE_RESULT.replace("$result", String.valueOf(result));
+        }
+
     }
 
     public interface IJSUserCallBack {
@@ -105,6 +125,19 @@ public class User extends AbsHandlerJsInterface {
         void onJSQueryVersion();
 
         void onJSCancelUpdate();
+
+        void onJSUpdateNickName(String nickName);
+
+        void onJSBindWX();
+
+        void onJSBindAli();
+
+        void onJSBindPhone(MobileBind mMobileBind);
+
+        void onJSUnBindWX();
+
+        void onJSUnBindAli();
+
     }
 
     public static final String NAME_JSI = "User";
@@ -167,6 +200,12 @@ public class User extends AbsHandlerJsInterface {
     }
 
     @JavascriptInterface
+    public void modifyNicknameRequest(String niceName) {
+        Tlog.v(TAG, " modifyNicknameRequest " + niceName);
+        getHandler().obtainMessage(MSG_UPDATE_NICKNAME, niceName).sendToTarget();
+    }
+
+    @JavascriptInterface
     public void userInformationRequest() {
         Tlog.v(TAG, " userInformationRequest ");
         getHandler().sendEmptyMessage(MSG_QUERY_INFORMATION);
@@ -176,6 +215,39 @@ public class User extends AbsHandlerJsInterface {
     public void versionNumberRequest() {
         Tlog.v(TAG, " versionNumberRequest ");
         getHandler().sendEmptyMessage(MSG_REQUEST_VERSION);
+    }
+
+    @JavascriptInterface
+    public void bindingWeChatRequest() {
+        Tlog.v(TAG, " bindingWeChatRequest ");
+        getHandler().sendEmptyMessage(MSG_BIND_WECHAT);
+    }
+
+    @JavascriptInterface
+    public void bindingAlipayRequest() {
+        Tlog.v(TAG, " bindingAlipayRequest ");
+        getHandler().sendEmptyMessage(MSG_BIND_ALI);
+    }
+
+    @JavascriptInterface
+    public void bindMobilePhoneRequest(String phone, String code) {
+        Tlog.v(TAG, " bindMobilePhoneRequest ");
+        MobileBind mBind = new MobileBind();
+        mBind.phone = phone;
+        mBind.code = code;
+        getHandler().obtainMessage(MSG_BIND_PHONE, mBind).sendToTarget();
+    }
+
+    @JavascriptInterface
+    public void untiedWechatRequest() {
+        Tlog.v(TAG, " untiedWechatRequest ");
+        getHandler().sendEmptyMessage(MSG_UNBIND_WX);
+    }
+
+    @JavascriptInterface
+    public void untiedAlipayRequest() {
+        Tlog.v(TAG, " untiedAlipayRequest ");
+        getHandler().sendEmptyMessage(MSG_UNBIND_ALI);
     }
 
     private static final int MSG_UPDATE_PWD = 0x02;
@@ -191,6 +263,18 @@ public class User extends AbsHandlerJsInterface {
     private static final int MSG_REQUEST_VERSION = 0x09;
 
     private static final int MSG_CANCEL_UPDATE = 0x0A;
+
+    private static final int MSG_UPDATE_NICKNAME = 0x0B;
+
+    private static final int MSG_BIND_WECHAT = 0x0C;
+
+    private static final int MSG_BIND_ALI = 0x0D;
+
+    private static final int MSG_BIND_PHONE = 0x0E;
+
+    private static final int MSG_UNBIND_WX = 0x10;
+
+    private static final int MSG_UNBIND_ALI = 0x11;
 
     @Override
     protected void handleMessage(Message msg) {
@@ -258,6 +342,46 @@ public class User extends AbsHandlerJsInterface {
                     mCallBack.onJSCancelUpdate();
                 }
 
+                break;
+
+            case MSG_UPDATE_NICKNAME:
+
+                if (mCallBack != null) {
+                    mCallBack.onJSUpdateNickName((String) msg.obj);
+                }
+
+                break;
+
+            case MSG_BIND_WECHAT:
+
+                if (mCallBack != null) {
+                    mCallBack.onJSBindWX();
+                }
+
+                break;
+
+            case MSG_BIND_ALI:
+                if (mCallBack != null) {
+                    mCallBack.onJSBindAli();
+                }
+                break;
+
+            case MSG_BIND_PHONE:
+                if (mCallBack != null) {
+                    mCallBack.onJSBindPhone((MobileBind) msg.obj);
+                }
+                break;
+
+            case MSG_UNBIND_WX:
+                if (mCallBack != null) {
+                    mCallBack.onJSUnBindWX();
+                }
+                break;
+
+            case MSG_UNBIND_ALI:
+                if (mCallBack != null) {
+                    mCallBack.onJSUnBindAli();
+                }
                 break;
         }
 

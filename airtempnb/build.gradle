@@ -40,17 +40,17 @@ android {
     }
 }
 
-allprojects {
-    repositories {
-        flatDir {
-            dirs 'libs'
-        }
-        jcenter()
-//        mavenCentral()
-//        maven { url 'https://maven.fabric.io/public' }
-
-    }
-}
+//allprojects {
+//    repositories {
+//        flatDir {
+//            dirs 'libs'
+//        }
+//        jcenter()
+////        mavenCentral()
+////        maven { url 'https://maven.fabric.io/public' }
+//
+//    }
+//}
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])

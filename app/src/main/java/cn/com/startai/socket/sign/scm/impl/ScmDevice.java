@@ -8,16 +8,17 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import cn.com.startai.socket.global.LooperManager;
+import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
 import cn.com.startai.socket.sign.scm.bean.SpendingElectricityData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingListData;
 import cn.com.startai.socket.sign.scm.bean.sensor.SensorData;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.TempHumidityData;
 import cn.com.startai.socket.sign.scm.responsetask.Heartbeat;
+import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolOutput;
 import cn.com.swain.support.protocolEngine.Repeat.RepeatMsg;
 import cn.com.swain.support.protocolEngine.pack.ResponseData;
-import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun
@@ -47,10 +48,18 @@ class ScmDevice implements Heartbeat.OnHeartbeatCallBack {
         }
     }
 
+    // 查询设备的返回结果
     public void sendQueryHistory(long delay, QueryHistoryCount mCount) {
         if (mWorkHandler != null) {
             Message message = mWorkHandler.obtainMessage(1, mCount);
             mWorkHandler.sendMessageDelayed(message, delay);
+        }
+    }
+
+    public void onOutputDataToServer(ResponseData data) {
+        if (mWorkHandler != null) {
+            Message message = mWorkHandler.obtainMessage(2, data);
+            mWorkHandler.sendMessageDelayed(message, 1000 * 6);
         }
     }
 
@@ -63,6 +72,7 @@ class ScmDevice implements Heartbeat.OnHeartbeatCallBack {
     public boolean isNightLightOn() {
         return nightLightOn;
     }
+
 
     public interface OnScmCallBack {
         void onStartSendHeartbeat(ScmDevice mScmDevice);

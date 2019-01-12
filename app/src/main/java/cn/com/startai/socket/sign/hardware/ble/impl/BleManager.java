@@ -10,9 +10,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Looper;
 
-import java.util.ArrayList;
+import com.blankj.utilcode.util.PermissionUtils;
+
 import java.util.List;
 
+import cn.com.startai.socket.BuildConfig;
 import cn.com.startai.socket.db.gen.DisplayBleDeviceDao;
 import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.debuger.Debuger;
@@ -160,7 +162,6 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
 
     private boolean bleEnable;
 
-    private final ArrayList<String> mShowUuid = new ArrayList<>(3);
 
     @Override
     public void onSCreate() {
@@ -180,15 +181,6 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
 
         bleEnable = mBleEnabler.beIsBleEnable();
 
-        mShowUuid.add(0, "00001812-0000-1000-8000-00805f9b34fb");
-        mShowUuid.add(1, "0000fee7-0000-1000-8000-00805f9b34fb");
-//        mShowUuid.add(2, "0000180c-0000-1000-8000-00805f9b34fb");
-
-        if (CustomManager.getInstance().isTestProject()) {
-            mShowUuid.add(2, "0000180d-0000-1000-8000-00805f9b34fb");
-        }
-
-
     }
 
     @Override
@@ -205,7 +197,6 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
     @Override
     public void onSDestroy() {
         Tlog.v(TAG, " BleManager onSDestroy()");
-        mShowUuid.clear();
         mBleArray.clearAll();
 
         if (mBleScan != null) {
@@ -358,8 +349,9 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
             }
 
             if (CustomManager.getInstance().isTriggerBle()
+                    && !BuildConfig.DEBUG
                     && !mBle.address.startsWith("90:00")
-                    ) {
+                    && !mBle.address.startsWith("00:00")) {
 
                 if (Debuger.isLogDebug) {
                     Tlog.w(TAG, " ScanBle isTriggerBle " + mBle.address + " not startsWith 90:00");
@@ -428,19 +420,20 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
     public void scanningHW() {
         Tlog.v(TAG, " scanningBle() ");
 
-//        PermissionUtils permission = PermissionUtils.permission(PermissionConstants.LOCATION);
-//        permission.callback(new PermissionUtils.SimpleCallback() {
-//            @Override
-//            public void onGranted() {
-//                scanBle();
-//            }
-//
-//            @Override
-//            public void onDenied() {
-//
-//            }
-//        });
-//        permission.request();
+        com.blankj.utilcode.util.PermissionUtils permission =
+                com.blankj.utilcode.util.PermissionUtils.permission(com.blankj.utilcode.constant.PermissionConstants.LOCATION);
+        permission.callback(new PermissionUtils.SimpleCallback() {
+            @Override
+            public void onGranted() {
+                scanBle();
+            }
+
+            @Override
+            public void onDenied() {
+
+            }
+        });
+        permission.request();
 
         PermissionHelper.requestPermission(app, new PermissionRequest.OnPermissionResult() {
 

@@ -1,10 +1,10 @@
 package cn.com.startai.socket.sign.scm.receivetask.impl.system;
 
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
-import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
-import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.baselib.log.Tlog;
+import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
+import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
 
 /**
  * author: Guoqiang_Sun
@@ -40,6 +40,12 @@ public class ControlReceiveTask extends SocketResponseTask {
         if (mTaskCallBack != null) {
             mTaskCallBack.onConnectResult(result, mSocketDataArray.getID());
         }
+
+//        if (!result) {
+//            if (SocketSecureKey.Util.resultIsUnbind(protocolParams[0])) {
+//
+//            }
+//        }
 
     }
 }

@@ -4,9 +4,9 @@ import cn.com.startai.socket.debuger.impl.IDebugerProtocolStream;
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
+import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun
@@ -47,12 +47,29 @@ public class RGBQueryReceiveTask extends SocketResponseTask {
             mRGB.model = SocketSecureKey.Model.MODEL_COLOR_LAMP;
         }
 
-        Tlog.e(TAG, " RGBQueryReceiveTask result:" + result
-                + " " + String.valueOf(mRGB));
+        Tlog.e(TAG, " RGBQueryReceiveTask result:" + result + " " + String.valueOf(mRGB));
 
         if (mTaskCallBack != null) {
-            if (mRGB.model == SocketSecureKey.Model.MODEL_COLOR_LAMP) {
-                mTaskCallBack.onRGBQueryResult(result, mRGB);
+
+            mTaskCallBack.onRGBQueryResult(result, mRGB);
+
+            // 通过黄灯来判断小夜灯开关
+            if (mRGB.model == SocketSecureKey.Model.MODEL_YELLOW_LIGHT) {
+
+                if (mRGB.r == 0 && mRGB.g == 0 && mRGB.b == 0) {
+                    mTaskCallBack.onNightLightResult(mSocketDataArray.getID(), false);
+                } else {
+                    mTaskCallBack.onNightLightResult(mSocketDataArray.getID(), true);
+                }
+
+            } else if (mRGB.model == SocketSecureKey.Model.MODEL_COLOR_LAMP) {
+
+                if (mRGB.r == 0 && mRGB.g == 0 && mRGB.b == 0) {
+                    mTaskCallBack.onColorLamResult(mSocketDataArray.getID(), false);
+                } else {
+                    mTaskCallBack.onColorLamResult(mSocketDataArray.getID(), true);
+                }
+
             }
 
             IDebugerProtocolStream iDebugerStream = mTaskCallBack.getIDebugerStream();

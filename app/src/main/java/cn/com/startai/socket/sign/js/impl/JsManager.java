@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import cn.com.startai.socket.app.view.CrossWebView;
 import cn.com.startai.socket.global.LooperManager;
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
+import cn.com.startai.socket.mutual.js.bean.MobileBind;
 import cn.com.startai.socket.mutual.js.bean.MobileLogin;
 import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
 import cn.com.startai.socket.mutual.js.bean.StatusBarBean;
@@ -41,6 +42,7 @@ import cn.com.startai.socket.sign.js.jsInterface.Timing;
 import cn.com.startai.socket.sign.js.jsInterface.USBSwitch;
 import cn.com.startai.socket.sign.js.jsInterface.User;
 import cn.com.startai.socket.sign.js.jsInterface.Version;
+import cn.com.startai.socket.sign.js.jsInterface.Weather;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.bean.LanBindInfo;
 import cn.com.startai.socket.sign.scm.bean.PowerCountdown;
@@ -113,6 +115,7 @@ public class JsManager extends AbsJsManager implements IService {
         mJSInterfaces.add(20, new ColourLamp(workLooper, this));
         mJSInterfaces.add(21, new NightLight(workLooper, this));
         mJSInterfaces.add(22, new USBSwitch(workLooper, this));
+        mJSInterfaces.add(23, new Weather(workLooper, this));
 
     }
 
@@ -625,9 +628,9 @@ public class JsManager extends AbsJsManager implements IService {
     }
 
     @Override
-    public void onJSGetMobileLoginCode(String phone) {
+    public void onJSGetMobileLoginCode(String phone, int type) {
         if (mJSManagerCallBack != null) {
-            mJSManagerCallBack.onJSGetMobileLoginCode(phone);
+            mJSManagerCallBack.onJSGetMobileLoginCode(phone, type);
         }
     }
 
@@ -663,6 +666,34 @@ public class JsManager extends AbsJsManager implements IService {
     public void onJSWxLogin() {
         if (mJSManagerCallBack != null) {
             mJSManagerCallBack.onJSWxLogin();
+        }
+    }
+
+    @Override
+    public void onJSBindWX() {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSBindWX();
+        }
+    }
+
+    @Override
+    public void onJSBindAli() {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSBindAli();
+        }
+    }
+
+    @Override
+    public void onJSBindPhone(MobileBind mMobileBind) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSBindPhone(mMobileBind);
+        }
+    }
+
+    @Override
+    public void onJSAliLogin() {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSAliLogin();
         }
     }
 
@@ -758,6 +789,13 @@ public class JsManager extends AbsJsManager implements IService {
     public void onJSCancelUpdate() {
         if (mJSManagerCallBack != null) {
             mJSManagerCallBack.onJSCancelUpdate();
+        }
+    }
+
+    @Override
+    public void onJSUpdateNickName(String nickName) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSUpdateNickName(nickName);
         }
     }
 
@@ -867,6 +905,13 @@ public class JsManager extends AbsJsManager implements IService {
     }
 
     @Override
+    public void onJSSetNightLightColor(ColorLampRGB obj) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSSetNightLightColor(obj);
+        }
+    }
+
+    @Override
     public void onJSShakeNightLight(String mac, boolean b) {
         if (mJSManagerCallBack != null) {
             mJSManagerCallBack.onJSShakeNightLight(mac, b);
@@ -894,6 +939,40 @@ public class JsManager extends AbsJsManager implements IService {
         }
     }
 
+    @Override
+    public void onJSQueryWeather() {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSQueryWeather();
+        }
+    }
+
+    @Override
+    public void onJSEnableLocation() {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSEnableLocation();
+        }
+    }
+
+    @Override
+    public void onJSQueryLocationEnabled() {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSQueryLocationEnabled();
+        }
+    }
+
+    @Override
+    public void onJSUnBindWX() {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSUnBindWX();
+        }
+    }
+
+    @Override
+    public void onJSUnBindAli() {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSUnBindAli();
+        }
+    }
 
     private static class JmHandler extends Handler {
         private final WeakReference<JsManager> wr;

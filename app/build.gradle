@@ -30,6 +30,13 @@ android {
 //        flavorDimensions "versionCode"
         multiDexEnabled true
 
+
+        // Specifies the ABI configurations of your native
+        // libraries Gradle should build and package with your APK.
+        ndk {
+            abiFilters "armeabi", "armeabi-v7a", "x86", "mips"
+        }
+
     }
     compileOptions {
         sourceCompatibility 1.8
@@ -44,6 +51,8 @@ android {
     dexOptions {
         jumboMode true
     }
+
+
     buildTypes {
         debug {
             testCoverageEnabled true
@@ -127,17 +136,17 @@ configurations.all {
     }
 }
 
-allprojects {
-    repositories {
-        flatDir {
-            dirs 'libs'
-        }
-        jcenter()
-//        mavenCentral()
-//        maven { url 'https://maven.fabric.io/public' }
-
-    }
-}
+//allprojects {
+//    repositories {
+//        flatDir {
+//            dirs 'libs'
+//        }
+//        jcenter()
+////        mavenCentral()
+////        maven { url 'https://maven.fabric.io/public' }
+//
+//    }
+//}
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
@@ -179,18 +188,20 @@ dependencies {
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0'
     implementation files('libs/startai-esptouch-sender-1.0.jar')
     //    implementation files('libs/startai-mqtt-3.0.5.jar')
-    implementation 'cn.com.startai:mqsdk:3.1.27'
-    implementation 'com.blankj:utilcode:1.19.3'
+    implementation 'cn.com.startai:mqsdk:3.1.33'
+    implementation 'com.blankj:utilcode:1.22.1'
     implementation 'org.xutils:xutils:3.5.0'
     implementation 'cn.com.startai:fastdfssdk:1.0.2'
-
     api 'com.android.support:multidex:1.0.3'
-    api 'cn.com.swain169:baselib:3.2.01'
-//    api 'cn.com.swain169:Tlog:3.1.10'
+
+    api 'cn.com.swain169:baselib:3.2.03'
+    //    api 'cn.com.swain169:Tlog:3.1.10'
     implementation 'cn.com.swain169:fastble:3.2.01'
     implementation 'cn.com.swain169:protocolEngine:3.2.01'
     implementation 'cn.com.swain169:fastudp:3.2.01'
     // 调试
     api 'com.facebook.stetho:stetho:1.5.0'
+    //支付宝 sdk
+    api(name: 'alipaySdk-15.5.9-20181123210601', ext: 'aar')
 }
 

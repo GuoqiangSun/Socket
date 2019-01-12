@@ -223,4 +223,5 @@ public interface OnTaskCallBack {
 
     void onQueryNightLightResult(boolean result, NightLightTiming mNightLightTiming);
 
+    void onColorLamResult(String id, boolean b);
 }

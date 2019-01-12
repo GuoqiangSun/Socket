@@ -27,7 +27,7 @@ public class Login extends AbsHandlerJsInterface {
 
         void onJSEmailLogin(MobileLogin mLogin);
 
-        void onJSGetMobileLoginCode(String phone);
+        void onJSGetMobileLoginCode(String phone, int type);
 
         void onJSIsLogin();
 
@@ -38,6 +38,9 @@ public class Login extends AbsHandlerJsInterface {
         void onJSEmailForgot(String email);
 
         void onJSWxLogin();
+
+        void onJSAliLogin();
+
     }
 
     public static final class Method {
@@ -48,7 +51,13 @@ public class Login extends AbsHandlerJsInterface {
             return THIRD_LOGIN.replace("$result", String.valueOf(result)).replace("$data", data);
         }
 
-        private static final String WX_LOGIN = "javascript:mobileLoginResponse($result)";
+        private static final String ALI_LOGIN = "javascript:alipayLoginResponse($result)";
+
+        public static String callJsAliLogin(boolean result) {
+            return ALI_LOGIN.replace("$result", String.valueOf(result));
+        }
+
+        private static final String WX_LOGIN = "javascript:wechatLoginResponse($result)";
 
         public static String callJsWXLogin(boolean result) {
             return WX_LOGIN.replace("$result", String.valueOf(result));
@@ -57,27 +66,34 @@ public class Login extends AbsHandlerJsInterface {
         private static final String MOBILE_LOGIN = "javascript:mobileLoginResponse($result,'$code')";
 
         public static String callJsMobileLogin(boolean result, String errorCode) {
-            return MOBILE_LOGIN.replace("$result", String.valueOf(result)).replace("$code", String.valueOf(errorCode));
+            return MOBILE_LOGIN.replace("$result", String.valueOf(result))
+                    .replace("$code", String.valueOf(errorCode));
         }
 
 
         private static final String EMAIL_LOGIN = "javascript:emailLoginResponse($result,'$code')";
 
         public static String callJsEmailLogin(boolean result, String errorCode) {
-            return EMAIL_LOGIN.replace("$result", String.valueOf(result)).replace("$code", String.valueOf(errorCode));
+            return EMAIL_LOGIN.replace("$result", String.valueOf(result))
+                    .replace("$code", String.valueOf(errorCode));
         }
 
 
         private static final String EMAIL_REGISTER_RESPONSE = "javascript:emailSignupResponse($result,'$code')";
 
         public static String callJsEmailRegister(boolean result, String errorCode) {
-            return EMAIL_REGISTER_RESPONSE.replace("$result", String.valueOf(result)).replace("$code", String.valueOf(errorCode));
+            return EMAIL_REGISTER_RESPONSE.replace("$result", String.valueOf(result))
+                    .replace("$code", String.valueOf(errorCode));
         }
 
-        private static final String GET_MOBILE_LOGIN_CODE = "javascript:getMobilePhoneCodeResponse($result)";
+        private static final String GET_MOBILE_LOGIN_CODE = "javascript:getMobilePhoneCodeResponse($result,$type)";
 
-        public static String callJsGetMobileLoginCodeResult(boolean result) {
-            return GET_MOBILE_LOGIN_CODE.replace("$result", String.valueOf(result));
+        public static String callJsGetMobileLoginCodeResult(boolean result, int type) {
+            if (type == 5) {
+                type = 2;
+            }
+            return GET_MOBILE_LOGIN_CODE.replace("$result", String.valueOf(result))
+                    .replace("$type", String.valueOf(type));
         }
 
         private static final String GET_IS_LOGIN_RESPONSE = "javascript:isLoginResponse($result)";
@@ -139,6 +155,18 @@ public class Login extends AbsHandlerJsInterface {
         getHandler().obtainMessage(MSG_GET_MOBILE_LOGIN_CODE, phone).sendToTarget();
     }
 
+
+    @JavascriptInterface
+    public void getMobilePhoneCodeRequest(String phone, int type) {
+        Tlog.v(TAG, " getMobilePhoneCodeRequest phone:" + phone + " type " + type);
+
+        if (type == 1) {
+            getHandler().obtainMessage(MSG_GET_MOBILE_LOGIN_CODE, phone).sendToTarget();
+        } else if (type == 2) {
+            getHandler().obtainMessage(MSG_GET_MOBILE_BIND_CODE, phone).sendToTarget();
+        }
+    }
+
     @JavascriptInterface
     public void isLoginRequest() {
         Tlog.v(TAG, " isLoginRequest ");
@@ -186,6 +214,11 @@ public class Login extends AbsHandlerJsInterface {
         getHandler().sendEmptyMessage(MSG_WX_LOGIN);
     }
 
+    @JavascriptInterface
+    public void alipayLoginRequest() {
+        Tlog.v(TAG, " alipayLoginRequest ");
+        getHandler().sendEmptyMessage(MSG_ALI_LOGIN);
+    }
 
     private static final int MSG_THIRD_LOGIN = 0x2A;
     private static final int MSG_MOBILE_LOGIN = 0x2B;
@@ -201,6 +234,10 @@ public class Login extends AbsHandlerJsInterface {
     private static final int MSG_EMAIL_FORGOT = 0x31;
 
     private static final int MSG_WX_LOGIN = 0x32;
+
+    private static final int MSG_ALI_LOGIN = 0x33;
+
+    private static final int MSG_GET_MOBILE_BIND_CODE = 0x34;
 
 
     @Override
@@ -220,9 +257,16 @@ public class Login extends AbsHandlerJsInterface {
                 break;
             case MSG_GET_MOBILE_LOGIN_CODE:
                 if (mCallBack != null) {
-                    mCallBack.onJSGetMobileLoginCode((String) msg.obj);
+                    mCallBack.onJSGetMobileLoginCode((String) msg.obj, 1);
                 }
                 break;
+
+            case MSG_GET_MOBILE_BIND_CODE:
+                if (mCallBack != null) {
+                    mCallBack.onJSGetMobileLoginCode((String) msg.obj, 5);
+                }
+                break;
+
             case MSG_IS_LOGIN:
 
                 if (mCallBack != null) {
@@ -259,6 +303,13 @@ public class Login extends AbsHandlerJsInterface {
                     mCallBack.onJSWxLogin();
                 }
                 break;
+            case MSG_ALI_LOGIN:
+                if (mCallBack != null) {
+                    mCallBack.onJSAliLogin();
+                }
+                break;
+
+
             default:
                 Tlog.e(TAG, NAME_JSI + " handleMessage unknown what:" + msg.what);
                 break;

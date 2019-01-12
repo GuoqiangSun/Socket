@@ -1,5 +1,6 @@
 package cn.com.startai.socket.mutual.js.impl;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -15,6 +16,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import cn.com.startai.mqttsdk.busi.entity.C_0x8035;
 import cn.com.startai.socket.R;
 import cn.com.startai.socket.app.SocketApplication;
 import cn.com.startai.socket.db.gen.DaoSession;
@@ -25,6 +27,7 @@ import cn.com.startai.socket.mutual.js.AbsAndJsBridge;
 import cn.com.startai.socket.mutual.js.IAndJSCallBack;
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.mutual.js.bean.DisplayBleDevice;
+import cn.com.startai.socket.mutual.js.bean.MobileBind;
 import cn.com.startai.socket.mutual.js.bean.MobileLogin;
 import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
 import cn.com.startai.socket.mutual.js.bean.StatusBarBean;
@@ -57,6 +60,7 @@ import cn.com.startai.socket.sign.js.jsInterface.Timing;
 import cn.com.startai.socket.sign.js.jsInterface.USBSwitch;
 import cn.com.startai.socket.sign.js.jsInterface.User;
 import cn.com.startai.socket.sign.js.jsInterface.Version;
+import cn.com.startai.socket.sign.js.jsInterface.Weather;
 import cn.com.startai.socket.sign.scm.bean.CostRate;
 import cn.com.startai.socket.sign.scm.bean.CountdownData;
 import cn.com.startai.socket.sign.scm.bean.CumuParams;
@@ -89,6 +93,10 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     private final IAndJSCallBack mCallBack;
     private final Application app;
+
+    public Activity getActivity() {
+        return mCallBack != null ? mCallBack.getActivity() : null;
+    }
 
 
     public AndJsBridge(Application app, IAndJSCallBack mCallBack) {
@@ -442,14 +450,14 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
-    public void onJSGetMobileLoginCode(String phone) {
+    public void onJSGetMobileLoginCode(String phone, int type) {
         Tlog.v(TAG, " onJSGetMobileLoginCode() " + phone);
 
         int random = (int) ((Math.random() * 9 + 1) * 100000);
         Tlog.v(TAG, " random:" + random);
 
         if (mNetworkManager != null) {
-            mNetworkManager.getMobileLoginCode(phone);
+            mNetworkManager.getMobileLoginCode(phone, type);
         }
 
     }
@@ -1070,7 +1078,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onJSShakeNightLight(String mac, boolean b) {
         if (mNetworkManager != null) {
-            mNetworkManager.shakeNightLight(mac, b);
+            mNetworkManager.setShakeNightLight(mac, b);
         }
     }
 
@@ -1078,6 +1086,20 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onJSQueryShakeNightLight(String mac) {
         if (mNetworkManager != null) {
             mNetworkManager.queryShakeNightLight(mac);
+        }
+    }
+
+    @Override
+    public void onJSUpdateNickName(String nickName) {
+        if (mNetworkManager != null) {
+            mNetworkManager.updateNickName(nickName);
+        }
+    }
+
+    @Override
+    public void onJSAliLogin() {
+        if (mNetworkManager != null) {
+            mNetworkManager.aliLogin();
         }
     }
 
@@ -1140,9 +1162,14 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onJSTurnOnDevice() {
         Tlog.v(TAG, " onJSTurnOnDevice()");
         if (mBleManager != null) {
-
-
             mBleManager.enableHW();
+        }
+    }
+
+    @Override
+    public void onJSBindPhone(MobileBind mMobileBind) {
+        if (mNetworkManager != null) {
+            mNetworkManager.bindPhone(mMobileBind);
         }
     }
 
@@ -1193,6 +1220,21 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         }
     }
 
+
+    @Override
+    public void onJSBindWX() {
+
+        if (mNetworkManager != null) {
+            mNetworkManager.bindWX();
+        }
+    }
+
+    @Override
+    public void onJSBindAli() {
+        if (mNetworkManager != null) {
+            mNetworkManager.bindAli();
+        }
+    }
 
     /**
      * 蓝牙未激活，跳转到激活界面
@@ -1435,7 +1477,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
-    public void onResultSettingMonetaryUnit(String mac, boolean result) {
+    public void onResultSettingMonetaryUnit(String mac, boolean result, int mMonetaryUnit) {
         Tlog.v(TAG, " onResultSettingMonetaryUnit() result:" + result);
         String method = Setting.Method.callJsSetMonetaryUnitResult(mac, result);
         loadJs(method);
@@ -1621,6 +1663,13 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
+    public void onResultAliLogin(boolean result, String errcode) {
+        Tlog.v(TAG, " onResultAliLogin() " + result);
+        String method = Login.Method.callJsAliLogin(result);
+        loadJs(method);
+    }
+
+    @Override
     public void onResultEmailLogin(boolean result, String errorCode) {
         Tlog.v(TAG, " onResultEmailLogin() ");
 
@@ -1655,6 +1704,109 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         loadJs(method);
     }
 
+    @Override
+    public void onJSUnBindWX() {
+        if (mNetworkManager != null) {
+            mNetworkManager.unbindWX();
+        }
+    }
+
+    @Override
+    public void onJSUnBindAli() {
+        if (mNetworkManager != null) {
+            mNetworkManager.unbindAli();
+        }
+    }
+
+    @Override
+    public void onResultUnbindAli(boolean b) {
+        String method = User.Method.callJsUnbindAliResult(b);
+        loadJs(method);
+    }
+
+    @Override
+    public void onResultUnbindWX(boolean b) {
+        String method = User.Method.callJsUnbindWXResult(b);
+        loadJs(method);
+    }
+
+
+    @Override
+    public void onJSSetNightLightColor(ColorLampRGB obj) {
+        if (mScmVirtual != null) {
+            mScmVirtual.setNightLightColor(obj);
+        }
+    }
+
+    @Override
+    public void onJSQueryWeather() {
+        if (mNetworkManager != null) {
+            mNetworkManager.requestWeather();
+        }
+    }
+
+    @Override
+    public void onJSEnableLocation() {
+        if (mNetworkManager != null) {
+            mNetworkManager.enableLocation();
+        }
+    }
+
+    @Override
+    public void onJSQueryLocationEnabled() {
+        if (mNetworkManager != null) {
+            mNetworkManager.queryLocationEnabled();
+        }
+    }
+
+    @Override
+    public void onResultLocationEnabled(boolean b) {
+        String method = Weather.Method.callJsLocation(true, b);
+        loadJs(method);
+    }
+
+    @Override
+    public void onResultWeatherInfo(C_0x8035.Resp.ContentBean content) {
+
+//        if (content != null) {
+//            String method = Weather.Method.callJsWeatherInfo(content.getLat(), content.getLng(),
+//                    content.getProvince(), content.getCity(), content.getDistrict(),
+//                    content.getTmp(), content.getQlty(), content.getWeather(), content.getWeatherPic());
+//            loadJs(method);
+//        }
+
+
+        /**
+         * lat :
+         * lng :
+         * province : 广东省
+         * city : 广州市
+         * district : 天河区
+         * qlty : 优
+         * tmp : 14
+         * weather :
+         * weatherPic :
+         */
+
+
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("lat", content.getLat());
+            obj.put("lng", content.getLng());
+            obj.put("province", content.getProvince());
+            obj.put("city", content.getCity());
+            obj.put("district", content.getDistrict());
+            obj.put("qlty", content.getQlty());
+            obj.put("tmp", content.getTmp());
+            obj.put("weather", content.getWeather());
+            obj.put("weatherPic", content.getWeatherPic());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        String method = Weather.Method.callJsWeatherInfo2(true, obj.toString());
+        loadJs(method);
+
+    }
 
     @Override
     public void onResultUnbind(boolean result, String mac) {
@@ -1674,9 +1826,9 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
-    public void onResultGetMobileLoginCode(boolean result) {
+    public void onResultGetMobileLoginCode(boolean result, int type) {
         Tlog.v(TAG, " onResultGetMobileLoginCode() " + result);
-        String method = Login.Method.callJsGetMobileLoginCodeResult(result);
+        String method = Login.Method.callJsGetMobileLoginCodeResult(result, type);
         loadJs(method);
     }
 
@@ -1765,8 +1917,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onNightLightResult(String id, boolean on) {
         Tlog.v(TAG, " onNightLightResult() id:" + id + " on:" + on);
-        String method = NightLight.Method.callNightLightSwitch(id, on);
-        loadJs(method);
+//        String method = NightLight.Method.callNightLightSwitch(id, on);
+//        loadJs(method);
 
         if (mNetworkManager != null) {
             mNetworkManager.onDeviceResponseNightLightState(id, on);
@@ -1897,6 +2049,12 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
+    public void onResultBindPhone(boolean b) {
+        String method = User.Method.callJsBindPhoneResult(b);
+        loadJs(method);
+    }
+
+    @Override
     public void onQueryHistoryCountResult(boolean result, QueryHistoryCount mCount) {
         Tlog.v(TAG, " onQueryHistoryCountResult() result:" + result);
 
@@ -1980,27 +2138,35 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
+    public void onRGBYellowSetResult(boolean b, ColorLampRGB mColorLampRGB) {
+        boolean state = mColorLampRGB.r == 0 && mColorLampRGB.g == 0 && mColorLampRGB.b == 0;
+        String method = NightLight.Method.callJsYellowLight(mColorLampRGB.mac, !state,
+                mColorLampRGB.seq, mColorLampRGB.r, mColorLampRGB.g, mColorLampRGB.b);
+        loadJs(method);
+    }
+
+    @Override
     public void onRGBSetResult(boolean result, ColorLampRGB mColorLampRGB) {
 
         String method = ColourLamp.Method.callJsColorLamp(mColorLampRGB.mac,
                 mColorLampRGB.seq, mColorLampRGB.r, mColorLampRGB.g, mColorLampRGB.b);
         loadJs(method);
 
-        boolean on = mColorLampRGB.r != 0 || mColorLampRGB.g != 0 || mColorLampRGB.b != 0;
-        String stateMethod = ColourLamp.Method.callJsColorLampSwitch(mColorLampRGB.mac, on);
-        loadJs(stateMethod);
-
     }
+
+    @Override
+    public void onResultColorLam(String id, boolean b) {
+
+        String stateMethod = ColourLamp.Method.callJsColorLampSwitch(id, b);
+        loadJs(stateMethod);
+    }
+
 
     @Override
     public void onRGBQueryResult(boolean result, ColorLampRGB mColorLampRGB) {
         String method = ColourLamp.Method.callJsColorLamp(mColorLampRGB.mac,
                 mColorLampRGB.seq, mColorLampRGB.r, mColorLampRGB.g, mColorLampRGB.b);
         loadJs(method);
-
-        boolean on = mColorLampRGB.r != 0 || mColorLampRGB.g != 0 || mColorLampRGB.b != 0;
-        String stateMethod = ColourLamp.Method.callJsColorLampSwitch(mColorLampRGB.mac, on);
-        loadJs(stateMethod);
 
     }
 

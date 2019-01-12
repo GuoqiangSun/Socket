@@ -84,10 +84,10 @@ public class LanDeviceInfo implements Cloneable {
 
     @Generated(hash = 261228929)
     public LanDeviceInfo(Long id, int model, int mainVersion, int subVersion, boolean hasAdmin,
-            boolean isAdmin, boolean hasRemote, boolean bindNeedPwd, boolean hasActivate,
-            boolean isLanBind, boolean isWanBind, boolean state, String deviceID, String mac,
-            String name, String ip, int port, String ssid, int rssi, boolean relayState, String cpuInfo,
-            boolean nightLightShake) {
+                         boolean isAdmin, boolean hasRemote, boolean bindNeedPwd, boolean hasActivate,
+                         boolean isLanBind, boolean isWanBind, boolean state, String deviceID, String mac,
+                         String name, String ip, int port, String ssid, int rssi, boolean relayState, String cpuInfo,
+                         boolean nightLightShake) {
         this.id = id;
         this.model = model;
         this.mainVersion = mainVersion;
@@ -173,7 +173,8 @@ public class LanDeviceInfo implements Cloneable {
             obj.put("switch", relayState);
             obj.put("mac", mac);
             obj.put("encrypted", bindNeedPwd);
-            obj.put("isBinding", isWanBind);
+
+            obj.put("isBinding", isWanBind || isLanBind);
 
 //            obj.put("version", getVersion());
 

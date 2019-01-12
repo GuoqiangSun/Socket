@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -24,8 +25,13 @@ import cn.com.startai.socket.app.adapter.DBDataAdapter;
 import cn.com.startai.socket.db.gen.CountElectricityDao;
 import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.debuger.Debuger;
+import cn.com.startai.socket.global.Utils.DateUtils;
+import cn.com.startai.socket.mutual.Controller;
 import cn.com.startai.socket.mutual.js.bean.CountElectricity;
+import cn.com.startai.socket.sign.scm.impl.SocketScmManager;
+import cn.com.startai.socket.sign.scm.util.MySocketDataCache;
 import cn.com.swain.baselib.log.Tlog;
+import cn.com.swain.support.protocolEngine.pack.ResponseData;
 
 /**
  * author: Guoqiang_Sun
@@ -92,6 +98,27 @@ public class DBFragment extends BaseFragment {
             }
         });
 
+        Button mQueryFromDeviceBtn = inflate.findViewById(R.id.query_btn_d);
+        mQueryFromDeviceBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                long currentTimeMillis = System.currentTimeMillis();
+                Date mStartDate = new Date(currentTimeMillis);
+                Date mEndDate = new Date(currentTimeMillis + DateUtils.ONE_DAY);
+
+                ResponseData mResponseData = MySocketDataCache.getQueryHistoryCount(Debuger.getInstance().getProductDevice(),
+                        mStartDate, mEndDate);
+
+                SocketScmManager scmManager = Controller.getInstance().getScmManager();
+
+                if (scmManager != null) {
+                    scmManager.onOutputDataToServer(mResponseData);
+                } else {
+                    Toast.makeText(getContext(), " scmManager is null", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+        });
         return inflate;
 
     }

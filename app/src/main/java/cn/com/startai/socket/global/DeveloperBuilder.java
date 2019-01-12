@@ -1,6 +1,7 @@
 package cn.com.startai.socket.global;
 
 import cn.com.startai.mqttsdk.mqtt.MqttInitParam;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 
 /**
  * author: Guoqiang_Sun
@@ -8,6 +9,33 @@ import cn.com.startai.mqttsdk.mqtt.MqttInitParam;
  * desc :
  */
 public class DeveloperBuilder {
+
+
+    public static MqttInitParam getMqttInitParam() {
+
+        MqttInitParam mqttInitParam = null;
+
+        if (CustomManager.getInstance().getCustom() == SocketSecureKey.Custom.CUSTOM_WAN) {
+
+            if (CustomManager.getInstance().getProduct() == SocketSecureKey.Custom.PRODUCT_GROWROOMATE) {
+                mqttInitParam = new DeveloperBuilder.SmartSocketDeveloper();
+            } else if (CustomManager.getInstance().getProduct() == SocketSecureKey.Custom.PRODUCT_TRIGGER_WIFI) {
+                mqttInitParam = new DeveloperBuilder.WiFiSocketDeveloper();
+            } else if (CustomManager.getInstance().getProduct() == SocketSecureKey.Custom.PRODUCT_NB_AIRTEMP) {
+                mqttInitParam = new DeveloperBuilder.AirtempNBDeveloper();
+            }
+
+        } else if (CustomManager.getInstance().getCustom() == SocketSecureKey.Custom.CUSTOM_STARTAI) {
+            if (CustomManager.getInstance().getProduct() == SocketSecureKey.Custom.PRODUCT_MUSIK) {
+                mqttInitParam = new DeveloperBuilder.SuperSocketDeveloper();
+            }
+        }
+//        else {
+//            mqttInitParam = DeveloperBuilder.buildMqttInitParam(new DeveloperBuilder.SuperSocketDeveloper());
+//        }
+        return mqttInitParam;
+    }
+
 
     /**
      * Ble插座-单片机的开发者信息

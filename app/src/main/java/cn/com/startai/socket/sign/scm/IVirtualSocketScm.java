@@ -261,6 +261,8 @@ public interface IVirtualSocketScm {
 
     void queryRunningNightLight(String mac);
 
+    void setNightLightColor(ColorLampRGB obj);
+
     /**
      * author: Guoqiang_Sun
      * date : 2018/4/10 0010
@@ -297,7 +299,7 @@ public interface IVirtualSocketScm {
 
         void onResultSettingTemperatureUnit(String mac, boolean result);
 
-        void onResultSettingMonetaryUnit(String mac, boolean result);
+        void onResultSettingMonetaryUnit(String mac, boolean result, int mMonetaryUnit);
 
         void onResultSettingElectricityPrice(String mac, boolean result);
 
@@ -372,6 +374,10 @@ public interface IVirtualSocketScm {
         void onResultQueryNightLight(boolean result, NightLightTiming mNightLightTiming);
 
         void onNightLightResult(String id, boolean on);
+
+        void onResultColorLam(String id, boolean b);
+
+        void onRGBYellowSetResult(boolean b, ColorLampRGB mColorLamp);
     }
 
 

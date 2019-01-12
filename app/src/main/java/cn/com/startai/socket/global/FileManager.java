@@ -7,6 +7,7 @@ import android.net.Uri;
 import java.io.File;
 
 import cn.com.swain.baselib.file.FileTemplate;
+import cn.com.swain.baselib.file.FileUtil;
 import cn.com.swain.baselib.log.Tlog;
 
 /**
@@ -31,9 +32,9 @@ public class FileManager extends FileTemplate {
     public void init(Application app) {
         super.init(app);
 
-        String absolutePath = initMyProjectPath().getAbsolutePath();
+        String absolutePath = getProjectPath().getAbsolutePath();
 
-        notifySystemToScan(app, absolutePath);
+        FileUtil.notifySystemToScan(app, absolutePath);
 
 //        MediaScannerConnection.scanFile(app, new String[]{absolutePath}, null, null);
 
@@ -45,16 +46,6 @@ public class FileManager extends FileTemplate {
         Tlog.i(" FileManager recreate finish ; success:" + exit);
     }
 
-    public static void notifySystemToScan(Application app, String filePath) {
-        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-        File file = new File(filePath);
-
-        Uri uri = Uri.fromFile(file);
-        intent.setData(uri);
-        app.sendBroadcast(intent);
-    }
-
-    private static final String MY_PROJECT_PATH_NAME = "socket";
 
     /**
      * 获取app缓存数据的目录
@@ -73,8 +64,11 @@ public class FileManager extends FileTemplate {
         } else if (CustomManager.getInstance().isAirtempNBProject()) {
             return new File(getAppRootPath(), "AirTempNB");
         }
-        return new File(getAppRootPath(), MY_PROJECT_PATH_NAME);
+        return new File(getAppRootPath(), "socket");
     }
 
-
+    @Override
+    protected String initMyAppRootPath() {
+        return "startai";
+    }
 }

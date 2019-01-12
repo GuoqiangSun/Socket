@@ -30,8 +30,7 @@ public class QueryHistoryUtil {
     private static String TAG = SocketScmManager.TAG;
 
     public static synchronized void queryHistoryCount(QueryHistoryCount mQueryCount,
-                                                      ScmDevice scmDevice,
-                                                      IDataProtocolOutput mResponse) {
+                                                      ScmDevice scmDevice) {
 
         QueryHistoryCount queryHistoryCount = mQueryCount.cloneMyself();
         scmDevice.putQueryHistoryCount(queryHistoryCount);
@@ -242,7 +241,7 @@ public class QueryHistoryUtil {
                     if (Debuger.isLogDebug) {
                         Tlog.v(TAG, " queryCurDayHistoryCount from server startTimestamp==curMillis ;" + mResponseData.toString());
                     }
-                    mResponse.onOutputDataToServer(mResponseData);
+                    scmDevice.onOutputDataToServer(mResponseData);
                 }
 
             } else {
@@ -268,7 +267,7 @@ public class QueryHistoryUtil {
                         if (Debuger.isLogDebug) {
                             Tlog.v(TAG, " queryHistoryCount from server [DB data is null]:" + mResponseData.toString());
                         }
-                        mResponse.onOutputDataToServer(mResponseData);
+                        scmDevice.onOutputDataToServer(mResponseData);
 
                     } else {
                         if (Debuger.isLogDebug) {

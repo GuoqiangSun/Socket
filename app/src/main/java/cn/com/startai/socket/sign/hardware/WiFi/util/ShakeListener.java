@@ -143,7 +143,7 @@ public class ShakeListener implements SensorEventListener {
                 / timeInterval * 10;
 
 //        if (speed > 3) {
-        Tlog.v(TAG, "g speed:" + speed);
+//        Tlog.v(TAG, "g speed:" + speed);
 //        }
 
         // 达到速度阀值，发出提示

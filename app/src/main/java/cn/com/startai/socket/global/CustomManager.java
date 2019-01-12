@@ -54,7 +54,7 @@ public class CustomManager implements IApp {
     }
 
     public boolean isAirtempNBProjectTest() {
-        return isAirtempNBProject;
+        return false;
     }
 
     public boolean isTestProject() {

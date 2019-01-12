@@ -2,6 +2,8 @@ package cn.com.startai.socket.sign.hardware;
 
 import android.content.Intent;
 
+import cn.com.startai.mqttsdk.busi.entity.C_0x8035;
+import cn.com.startai.socket.mutual.js.bean.MobileBind;
 import cn.com.startai.socket.mutual.js.bean.MobileLogin;
 import cn.com.startai.socket.mutual.js.bean.UpdateProgress;
 import cn.com.startai.socket.mutual.js.bean.UserRegister;
@@ -39,7 +41,7 @@ public interface IControlWiFi {
 
     void loginMobile(MobileLogin mLogin);
 
-    void getMobileLoginCode(String phone);
+    void getMobileLoginCode(String phone, int type);
 
     String getLoginUserID();
 
@@ -107,15 +109,37 @@ public interface IControlWiFi {
 
     void wxLogin();
 
+    void aliLogin();
+
     void onDeviceUpdateResult(boolean result, UpdateVersion mVersion);
 
     void onDeviceResponseDeviceSSID(String id, int rssi, String ssid);
 
     void onDeviceResponseNightLightState(String id, boolean on);
 
-    void shakeNightLight(String mac, boolean b);
+    void setShakeNightLight(String mac, boolean b);
 
     void queryShakeNightLight(String mac);
+
+    void updateNickName(String nickName);
+
+    void bindWX();
+
+    void bindAli();
+
+    void bindPhone(MobileBind mMobileBind);
+
+    void requestWeather();
+
+    void queryLocationEnabled();
+
+    void enableLocation();
+
+    void unbindWX();
+
+    void unbindAli();
+
+
 
     interface IWiFiResultCallBack {
 
@@ -141,7 +165,7 @@ public interface IControlWiFi {
 
         void onResultBindDevice(boolean result, String mac);
 
-        void onResultGetMobileLoginCode(boolean result);
+        void onResultGetMobileLoginCode(boolean result, int type);
 
         void onResultNetworkChange(String type, int state);
 
@@ -190,6 +214,18 @@ public interface IControlWiFi {
         void onResultWxLogin(boolean b, String errcode);
 
         void onResultShakeNightLight(String mac, boolean b);
+
+        void onResultAliLogin(boolean b, String errcode);
+
+        void onResultBindPhone(boolean b);
+
+        void onResultWeatherInfo(C_0x8035.Resp.ContentBean content);
+
+        void onResultLocationEnabled(boolean b);
+
+        void onResultUnbindWX(boolean b);
+
+        void onResultUnbindAli(boolean b);
     }
 
 }

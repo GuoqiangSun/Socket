@@ -6,8 +6,10 @@ import android.os.Message;
 import org.xwalk.core.JavascriptInterface;
 
 import cn.com.startai.socket.debuger.Debuger;
+import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
 import cn.com.startai.socket.sign.js.util.H5Config;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.baselib.jsInterface.AbsHandlerJsInterface;
 import cn.com.swain.baselib.log.Tlog;
 
@@ -34,6 +36,7 @@ public class NightLight extends AbsHandlerJsInterface {
 
         void onJSQueryShakeNightLight(String mac);
 
+        void onJSSetNightLightColor(ColorLampRGB obj);
     }
 
 
@@ -60,6 +63,19 @@ public class NightLight extends AbsHandlerJsInterface {
             return NIGHT_LIGHT_SHAKE.replace("$mac", mac).replace("$state", String.valueOf(on));
         }
 
+        private static final String METHOD_COLOR_LAMP_RESPONSE = "javascript:ordinaryNightLightResponse('$mac',$state,$id,$r,$g,$b)";
+
+        public static final String callJsYellowLight(String mac,boolean state, int seq, int r, int g, int b) {
+            if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
+            return METHOD_COLOR_LAMP_RESPONSE.replace("$mac", mac)
+                    .replace("$state", String.valueOf(state))
+                    .replace("$id", String.valueOf(seq))
+                    .replace("$r", String.valueOf(r))
+                    .replace("$g", String.valueOf(g))
+                    .replace("$b", String.valueOf(b))
+                    ;
+        }
+
     }
 
     public static final String NAME_JSI = "NightLight";
@@ -82,6 +98,7 @@ public class NightLight extends AbsHandlerJsInterface {
     private static final int MSG_QUERY_NIGHT_LIGHT = 0x31;
     private static final int MSG_NIGHT_LIGHT_SHAKE = 0x32;
     private static final int MSG_QUERY_NIGHT_LIGHT_SHAKE = 0x33;
+    private static final int MSG_SET_NIGHT_LIGHT_COLOR = 0x34;
 
     @Override
     protected void handleMessage(Message msg) {
@@ -122,6 +139,10 @@ public class NightLight extends AbsHandlerJsInterface {
             if (mCallBack != null) {
                 mCallBack.onJSQueryShakeNightLight((String) msg.obj);
             }
+        } else if (msg.what == MSG_SET_NIGHT_LIGHT_COLOR) {
+            if (mCallBack != null) {
+                mCallBack.onJSSetNightLightColor((ColorLampRGB) msg.obj);
+            }
         }
 
     }
@@ -151,6 +172,22 @@ public class NightLight extends AbsHandlerJsInterface {
         Tlog.v(TAG, " ordinaryNightLightRequest ");
         int i = on ? 1 : 0;
         getHandler().obtainMessage(MSG_SWITCH_NIGHT_LIGHT, i, i, mac).sendToTarget();
+    }
+
+
+    @JavascriptInterface
+    public void ordinaryNightLightRequest(String mac, boolean on, int id, int r, int g, int b) {
+        Tlog.v(TAG, " ordinaryNightLightRequest mac : " + mac + " id:" + id + " r:" + r + " g:" + g + " b:" + b);
+        ColorLampRGB colorLampRGB
+                = new ColorLampRGB();
+        colorLampRGB.mac = mac;
+        colorLampRGB.seq = id;
+        colorLampRGB.model = SocketSecureKey.Model.MODEL_YELLOW_LIGHT;
+        colorLampRGB.r = r;
+        colorLampRGB.g = g;
+        colorLampRGB.b = b;
+        getHandler().obtainMessage(MSG_SET_NIGHT_LIGHT_COLOR, colorLampRGB).sendToTarget();
+
     }
 
     @JavascriptInterface
