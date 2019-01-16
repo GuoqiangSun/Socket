@@ -18,8 +18,8 @@ android {
         applicationId "cn.com.startai.superplug"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 16050
-        versionName "1.6.050"
+        versionCode 16058
+        versionName "1.6.058"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
@@ -54,9 +54,7 @@ android {
 //        flatDir {
 //            dirs 'libs'
 //        }
-//        jcenter()
-////        mavenCentral()
-////        maven { url 'https://maven.fabric.io/public' }
+//        maven { url 'https://dl.bintray.com/robin1015/maven/' }
 //
 //    }
 //}

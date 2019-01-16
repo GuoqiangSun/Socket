@@ -1,5 +1,6 @@
 package cn.com.startai.socket.mutual.js.impl;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Intent;
@@ -16,7 +17,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import cn.com.startai.mqttsdk.busi.entity.C_0x8035;
 import cn.com.startai.socket.R;
 import cn.com.startai.socket.app.SocketApplication;
 import cn.com.startai.socket.db.gen.DaoSession;
@@ -27,6 +27,8 @@ import cn.com.startai.socket.mutual.js.AbsAndJsBridge;
 import cn.com.startai.socket.mutual.js.IAndJSCallBack;
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.mutual.js.bean.DisplayBleDevice;
+import cn.com.startai.socket.mutual.js.bean.JsUserInfo;
+import cn.com.startai.socket.mutual.js.bean.JsWeatherInfo;
 import cn.com.startai.socket.mutual.js.bean.MobileBind;
 import cn.com.startai.socket.mutual.js.bean.MobileLogin;
 import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
@@ -39,7 +41,7 @@ import cn.com.startai.socket.mutual.js.bean.WiFiConfig;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.DisplayDeviceList;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
 import cn.com.startai.socket.mutual.js.xml.LocalData;
-import cn.com.startai.socket.sign.js.JsUserInfo;
+import cn.com.startai.socket.sign.hardware.WiFi.util.DownloadTask;
 import cn.com.startai.socket.sign.js.jsInterface.Add;
 import cn.com.startai.socket.sign.js.jsInterface.ColourLamp;
 import cn.com.startai.socket.sign.js.jsInterface.Countdown;
@@ -82,6 +84,7 @@ import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.TempHumidityData;
 import cn.com.swain.baselib.app.IApp.IService;
 import cn.com.swain.baselib.file.FileUtil;
 import cn.com.swain.baselib.log.Tlog;
+import cn.com.swain.baselib.util.PermissionHelper;
 
 /**
  * author: Guoqiang_Sun
@@ -726,6 +729,15 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
         String data = "{}";
         if (result && mUserInfo != null) {
+
+            String headPic = mUserInfo.getHeadPic();
+            File cacheDownPath = DownloadTask.getCacheDownPath(headPic);
+            if (cacheDownPath.exists() && PermissionHelper.isGranted(app, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                String absolutePath = cacheDownPath.getAbsolutePath();
+                Tlog.w(TAG, " onResultGetUserInfo() use cache path:" + absolutePath);
+                mUserInfo.setHeadPic("file://" + absolutePath);
+            }
+
             data = mUserInfo.toJsonStr();
         }
 
@@ -1173,6 +1185,12 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         }
     }
 
+    @Override
+    public void onJSQueryWeatherByIp() {
+        if (mNetworkManager != null) {
+            mNetworkManager.queryWeatherByIp();
+        }
+    }
 
     @Override
     public void onResultHWEnable() {
@@ -1766,44 +1784,23 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
-    public void onResultWeatherInfo(C_0x8035.Resp.ContentBean content) {
+    public void onResultWeatherInfo(JsWeatherInfo jsWeatherInfo) {
 
-//        if (content != null) {
-//            String method = Weather.Method.callJsWeatherInfo(content.getLat(), content.getLng(),
-//                    content.getProvince(), content.getCity(), content.getDistrict(),
-//                    content.getTmp(), content.getQlty(), content.getWeather(), content.getWeatherPic());
-//            loadJs(method);
-//        }
+        String data = "{}";
+        if (jsWeatherInfo != null) {
 
+            String headPic = jsWeatherInfo.getWeatherPic();
+            File cacheDownPath = DownloadTask.getCacheDownPath(headPic);
+            if (cacheDownPath.exists() && PermissionHelper.isGranted(app, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                String absolutePath = cacheDownPath.getAbsolutePath();
+                Tlog.w(TAG, " onResultWeatherInfo() use cache path:" + absolutePath);
+                jsWeatherInfo.setWeatherPic("file://" + absolutePath);
+            }
 
-        /**
-         * lat :
-         * lng :
-         * province : 广东省
-         * city : 广州市
-         * district : 天河区
-         * qlty : 优
-         * tmp : 14
-         * weather :
-         * weatherPic :
-         */
-
-
-        JSONObject obj = new JSONObject();
-        try {
-            obj.put("lat", content.getLat());
-            obj.put("lng", content.getLng());
-            obj.put("province", content.getProvince());
-            obj.put("city", content.getCity());
-            obj.put("district", content.getDistrict());
-            obj.put("qlty", content.getQlty());
-            obj.put("tmp", content.getTmp());
-            obj.put("weather", content.getWeather());
-            obj.put("weatherPic", content.getWeatherPic());
-        } catch (JSONException e) {
-            e.printStackTrace();
+            data = jsWeatherInfo.toJsonStr();
         }
-        String method = Weather.Method.callJsWeatherInfo2(true, obj.toString());
+
+        String method = Weather.Method.callJsWeatherInfo2(true, data);
         loadJs(method);
 
     }

@@ -1455,6 +1455,11 @@ public class DeviceManager implements IService {
             }
             mDisplayDeviceLst.setUserID(null);
             mDisplayDeviceLst.clear();
+
+            if (mResultCallBack != null) {
+                Tlog.e(TAG, "displayBindDeviceLst() onResultWiFiDeviceListDisplay(mDisplayDeviceLst) ");
+                mResultCallBack.onResultWiFiDeviceListDisplay(new DisplayDeviceList());
+            }
         }
     }
 

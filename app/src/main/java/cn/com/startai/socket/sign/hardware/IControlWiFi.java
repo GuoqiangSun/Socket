@@ -2,7 +2,8 @@ package cn.com.startai.socket.sign.hardware;
 
 import android.content.Intent;
 
-import cn.com.startai.mqttsdk.busi.entity.C_0x8035;
+import cn.com.startai.socket.mutual.js.bean.JsUserInfo;
+import cn.com.startai.socket.mutual.js.bean.JsWeatherInfo;
 import cn.com.startai.socket.mutual.js.bean.MobileBind;
 import cn.com.startai.socket.mutual.js.bean.MobileLogin;
 import cn.com.startai.socket.mutual.js.bean.UpdateProgress;
@@ -11,7 +12,6 @@ import cn.com.startai.socket.mutual.js.bean.UserUpdateInfo;
 import cn.com.startai.socket.mutual.js.bean.WiFiConfig;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.DisplayDeviceList;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
-import cn.com.startai.socket.sign.js.JsUserInfo;
 import cn.com.startai.socket.sign.scm.bean.LanBindInfo;
 import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
 import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
@@ -139,6 +139,7 @@ public interface IControlWiFi {
 
     void unbindAli();
 
+    void queryWeatherByIp();
 
 
     interface IWiFiResultCallBack {
@@ -219,7 +220,7 @@ public interface IControlWiFi {
 
         void onResultBindPhone(boolean b);
 
-        void onResultWeatherInfo(C_0x8035.Resp.ContentBean content);
+        void onResultWeatherInfo(JsWeatherInfo jsWeatherInfo);
 
         void onResultLocationEnabled(boolean b);
 

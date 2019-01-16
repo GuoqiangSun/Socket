@@ -290,6 +290,8 @@ public abstract class AbsJsManager implements Device.IJSDeviceCallBack,//
         void onJSUnBindAli();
 
         void onJSSetNightLightColor(ColorLampRGB obj);
+
+        void onJSQueryWeatherByIp();
     }
 
 }

@@ -40,6 +40,7 @@ import cn.com.startai.socket.mutual.js.IAndJSCallBack;
 import cn.com.startai.socket.mutual.js.bean.StatusBarBean;
 import cn.com.startai.socket.mutual.js.bean.ThirdLoginUser;
 import cn.com.startai.socket.sign.hardware.WiFi.impl.NetworkManager;
+import cn.com.startai.socket.sign.hardware.WiFi.util.MockLocation;
 import cn.com.startai.socket.sign.js.jsInterface.Language;
 import cn.com.startai.socket.sign.js.jsInterface.Login;
 import cn.com.startai.socket.sign.js.jsInterface.Router;
@@ -192,8 +193,6 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
             IService = Controller.getInstance();
             IService.onSCreate();
         }
-
-
     }
 
     protected void resLoadFinish() {
@@ -565,7 +564,7 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
 
         if (Debuger.isH5Debug && PermissionHelper.isGranted(getApplication(), Manifest.permission.READ_EXTERNAL_STORAGE)) {
             File localH5Resource = Debuger.getInstance().getLocalH5Resource();
-            if (localH5Resource != null) {
+            if (localH5Resource != null && localH5Resource.exists()) {
                 Toast.makeText(getApplicationContext(), "load from sdcard", Toast.LENGTH_LONG).show();
                 return "file://" + localH5Resource.getAbsolutePath();
             }
@@ -656,7 +655,7 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
                 Tlog.d(TAG, " show mWebFragment ");
 
                 if (mUiHandler != null) {
-                    mUiHandler.sendEmptyMessageDelayed(MSG_WHAT_CAN_CALL_JS, 600);
+                    mUiHandler.sendEmptyMessageDelayed(MSG_WHAT_CAN_CALL_JS, 100);
                 }
 
             } else {

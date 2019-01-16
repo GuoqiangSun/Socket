@@ -78,6 +78,7 @@ import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.baselib.util.IpUtil;
 import cn.com.swain.baselib.util.MacUtil;
+import cn.com.swain.baselib.util.PermissionGroup;
 import cn.com.swain.baselib.util.PermissionHelper;
 import cn.com.swain.baselib.util.PermissionRequest;
 import cn.com.swain.baselib.util.StrUtil;
@@ -295,7 +296,11 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
             service = null;
         }
 
-        app.unregisterReceiver(mNetWorkStateReceiver);
+        if (app != null) {
+            app.unregisterReceiver(mNetWorkStateReceiver);
+        }
+
+        StartAI.getInstance().unInit();
     }
 
     @Override
@@ -434,17 +439,29 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
 
         // 用上面的会黑屏
 
-        PermissionHelper.requestPermission(app, new PermissionRequest.OnPermissionResult() {
-            @Override
-            public void onPermissionRequestResult(String permission, boolean granted) {
+        String permission = null;
 
-                Tlog.v(TAG, " configureWiFi() PermissionHelper : " + permission + " granted:" + granted);
+        if (!PermissionHelper.isGranted(app, Manifest.permission.ACCESS_COARSE_LOCATION)
+                || !PermissionHelper.isGranted(app, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            permission = PermissionGroup.LOCATION;
+        }
 
-                if (granted) {
-                    config(mConfig);
+        if (permission != null) {
+            PermissionHelper.requestPermission(app, new PermissionRequest.OnPermissionResult() {
+                @Override
+                public void onPermissionRequestResult(String permission, boolean granted) {
+
+                    Tlog.v(TAG, " configureWiFi() PermissionHelper : " + permission + " granted:" + granted);
+
+                    if (granted) {
+                        config(mConfig);
+                    }
                 }
-            }
-        }, Manifest.permission.ACCESS_COARSE_LOCATION);
+            }, permission);
+
+        } else {
+            config(mConfig);
+        }
 
     }
 
@@ -490,9 +507,10 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
                 return;
             }
 
-            String bssid = WiFiUtil.getWiFiBSSID(ssid, mWiFiManager);
+            Tlog.v(TAG, "startAirKiss() config ssid: " + ssid + " pwd:" + pwd);
 
-//            Tlog.v(TAG, " security:" + WiFiUtil.getSecurity(ssid, mWiFiManager));
+            String bssid = WiFiUtil.getWiFiBSSID(ssid, mWiFiManager);
+            Tlog.e(TAG, " getWiFiBSSID " + bssid);
 
 
             if (!MacUtil.macMatches(bssid)) {
@@ -641,7 +659,6 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
         mUserManager.emailForgot(email);
     }
 
-
     @Override
     public void wxLogin() {
         mUserManager.wxLogin();
@@ -679,6 +696,11 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
     @Override
     public void requestWeather() {
         mUserManager.requestWeather();
+    }
+
+    @Override
+    public void queryWeatherByIp() {
+        mUserManager.requestWeatherByIp();
     }
 
     @Override
@@ -1456,9 +1478,9 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
          */
         @Override
         public void onCommand(String topic, String msg) {
-            if (Debuger.isLogDebug) {
-                Tlog.v(TAG, " onCommand topic:" + topic + " msg:" + msg);
-            }
+//            if (Debuger.isLogDebug) {
+//                Tlog.v(TAG, " onCommand topic:" + topic + " msg:" + msg);
+//            }
         }
 
         @Override
@@ -1607,18 +1629,12 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
         public void onBindThirdAccountResult(C_0x8037.Resp resp) {
             super.onBindThirdAccountResult(resp);
             mUserManager.onBindThirdAccountResult(resp);
-            if (resp.getResult() == 1) {
-                queryUserInfo();
-            }
         }
 
         @Override
         public void onBindMobileNumResult(C_0x8034.Resp resp) {
             super.onBindMobileNumResult(resp);
             mUserManager.onBindMobileNumResult(resp);
-            if (resp.getResult() == 1) {
-                queryUserInfo();
-            }
         }
 
         @Override

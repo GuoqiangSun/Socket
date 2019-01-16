@@ -27,7 +27,7 @@ public class LooperManager implements IApp {
         private static final LooperManager LM = new LooperManager();
     }
 
-    public static final LooperManager getInstance() {
+    public static LooperManager getInstance() {
         return ClassHolder.LM;
     }
 
@@ -40,16 +40,27 @@ public class LooperManager implements IApp {
     private Handler mWorkHandler;
 
     public Handler getWorkHandler() {
+        initWorkHandler();
         return mWorkHandler;
     }
 
     @Override
     public void init(Application app) {
-        startProtocolThread();
-        startWorkThread();
-        startRepeatThread();
+//        startProtocolThread();
+//        startWorkThread();
+//        startRepeatThread();
+//        mWorkHandler = new Handler(getWorkLooper());
         Tlog.i(" LooperManager init success...");
-        mWorkHandler = new Handler(getWorkLooper());
+    }
+
+    private void initWorkHandler() {
+        if (mWorkHandler == null) {
+            synchronized (this) {
+                if (mWorkHandler == null) {
+                    mWorkHandler = new Handler(getWorkLooper());
+                }
+            }
+        }
     }
 
     /**
@@ -70,6 +81,7 @@ public class LooperManager implements IApp {
     }
 
     public final Looper getProtocolLooper() {
+        startProtocolThread();
         return mProtocolThread.getLooper();
     }
 
@@ -91,6 +103,7 @@ public class LooperManager implements IApp {
     }
 
     public final Looper getWorkLooper() {
+        startWorkThread();
         return mWorkThread.getLooper();
     }
 
@@ -112,6 +125,7 @@ public class LooperManager implements IApp {
     }
 
     public final Looper getRepeatLooper() {
+        startRepeatThread();
         return mRepeatThread.getLooper();
     }
 

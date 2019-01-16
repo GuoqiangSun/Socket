@@ -8,11 +8,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.location.Criteria;
+import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.Settings;
 import android.text.TextUtils;
 
@@ -22,9 +27,18 @@ import com.tencent.mm.opensdk.modelbase.BaseResp;
 import com.tencent.mm.opensdk.modelmsg.SendAuth;
 import com.tencent.mm.opensdk.openapi.IWXAPI;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -57,6 +71,8 @@ import cn.com.startai.mqttsdk.busi.entity.C_0x8037;
 import cn.com.startai.mqttsdk.busi.entity.type.Type;
 import cn.com.startai.mqttsdk.listener.IOnCallListener;
 import cn.com.startai.mqttsdk.mqtt.request.MqttPublishRequest;
+import cn.com.startai.socket.db.gen.JsUserInfoDao;
+import cn.com.startai.socket.db.gen.JsWeatherInfoDao;
 import cn.com.startai.socket.db.gen.UserInfoDao;
 import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.debuger.Debuger;
@@ -65,6 +81,8 @@ import cn.com.startai.socket.global.FileManager;
 import cn.com.startai.socket.global.LooperManager;
 import cn.com.startai.socket.global.WXLoginHelper;
 import cn.com.startai.socket.mutual.Controller;
+import cn.com.startai.socket.mutual.js.bean.JsUserInfo;
+import cn.com.startai.socket.mutual.js.bean.JsWeatherInfo;
 import cn.com.startai.socket.mutual.js.bean.MobileBind;
 import cn.com.startai.socket.mutual.js.bean.MobileLogin;
 import cn.com.startai.socket.mutual.js.bean.UpdateProgress;
@@ -74,8 +92,8 @@ import cn.com.startai.socket.mutual.js.impl.AndJsBridge;
 import cn.com.startai.socket.sign.hardware.IControlWiFi;
 import cn.com.startai.socket.sign.hardware.WiFi.bean.UserInfo;
 import cn.com.startai.socket.sign.hardware.WiFi.util.AuthResult;
+import cn.com.startai.socket.sign.hardware.WiFi.util.DownloadTask;
 import cn.com.startai.socket.sign.hardware.WiFi.util.NetworkData;
-import cn.com.startai.socket.sign.js.JsUserInfo;
 import cn.com.swain.baselib.app.IApp.IService;
 import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.baselib.util.PermissionGroup;
@@ -98,17 +116,398 @@ public class UserManager implements IService {
         this.app = app;
     }
 
+
+    private final LocationListener locationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(Location location) {
+            Tlog.e(TAG, " onLocationChanged " + String.valueOf(location));
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+            Tlog.e(TAG, " onStatusChanged " + provider);
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+            Tlog.e(TAG, " onProviderEnabled " + provider);
+            if (mWorkHandler != null && !mWorkHandler.hasMessages(MSG_WHAT_LOCATION_ANDROID)) {
+                mWorkHandler.sendEmptyMessageDelayed(MSG_WHAT_LOCATION_ANDROID, 1000);
+            }
+
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+            Tlog.e(TAG, " onProviderDisabled " + provider);
+
+        }
+    };
+
+    private final GpsStatus.Listener gpsLsn = new GpsStatus.Listener() {
+
+        @Override
+        public void onGpsStatusChanged(int event) {
+
+            switch (event) {
+                // 第一次定位
+                case GpsStatus.GPS_EVENT_FIRST_FIX:
+                    Tlog.i(TAG, "第一次定位");
+
+                    if (mWorkHandler != null && !mWorkHandler.hasMessages(MSG_WHAT_LOCATION_ANDROID)) {
+                        mWorkHandler.sendEmptyMessageDelayed(MSG_WHAT_LOCATION_ANDROID, 1000);
+                    }
+
+                    break;
+                // 卫星状态改变
+                case GpsStatus.GPS_EVENT_SATELLITE_STATUS:
+                    Tlog.i(TAG, "卫星状态改变");
+
+
+                    break;
+                // 定位启动
+                case GpsStatus.GPS_EVENT_STARTED:
+                    Tlog.i(TAG, "定位启动");
+
+
+                    break;
+                // 定位结束
+                case GpsStatus.GPS_EVENT_STOPPED:
+                    Tlog.i(TAG, "定位结束");
+
+
+                    break;
+            }
+        }
+    };
+
+
+    private LocationManager locationManager;
+
+
+    private Handler mWorkHandler;
+
+    private int requestLocationTimes = 1;
+
+    private final int MAX_REQUEST_LOCATION_TIMES = 4;
+
+    private final int MAX_REQUEST_LOCATION_TIMES_ONLY = 3;
+
+    private String locationProvider;
+
+    private void resetRequestLocation() {
+        this.requestLocationTimes = 1;
+        this.locationProvider = null;
+    }
+
+    private Criteria getCriteria() {
+        Criteria criteria = new Criteria();
+        // 设置定位精确度 Criteria.ACCURACY_COARSE比较粗略，Criteria.ACCURACY_FINE则比较精细
+        criteria.setAccuracy(Criteria.ACCURACY_COARSE);
+        // 设置是否要求速度
+        criteria.setSpeedRequired(true);
+        // 设置是否允许运营商收费
+        criteria.setCostAllowed(false);
+        // 设置是否需要方位信息
+        criteria.setBearingRequired(false);
+        // 设置是否需要海拔信息
+        criteria.setAltitudeRequired(false);
+        // 设置对电源的需求
+        criteria.setPowerRequirement(Criteria.POWER_LOW);
+        return criteria;
+    }
+
+
+    private synchronized String checkLocationProvider() {
+
+        if (locationProvider == null) {
+
+            String bestProvider = null;
+            if (locationManager != null) {
+                bestProvider = locationManager.getBestProvider(getCriteria(), true);
+                Tlog.w(TAG, " checkLocationProvider getBestProvider " + bestProvider);
+            }
+            locationProvider = bestProvider;
+
+            if (locationProvider == null) {
+                locationProvider = LocationManager.NETWORK_PROVIDER;
+            }
+
+        }
+
+        return locationProvider;
+    }
+
+
+    private static final int MSG_WHAT_LOCATION_ANDROID = 0x00;
+
+    private static final int MSG_WHAT_LOCATION_IP = 0x01;
+
+    @SuppressLint("MissingPermission")
     @Override
     public void onSCreate() {
 
         if (CustomManager.getInstance().isAirtempNBProjectTest()) {
             setLoginUserID(NetworkData.USERID_DEFAULT);
-//            setLoginUserID("d61a2ee17966d6f1b8b2f93c5a6d5eea");
 
         } else {
             setLoginUserID(getLastLoginUserID());
         }
 
+        locationManager = (LocationManager) app.getSystemService(Context.LOCATION_SERVICE);
+
+        if (CustomManager.getInstance().isMUSIK()) {
+            //监视地理位置变化
+            if (PermissionHelper.isGranted(app, Manifest.permission.ACCESS_FINE_LOCATION)
+                    && PermissionHelper.isGranted(app, Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                locationManager.addGpsStatusListener(gpsLsn);
+            }
+        }
+
+        mWorkHandler = new Handler(LooperManager.getInstance().getRepeatLooper()) {
+
+            @SuppressLint("MissingPermission")
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+
+                if (msg.what == MSG_WHAT_LOCATION_ANDROID) {
+
+                    boolean providerEnabledGps = locationManager != null
+                            && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+                    boolean providerEnabledNet = locationManager != null
+                            && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+                    boolean onlyOne = (providerEnabledGps && !providerEnabledNet) || (!providerEnabledGps && providerEnabledNet);
+
+                    if (!(providerEnabledGps || providerEnabledNet)) {
+                        resetRequestLocation();
+
+                        Tlog.e(TAG, " getLastKnownLocation location not enabled ");
+
+                        if (mWorkHandler != null) {
+                            mWorkHandler.sendEmptyMessage(MSG_WHAT_LOCATION_IP);
+                        }
+
+                        return;
+                    }
+
+                    //获取所有可用的位置提供器
+//                    List<String> providers = locationManager.getProviders(true);
+
+                    String provider = checkLocationProvider();
+
+                    Location location = locationManager.getLastKnownLocation(provider);
+
+                    if (location == null) {
+
+                        // 获取不到location 切换下
+                        if (LocationManager.NETWORK_PROVIDER.equalsIgnoreCase(provider)) {
+                            if (providerEnabledGps) {
+                                provider = LocationManager.GPS_PROVIDER;
+                            }
+                        } else {
+                            if (providerEnabledNet) {
+                                provider = LocationManager.NETWORK_PROVIDER;
+                            }
+                        }
+
+                        Tlog.e(TAG, " location == null  change provider:" + provider);
+                        ++requestLocationTimes;
+                        if (requestLocationTimes > MAX_REQUEST_LOCATION_TIMES
+                                || (onlyOne && requestLocationTimes > MAX_REQUEST_LOCATION_TIMES_ONLY)) {
+
+                            Tlog.e(TAG, " requestLocationUpdates times > MAX_REQUEST_LOCATION_TIMES ");
+
+                            resetRequestLocation();
+
+                            if (locationManager != null) {
+                                locationManager.removeUpdates(locationListener);
+                            }
+
+                            if (mWorkHandler != null) {
+                                mWorkHandler.sendEmptyMessage(MSG_WHAT_LOCATION_IP);
+                            }
+
+                            return;
+                        }
+
+                        locationProvider = provider;
+                        Tlog.d(TAG, " requestLocationUpdates provider: " + provider);
+                        locationManager.requestLocationUpdates(provider, 1000, 1, locationListener);
+
+                        if (mWorkHandler != null) {
+                            mWorkHandler.sendEmptyMessageDelayed(MSG_WHAT_LOCATION_ANDROID, 1000 * 3);
+                        }
+
+                    } else {
+                        if (locationManager != null) {
+                            locationManager.removeUpdates(locationListener);
+                        }
+                        String lat = String.valueOf(location.getLatitude());
+                        String lng = String.valueOf(location.getLongitude());
+
+                        Tlog.d(TAG, "getWeatherInfo lat:" + lat + " lng:" + lng);
+
+                        C_0x8035.Req.ContentBean req = new C_0x8035.Req.ContentBean(lat, lng);
+                        StartAI.getInstance().getBaseBusiManager().getWeatherInfo(req, new IOnCallListener() {
+                            @Override
+                            public void onSuccess(MqttPublishRequest request) {
+                                Tlog.e(TAG, " getWeatherInfo msg send success ");
+                            }
+
+                            @Override
+                            public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
+                                Tlog.e(TAG, " getWeatherInfo msg send fail " + startaiError.getErrorCode());
+                                if (mResultCallBack != null) {
+                                    mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                                }
+                            }
+
+                            @Override
+                            public boolean needUISafety() {
+                                return false;
+                            }
+                        });
+
+                    }
+
+                } else if (msg.what == MSG_WHAT_LOCATION_IP) {
+
+                    new GetLatLngTask(mResultCallBack).execute();
+
+                }
+
+            }
+        };
+
+    }
+
+    private static class GetLatLngTask extends AsyncTask<Void, Void, Void> {
+
+        private IControlWiFi.IWiFiResultCallBack mResultCallBack;
+
+        private GetLatLngTask(IControlWiFi.IWiFiResultCallBack mResultCallBack) {
+            this.mResultCallBack = mResultCallBack;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            //@see http://lbsyun.baidu.com/index.php?title=webapi/ip-api
+
+            String ip = "http://api.map.baidu.com/location/ip?ak=zm1k2HTK57Rg6dRpl8MTOcCeXXNurFwb&coor=bd09ll&qq-pf-to=pcqq.group";
+
+            try {
+
+                URL url = new URL(ip);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setConnectTimeout(10 * 1000);
+
+                BufferedInputStream bis = null;
+                if (200 == conn.getResponseCode()) {
+                    InputStream inputStream = conn.getInputStream();
+                    bis = new BufferedInputStream(inputStream);
+
+                    int read = -1;
+                    byte[] data = new byte[512];
+
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+                    while ((read = bis.read(data)) != -1) {
+
+                        bos.write(data, 0, read);
+
+                    }
+
+                    if (bos.size() > 0) {
+                        byte[] bytes = bos.toByteArray();
+                        String responseMsg = new String(bytes);
+                        Tlog.v(TAG, " GetLatLngTask : " + responseMsg);
+
+                        try {
+                            JSONObject obj = new JSONObject(responseMsg);
+
+                            int status = obj.getInt("status");
+                            Tlog.d(TAG, " status : " + status);
+
+                            if (status == 0) {
+
+                                String address = obj.getString("address");
+                                Tlog.d(TAG, " address : " + address);
+
+                                JSONObject content = obj.getJSONObject("content");
+
+                                String addressContent = content.getString("address");
+                                Tlog.d(TAG, " Content address : " + addressContent);
+
+                                JSONObject address_detail = content.getJSONObject("address_detail");
+                                String city = address_detail.getString("city");
+                                Tlog.d(TAG, " city : " + city);
+                                String city_code = address_detail.getString("city_code");
+                                Tlog.d(TAG, " city_code : " + city_code);
+                                String district = address_detail.getString("district");
+                                Tlog.d(TAG, " district : " + district);
+                                String province = address_detail.getString("province");
+                                Tlog.d(TAG, " province : " + province);
+                                String street = address_detail.getString("street");
+                                Tlog.d(TAG, " street : " + street);
+                                String street_number = address_detail.getString("street_number");
+                                Tlog.d(TAG, " street_number : " + street_number);
+
+                                JSONObject point = content.getJSONObject("point");
+
+                                String x = point.getString("x");
+                                String y = point.getString("y");
+                                Tlog.d(TAG, " x : " + x + " y:" + y);
+
+                                C_0x8035.Req.ContentBean req = new C_0x8035.Req.ContentBean(y, x);
+                                StartAI.getInstance().getBaseBusiManager().getWeatherInfo(req, new IOnCallListener() {
+                                    @Override
+                                    public void onSuccess(MqttPublishRequest request) {
+                                        Tlog.e(TAG, " getWeatherInfo msg send success ");
+                                    }
+
+                                    @Override
+                                    public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
+                                        Tlog.e(TAG, " getWeatherInfo msg send fail " + startaiError.getErrorCode());
+                                        if (mResultCallBack != null) {
+                                            mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                                            mResultCallBack = null;
+                                        }
+                                    }
+
+                                    @Override
+                                    public boolean needUISafety() {
+                                        return false;
+                                    }
+                                });
+
+
+                            }
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Tlog.w(TAG, "GetLatLngTask JSONException ", e);
+                        }
+
+
+                    }
+
+                }
+
+                if (bis != null) {
+                    bis.close();
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                Tlog.w(TAG, "GetLatLngTask JSONException ", e);
+            }
+
+            return null;
+        }
     }
 
     @Override
@@ -212,6 +611,32 @@ public class UserManager implements IService {
 
     }
 
+    private void getUserInfoFromDao() {
+
+        String loginUserID = getLoginUserID();
+        if (loginUserID != null) {
+            JsUserInfoDao jsUserInfoDao = DBManager.getInstance().getDaoSession().getJsUserInfoDao();
+            List<JsUserInfo> list = jsUserInfoDao.queryBuilder().where(JsUserInfoDao.Properties.Userid.eq(loginUserID)).list();
+
+            JsUserInfo mUserInfo = null;
+            if (list.size() > 0) {
+                mUserInfo = list.get(0);
+            }
+
+            if (mUserInfo != null) {
+
+                Tlog.d(TAG, " getUserInfoFromDao : " + mUserInfo.toJsonStr());
+
+                if (mResultCallBack != null) {
+                    mResultCallBack.onResultGetUserInfo(true, mUserInfo);
+                }
+
+            }
+
+        }
+
+    }
+
     void emailForgot(String email) {
         StartAI.getInstance().getBaseBusiManager().sendEmail(email, 2, new IOnCallListener() {
             @Override
@@ -234,25 +659,12 @@ public class UserManager implements IService {
         });
     }
 
-    private boolean locationEnabled() {
-        final LocationManager locationManager;
-        locationManager = (LocationManager) app.getSystemService(Context.LOCATION_SERVICE);
-
-        if (locationManager == null) {
-            Tlog.e(TAG, " requestWeather locationManager =null ");
-            return false;
-        }
-
-        boolean providerEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        boolean providerEnabled1 = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-        Tlog.e(TAG, " requestWeather providerEnabled :" + providerEnabled + " providerEnabled1:" + providerEnabled1);
-        return providerEnabled || providerEnabled1;
-    }
-
     public void queryLocationEnabled() {
-
+        boolean providerEnabledGps = locationManager != null && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean providerEnabledNet = locationManager != null && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        Tlog.d(TAG, " queryLocationEnabled providerEnabledGps :" + providerEnabledGps + " providerEnabledNet:" + providerEnabledNet);
         if (mResultCallBack != null) {
-            mResultCallBack.onResultLocationEnabled(locationEnabled());
+            mResultCallBack.onResultLocationEnabled(providerEnabledGps || providerEnabledNet);
         }
 
     }
@@ -266,9 +678,36 @@ public class UserManager implements IService {
         }
     }
 
+    void requestWeatherByIp() {
+        Tlog.v(TAG, " requestWeatherByIp()  ");
+        if (mWorkHandler != null) {
+            if (mWorkHandler.hasMessages(MSG_WHAT_LOCATION_IP)) {
+                mWorkHandler.removeMessages(MSG_WHAT_LOCATION_IP);
+            }
+            mWorkHandler.sendEmptyMessage(MSG_WHAT_LOCATION_IP);
+        }
+    }
+
+    private void getWeatherFromDao() {
+
+        JsWeatherInfoDao jsWeatherInfoDao = DBManager.getInstance().getDaoSession().getJsWeatherInfoDao();
+        List<JsWeatherInfo> list = jsWeatherInfoDao.queryBuilder().list();
+
+        if (list.size() > 0) {
+            JsWeatherInfo jsWeatherInfo = list.get(0);
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultWeatherInfo(jsWeatherInfo);
+            }
+        }
+
+    }
+
     private static final int REUQEST_LOCATION = 0x6598;
 
     void requestWeather() {
+
+        Tlog.v(TAG, " requestWeather()  ");
+        resetRequestLocation();
 
         String permission = null;
 
@@ -279,7 +718,6 @@ public class UserManager implements IService {
 
         //获取Location
         if (permission != null) {
-            // for ActivityCompat#requestPermissions for more details.
 
             PermissionHelper.requestPermission(app, new PermissionRequest.OnPermissionResult() {
 
@@ -289,154 +727,48 @@ public class UserManager implements IService {
                     Tlog.v(TAG, " requestWeather() PermissionHelper : " + permission + " granted:" + granted);
 
                     if (granted) {
-                        requestWeatherSafe();
+
+                        if (mWorkHandler != null) {
+                            if (mWorkHandler.hasMessages(MSG_WHAT_LOCATION_ANDROID)) {
+                                mWorkHandler.removeMessages(MSG_WHAT_LOCATION_ANDROID);
+                            }
+                            mWorkHandler.sendEmptyMessage(MSG_WHAT_LOCATION_ANDROID);
+                        }
+
                     }
                 }
             }, permission);
 
         } else {
-            requestWeatherSafe();
-        }
 
-    }
-
-    private void requestWeatherSafe() {
-
-//发送请求
-
-        final LocationManager locationManager;
-        locationManager = (LocationManager) app.getSystemService(Context.LOCATION_SERVICE);
-
-        if (locationManager == null) {
-            Tlog.e(TAG, " requestWeatherSafe locationManager =null ");
-            return;
-        }
-
-        //获取所有可用的位置提供器
-        List<String> providers = locationManager.getProviders(true);
-
-        String locationProvider = null;
-        if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
-            //如果是GPS
-            locationProvider = LocationManager.NETWORK_PROVIDER;
-        } else if (providers.contains(LocationManager.GPS_PROVIDER)) {
-            //如果是Network
-            locationProvider = LocationManager.GPS_PROVIDER;
-        } else {
-
-            Tlog.e(TAG, " requestWeatherSafe no location ");
-            return;
-        }
-
-        final String mlocationProvider = locationProvider;
-        requestWeather(locationManager, mlocationProvider);
-
-    }
-
-    @SuppressLint("MissingPermission")
-    private void requestWeather(LocationManager locationManager, String mlocationProvider) {
-
-        Tlog.d(TAG, " requestWeather " + mlocationProvider);
-
-        LocationListener locationListener = new LocationListener() {
-            @Override
-            public void onLocationChanged(Location location) {
-                Tlog.e(TAG, " onLocationChanged " + String.valueOf(location));
-            }
-
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-                Tlog.e(TAG, " onStatusChanged " + provider);
-            }
-
-            @Override
-            public void onProviderEnabled(String provider) {
-                Tlog.e(TAG, " onProviderEnabled " + provider);
-            }
-
-            @Override
-            public void onProviderDisabled(String provider) {
-                Tlog.e(TAG, " onProviderDisabled " + provider);
-            }
-        };
-
-        //监视地理位置变化
-        locationManager.requestLocationUpdates(mlocationProvider, 3000, 1, locationListener);
-
-        int times = 0;
-        Location location = null;
-        do {
-            location = locationManager.getLastKnownLocation(mlocationProvider);
-            times++;
-
-            if (location == null) {
-                Tlog.e(TAG, " getLastKnownLocation(" + mlocationProvider + ") = null times:" + times);
-
-                // 获取不到location 切换下
-                if (LocationManager.NETWORK_PROVIDER.equalsIgnoreCase(mlocationProvider)) {
-                    mlocationProvider = LocationManager.GPS_PROVIDER;
-                } else {
-                    mlocationProvider = LocationManager.NETWORK_PROVIDER;
+            if (mWorkHandler != null) {
+                if (mWorkHandler.hasMessages(MSG_WHAT_LOCATION_ANDROID)) {
+                    mWorkHandler.removeMessages(MSG_WHAT_LOCATION_ANDROID);
                 }
-
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                Tlog.e(TAG, " getLastKnownLocation(" + mlocationProvider + ") success times:" + times);
+                mWorkHandler.sendEmptyMessage(MSG_WHAT_LOCATION_ANDROID);
             }
-
-        } while (location == null && times <= 5);
-
-        if (location == null) {
-            Tlog.e(TAG, " getLastKnownLocation = null ");
-            return;
         }
 
-        String lat = String.valueOf(location.getLatitude());
-        String lng = String.valueOf(location.getLongitude());
-
-        Tlog.v(TAG, " lat:" + lat + " lng:" + lng);
-
-        locationManager.removeUpdates(locationListener);
-
-        C_0x8035.Req.ContentBean req = new C_0x8035.Req.ContentBean(lat, lng);
-        StartAI.getInstance().getBaseBusiManager().getWeatherInfo(req, new IOnCallListener() {
-            @Override
-            public void onSuccess(MqttPublishRequest request) {
-                Tlog.v(TAG, " getWeatherInfo msg send success ");
-            }
-
-            @Override
-            public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
-                Tlog.e(TAG, " getWeatherInfo msg send fail " + startaiError.getErrorCode());
-                if (mResultCallBack != null) {
-                    mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
-                }
-            }
-
-            @Override
-            public boolean needUISafety() {
-                return false;
-            }
-        });
     }
 
     void isLogin() {
 
-        boolean isLogin = getLastLoginUserID() != null;
+        String loginUserID = getLoginUserID();
 
-//
-//        if (!isLogin) {
-//            StartAI.getInstance().getBaseBusiManager().logout();
-//        }
+        boolean isLogin = getLoginUserID() != null;
 
-        Tlog.e(TAG, " isLogin " + isLogin + " getLoginUserID:" + getLoginUserID());
+        Tlog.e(TAG, " isLogin " + isLogin + " getLoginUserID:" + loginUserID);
 
         if (mResultCallBack != null) {
             mResultCallBack.onResultIsLogin(isLogin);
+        }
+
+        if (isLogin) {
+            getUserInfoFromDao();
+        }
+
+        if (CustomManager.getInstance().isMUSIK()) {
+            getWeatherFromDao();
         }
 
     }
@@ -1186,7 +1518,14 @@ public class UserManager implements IService {
             LooperManager.getInstance().getWorkHandler().post(new Runnable() {
                 @Override
                 public void run() {
-                    queryLocationEnabled();
+
+                    boolean providerEnabledGps = locationManager != null && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+                    boolean providerEnabledNet = locationManager != null && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+                    if (mResultCallBack != null) {
+                        mResultCallBack.onResultLocationEnabled(providerEnabledGps || providerEnabledNet);
+                    }
+
                 }
             });
 
@@ -1714,18 +2053,83 @@ public class UserManager implements IService {
         C_0x8020.Resp.ContentBean contentBean = resp.getContent();
 
         if (resp.getResult() == 1) {
-            JsUserInfo mUserInfo = new JsUserInfo();
-            mUserInfo.setAddress(contentBean.getAddress());
-            mUserInfo.setBirthday(contentBean.getBirthday());
-            mUserInfo.setCity(contentBean.getCity());
-            mUserInfo.setFirstName(contentBean.getFirstName());
-            mUserInfo.setHeadPic(contentBean.getHeadPic());
-            mUserInfo.setLastName(contentBean.getLastName());
-            mUserInfo.setNickName(contentBean.getNickName());
-            mUserInfo.setProvince(contentBean.getProvince());
-            mUserInfo.setSex(contentBean.getSex());
-            mUserInfo.setTown(contentBean.getTown());
-            mUserInfo.setUserName(contentBean.getUserName());
+
+            String userid = contentBean.getUserid();
+
+            if (userid == null) {
+                userid = getLoginUserID();
+            }
+
+            JsUserInfo mUserInfo = null;
+            JsUserInfoDao jsUserInfoDao = null;
+
+            if (userid != null) {
+                jsUserInfoDao = DBManager.getInstance().getDaoSession().getJsUserInfoDao();
+                List<JsUserInfo> list = jsUserInfoDao.queryBuilder()
+                        .where(JsUserInfoDao.Properties.Userid.eq(userid)).list();
+
+                if (list.size() > 0) {
+                    mUserInfo = list.get(0);
+                } else {
+                    mUserInfo = new JsUserInfo();
+                }
+
+            } else {
+                mUserInfo = new JsUserInfo();
+            }
+
+            if (contentBean.getAddress() != null) {
+                mUserInfo.setAddress(contentBean.getAddress());
+            }
+
+            if (contentBean.getBirthday() != null) {
+                mUserInfo.setBirthday(contentBean.getBirthday());
+            }
+
+            if (contentBean.getCity() != null) {
+                mUserInfo.setCity(contentBean.getCity());
+            }
+
+            if (contentBean.getFirstName() != null) {
+                mUserInfo.setFirstName(contentBean.getFirstName());
+            }
+
+            if (contentBean.getHeadPic() != null) {
+                mUserInfo.setHeadPic(contentBean.getHeadPic());
+            }
+
+            if (contentBean.getLastName() != null) {
+                mUserInfo.setLastName(contentBean.getLastName());
+            }
+
+            if (contentBean.getNickName() != null) {
+                mUserInfo.setNickName(contentBean.getNickName());
+            }
+
+            if (contentBean.getProvince() != null) {
+                mUserInfo.setProvince(contentBean.getProvince());
+            }
+
+            if (contentBean.getSex() != null) {
+                mUserInfo.setSex(contentBean.getSex());
+            }
+
+            if (contentBean.getTown() != null) {
+                mUserInfo.setTown(contentBean.getTown());
+            }
+
+            if (contentBean.getUserName() != null) {
+                mUserInfo.setUserName(contentBean.getUserName());
+            }
+
+            if (jsUserInfoDao != null) {
+                if (mUserInfo.getId() != null) {
+                    jsUserInfoDao.update(mUserInfo);
+                } else {
+                    jsUserInfoDao.insert(mUserInfo);
+                }
+            }
+
             if (mResultCallBack != null) {
                 mResultCallBack.onResultModifyUserInformation(true, mUserInfo);
             }
@@ -1746,12 +2150,26 @@ public class UserManager implements IService {
         C_0x8024.Resp.ContentBean contentBean = resp.getContent();
 
         if (resp.getResult() == 1) {
-            JsUserInfo mUserInfo = new JsUserInfo();
+
+            JsUserInfoDao jsUserInfoDao = DBManager.getInstance().getDaoSession().getJsUserInfoDao();
+            List<JsUserInfo> list = jsUserInfoDao.queryBuilder().where(JsUserInfoDao.Properties.Userid.eq(contentBean.getUserid())).list();
+
+            JsUserInfo mUserInfo;
+            if (list.size() > 0) {
+                mUserInfo = list.get(0);
+            } else {
+                mUserInfo = new JsUserInfo();
+            }
+
+            mUserInfo.setUserid(contentBean.getUserid());
             mUserInfo.setAddress(contentBean.getAddress());
             mUserInfo.setBirthday(contentBean.getBirthday());
             mUserInfo.setCity(contentBean.getCity());
             mUserInfo.setFirstName(contentBean.getFirstName());
-            mUserInfo.setHeadPic(contentBean.getHeadPic());
+
+            String headPic = contentBean.getHeadPic();
+            mUserInfo.setHeadPic(headPic);
+
             mUserInfo.setLastName(contentBean.getLastName());
             mUserInfo.setNickName(contentBean.getNickName());
             mUserInfo.setProvince(contentBean.getProvince());
@@ -1761,8 +2179,34 @@ public class UserManager implements IService {
             mUserInfo.setIsHavePwd(contentBean.getIsHavePwd());
             mUserInfo.setEmail(contentBean.getEmail());
             mUserInfo.setMobile(contentBean.getMobile());
+
             List<C_0x8024.Resp.ContentBean.ThirdInfosBean> thirdInfos = contentBean.getThirdInfos();
-            mUserInfo.setThirdInfos(thirdInfos);
+
+            if (thirdInfos != null && thirdInfos.size() > 0) {
+                List<JsUserInfo.ThirdInfos> mthirdInfos = new ArrayList<>(thirdInfos.size());
+                JsUserInfo.ThirdInfos mJsThirdInfos;
+                for (C_0x8024.Resp.ContentBean.ThirdInfosBean mBean : thirdInfos) {
+                    mJsThirdInfos = new JsUserInfo.ThirdInfos();
+                    mJsThirdInfos.setNickName(mBean.getNickName());
+                    mJsThirdInfos.setType(mBean.getType());
+                    mthirdInfos.add(mJsThirdInfos);
+                }
+
+                mUserInfo.setThirdInfos(mthirdInfos);
+            }
+
+            if (mUserInfo.getId() == null) {
+                jsUserInfoDao.insert(mUserInfo);
+            } else {
+                jsUserInfoDao.update(mUserInfo);
+            }
+
+
+            File cacheDownPath = DownloadTask.getCacheDownPath(headPic);
+            if (!cacheDownPath.exists() && PermissionHelper.isGranted(app, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                Tlog.w(TAG, " start down headPic ");
+                new DownloadTask(headPic).execute();
+            }
 
             if (mResultCallBack != null) {
                 mResultCallBack.onResultGetUserInfo(true, mUserInfo);
@@ -1986,6 +2430,9 @@ public class UserManager implements IService {
             if (mResultCallBack != null) {
                 mResultCallBack.onResultMsgSendError(resp.getContent().getErrcode());
             }
+        } else {
+            // 绑定成功，js没有回调接口,所有查询一遍用户信息
+            getUserInfo();
         }
 
     }
@@ -2047,6 +2494,18 @@ public class UserManager implements IService {
                 mResultCallBack.onResultMsgSendError(resp.getContent().getErrcode());
                 mResultCallBack.onResultBindPhone(false);
             }
+
+            C_0x8034.Resp.ContentBean content = resp.getContent();
+
+            JsUserInfoDao jsUserInfoDao = DBManager.getInstance().getDaoSession().getJsUserInfoDao();
+            List<JsUserInfo> list = jsUserInfoDao.queryBuilder().where(JsUserInfoDao.Properties.Userid.eq(content.getUserid())).list();
+
+            if (list.size() > 0) {
+                JsUserInfo mUserInfo = list.get(0);
+                mUserInfo.setMobile(content.getMobile());
+                jsUserInfoDao.update(mUserInfo);
+            }
+
         } else {
             if (mResultCallBack != null) {
                 mResultCallBack.onResultBindPhone(true);
@@ -2061,8 +2520,45 @@ public class UserManager implements IService {
         }
 
         if (resp.getResult() == 1) {
+
+            JsWeatherInfoDao jsWeatherInfoDao = DBManager.getInstance().getDaoSession().getJsWeatherInfoDao();
+            List<JsWeatherInfo> list = jsWeatherInfoDao.queryBuilder().list();
+
+            JsWeatherInfo jsWeatherInfo;
+            if (list.size() > 0) {
+                jsWeatherInfo = list.get(0);
+            } else {
+                jsWeatherInfo = new JsWeatherInfo();
+            }
+
+            C_0x8035.Resp.ContentBean content = resp.getContent();
+
+            jsWeatherInfo.setLat(content.getLat());
+            jsWeatherInfo.setLng(content.getLng());
+            jsWeatherInfo.setProvince(content.getProvince());
+            jsWeatherInfo.setCity(content.getCity());
+            jsWeatherInfo.setDistrict(content.getDistrict());
+            jsWeatherInfo.setQlty(content.getQlty());
+            jsWeatherInfo.setTmp(content.getTmp());
+            jsWeatherInfo.setWeather(content.getWeather());
+            String weatherPic = content.getWeatherPic();
+            jsWeatherInfo.setWeatherPic(weatherPic);
+            jsWeatherInfo.setTimestamp(System.currentTimeMillis());
+
+            if (jsWeatherInfo.getId() == null) {
+                jsWeatherInfoDao.insert(jsWeatherInfo);
+            } else {
+                jsWeatherInfoDao.update(jsWeatherInfo);
+            }
+
+            File cacheDownPath = DownloadTask.getCacheDownPath(weatherPic);
+            if (!cacheDownPath.exists() && PermissionHelper.isGranted(app, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                Tlog.w(TAG, " start down weatherPic ");
+                new DownloadTask(weatherPic).execute();
+            }
+
             if (mResultCallBack != null) {
-                mResultCallBack.onResultWeatherInfo(resp.getContent());
+                mResultCallBack.onResultWeatherInfo(jsWeatherInfo);
             }
         } else {
             if (mResultCallBack != null) {
@@ -2077,22 +2573,26 @@ public class UserManager implements IService {
             Tlog.d(TAG, " onUnBindThirdAccountResult " + String.valueOf(resp));
         }
 
-        if (resp.getContent().getType() == C_0x8036.THIRD_WECHAT) {
-            if (mResultCallBack != null) {
-                mResultCallBack.onResultUnbindWX(resp.getResult() == 1);
-            }
-        } else if (resp.getContent().getType() == C_0x8036.THIRD_ALIPAY) {
-            if (mResultCallBack != null) {
-                mResultCallBack.onResultUnbindAli(resp.getResult() == 1);
-            }
-        }
+        if (resp.getResult() == 1) {
 
-        if (resp.getResult() != 1) {
+            if (resp.getContent().getType() == C_0x8036.THIRD_WECHAT) {
+                if (mResultCallBack != null) {
+                    mResultCallBack.onResultUnbindWX(true);
+                }
+            } else if (resp.getContent().getType() == C_0x8036.THIRD_ALIPAY) {
+                if (mResultCallBack != null) {
+                    mResultCallBack.onResultUnbindAli(true);
+                }
+            }
+
+            // 解绑成功，查询一下用户信息更新数据
+            getUserInfo();
+
+        } else {
             if (mResultCallBack != null) {
                 mResultCallBack.onResultMsgSendError(resp.getContent().getErrcode());
             }
         }
-
     }
 
 }

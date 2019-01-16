@@ -23,6 +23,9 @@ public class Weather extends AbsHandlerJsInterface {
         void onJSQueryLocationEnabled();
 
         void onJSEnableLocation();
+
+        void onJSQueryWeatherByIp();
+
     }
 
     public static final class Method {
@@ -102,6 +105,12 @@ public class Weather extends AbsHandlerJsInterface {
     }
 
     @JavascriptInterface
+    public void netWeatherRequest() {
+        Tlog.v(TAG, " netWeatherRequest ");
+        getHandler().sendEmptyMessage(QUERY_WEATHER_BY_IP);
+    }
+
+    @JavascriptInterface
     public void positioningSwitchStatusRequest() {
         Tlog.v(TAG, " positioningSwitchStatusRequest ");
         getHandler().sendEmptyMessage(QUERY_LOCATION_ENABLED);
@@ -117,6 +126,7 @@ public class Weather extends AbsHandlerJsInterface {
     private static final int QUERY_WEATHER = 0x2D;
     private static final int QUERY_LOCATION_ENABLED = 0x2E;
     private static final int QUERY_ENABLE_LOCATION = 0x2F;
+    private static final int QUERY_WEATHER_BY_IP = 0x30;
 
     @Override
     protected void handleMessage(Message msg) {
@@ -132,7 +142,11 @@ public class Weather extends AbsHandlerJsInterface {
             if (mCallBack != null) {
                 mCallBack.onJSEnableLocation();
             }
-        } else {
+        } else if(msg.what == QUERY_WEATHER_BY_IP){
+            if (mCallBack != null) {
+                mCallBack.onJSQueryWeatherByIp();
+            }
+        }else {
             Tlog.e(TAG, NAME_JSI + " handleMessage unknown what:" + msg.what);
         }
     }

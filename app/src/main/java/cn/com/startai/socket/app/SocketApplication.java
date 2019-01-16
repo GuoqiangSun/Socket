@@ -27,9 +27,9 @@ public class SocketApplication extends MultiDexApplication implements Thread.Unc
 
     @Override
     public void onCreate() {
+        Tlog.setGlobalTag(TAG);
         super.onCreate();
         Thread.setDefaultUncaughtExceptionHandler(this);
-        Tlog.setGlobalTag(TAG);
 
         Language.changeLanguage(getApplicationContext());
 
@@ -39,7 +39,7 @@ public class SocketApplication extends MultiDexApplication implements Thread.Unc
         LooperManager.getInstance().init(this);
         DBManager.getInstance().init(this);
 
-        if (Debuger.isDebug || Debuger.isLogDebug) {
+        if (Debuger.isDebug || Debuger.isLogDebug || Debuger.isH5Debug) {
             Stetho.initializeWithDefaults(this); //chrome://inspect
         }
 

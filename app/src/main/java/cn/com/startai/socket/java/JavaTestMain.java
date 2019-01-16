@@ -24,12 +24,26 @@ public class JavaTestMain {
 //        c();
 //        e();
 
-//        String s = "19502";
-//        String f = f(s);
-//        System.out.println(f);
 
-        g();
+//     f();
 
+//        g();
+
+        splitUrl();
+
+    }
+
+    private static void splitUrl() {
+        String url = "http://thirdwx.qlogo.cn/mmopen/vi_32/7rmnEumJia3WnaNAqxhKkU5HqeibPGJ1jIQ3coWTib59cysdy0mqbu7libZqUPjUVgPwcEUYicnbZNsejKugkkGvIwQ/132";
+        int i = url.lastIndexOf("/");
+        String substring = url.substring(i + 1);
+
+        int i1 = substring.indexOf(".");
+        if(i1<0){
+            substring+=".jpg";
+        }
+
+        System.out.println(substring);
     }
 
     private static void g() {
@@ -56,7 +70,10 @@ public class JavaTestMain {
 
     }
 
-    private static String f(String intStr) {
+    private static void f() {
+
+        String intStr = "19502";
+
         int i = Integer.parseInt(intStr);
 
         byte i1 = (byte) ((i >> 8) & 0xFF);
@@ -75,7 +92,7 @@ public class JavaTestMain {
 
         String s = s2 + s1;
 
-        return s;
+        System.out.println(s);
 
     }
 

@@ -111,7 +111,7 @@ android {
     greendao {
 
         //数据库版本
-        schemaVersion 33
+        schemaVersion 37
         //设置DaoMaster、DaoSession、Dao包名
         daoPackage "cn.com.startai.socket.db.gen"
         //设置DaoMaster、DaoSession、Dao目录
@@ -136,17 +136,16 @@ configurations.all {
     }
 }
 
-//allprojects {
-//    repositories {
-//        flatDir {
-//            dirs 'libs'
-//        }
-//        jcenter()
-////        mavenCentral()
-////        maven { url 'https://maven.fabric.io/public' }
-//
-//    }
-//}
+allprojects {
+    repositories {
+        flatDir {
+            dirs 'libs'
+        }
+        maven {
+            url 'https://dl.bintray.com/robin1015/maven/'
+        }
+    }
+}
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
@@ -187,14 +186,14 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.5'
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0'
     implementation files('libs/startai-esptouch-sender-1.0.jar')
-    //    implementation files('libs/startai-mqtt-3.0.5.jar')
-    implementation 'cn.com.startai:mqsdk:3.1.33'
+
+    implementation 'cn.com.startai:mqsdk:3.1.38'
     implementation 'com.blankj:utilcode:1.22.1'
     implementation 'org.xutils:xutils:3.5.0'
     implementation 'cn.com.startai:fastdfssdk:1.0.2'
     api 'com.android.support:multidex:1.0.3'
 
-    api 'cn.com.swain169:baselib:3.2.03'
+    api 'cn.com.swain169:baselib:3.2.05'
     //    api 'cn.com.swain169:Tlog:3.1.10'
     implementation 'cn.com.swain169:fastble:3.2.01'
     implementation 'cn.com.swain169:protocolEngine:3.2.01'

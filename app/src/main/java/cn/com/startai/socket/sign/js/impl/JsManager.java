@@ -598,6 +598,13 @@ public class JsManager extends AbsJsManager implements IService {
     }
 
     @Override
+    public void onJSQueryWeatherByIp() {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSQueryWeatherByIp();
+        }
+    }
+
+    @Override
     public void onJSQuickQueryRelay(String mac) {
         if (mJSManagerCallBack != null) {
             mJSManagerCallBack.onJSQuickQueryRelayStatus(mac);
