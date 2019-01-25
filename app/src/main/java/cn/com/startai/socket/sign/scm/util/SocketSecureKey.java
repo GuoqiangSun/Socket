@@ -293,6 +293,25 @@ public class SocketSecureKey {
         public static final byte CMD_QUERY_NIGHT_LIGHT = 0x37;
         public static final byte CMD_QUERY_NIGHT_LIGHT_RESPONSE = 0x38;
 
+        /**
+         * 查询温度传感器是否正常工作
+         */
+        public static final byte CMD_QUERY_TEMP_SENSOR_STATUS = 0x39;
+        public static final byte CMD_QUERY_TEMP_SENSOR_STATUS_RESPONSE = 0x3A;
+
+        /**
+         * 一键控制所有闪光灯
+         */
+        public static final byte CMD_CONTROL_ANYNET_FLASH = 0x3B;
+        public static final byte CMD_CONTROL_ANYNET_FLASH_RESPONSE = 0x3C;
+
+        /**
+         * 查询一键控制所有闪光灯
+         */
+        public static final byte CMD_QUERY_ANYNET_FLASH = 0x3D;
+        public static final byte CMD_QUERY_ANYNET_FLASH_RESPONSE = 0x3E;
+
+
         /**********report0x03**************/
 
         /**
@@ -332,6 +351,12 @@ public class SocketSecureKey {
          */
         public static final byte CMD_ELECTRICITY_REPORT = 0x0B;
         public static final byte CMD_ELECTRICITY_REPORT_RESPONSE = 0x0C;
+
+        /**
+         * 温度传感器上报
+         */
+        public static final byte CMD_TEMP_SENSOR_REPORT = 0x11;
+        public static final byte CMD_TEMP_SENSOR_RESPONSE = 0x12;
 
 
         /**********Setting0x04**************/
@@ -437,6 +462,15 @@ public class SocketSecureKey {
          */
         public static final byte MODEL_FINISH = 0x02;
 
+        /**
+         * 正常
+         */
+        public static final byte MODEL_RUNNING = 0x01;
+
+        /**
+         * 不正常
+         */
+        public static final byte MODEL_ERROR = 0x02;
 
         /**
          * true
@@ -474,7 +508,6 @@ public class SocketSecureKey {
          * 睡眠灯
          */
         public static final byte MODEL_NIGHT_LIGHT = 0x05;
-
 
         /**
          * 定温度
@@ -557,9 +590,18 @@ public class SocketSecureKey {
         public static final byte MODEL_INTERVAL_YEAR = 0x06;
 
 
+        /**
+         * 温度传感器
+         */
+        public static final byte MODEL_TEMP_SENSOR = 0x01;
+
     }
 
     public static class Util {
+
+        public static boolean isTempSensor(byte sensor) {
+            return sensor == Model.MODEL_TEMP_SENSOR;
+        }
 
         public static boolean isIntervalMinute(byte interval) {
             return interval == Model.MODEL_INTERVAL_MINUTE;
@@ -592,6 +634,10 @@ public class SocketSecureKey {
         public static boolean resultIsOk(byte result) {
 
             return (result == Model.MODEL_RESULT_SUCCESS);
+        }
+
+        public static boolean isRunning(byte flag) {
+            return (flag == Model.MODEL_RUNNING);
         }
 
         public static boolean resultIsUnbind(byte result) {

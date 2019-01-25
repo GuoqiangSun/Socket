@@ -39,8 +39,7 @@ import cn.com.startai.socket.mutual.Controller;
 import cn.com.startai.socket.mutual.js.IAndJSCallBack;
 import cn.com.startai.socket.mutual.js.bean.StatusBarBean;
 import cn.com.startai.socket.mutual.js.bean.ThirdLoginUser;
-import cn.com.startai.socket.sign.hardware.WiFi.impl.NetworkManager;
-import cn.com.startai.socket.sign.hardware.WiFi.util.MockLocation;
+import cn.com.startai.socket.sign.hardware.manager.AbsHardwareManager;
 import cn.com.startai.socket.sign.js.jsInterface.Language;
 import cn.com.startai.socket.sign.js.jsInterface.Login;
 import cn.com.startai.socket.sign.js.jsInterface.Router;
@@ -433,53 +432,6 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         startActivity(i);
     }
 
-    private LoginHelp mLoginHelp;
-
-    @Override
-    public void login(String type) {
-
-        if (mLoginHelp == null) {
-            mLoginHelp = LoginHelp.getInstance();
-            mLoginHelp.regLoginCallBack(new LoginHelp.OnLoginResult() {
-                @Override
-                public void onResult(boolean result, ThirdLoginUser mUser) {
-
-
-                    String data;
-
-                    if (mUser != null) {
-                        Tlog.v(H5Config.TAG, " loginResult :" + mUser.toString());
-                        data = mUser.toJsonStr();
-                    } else {
-                        data = "{}";
-                    }
-
-                    String method = Login.Method.callJsThirdLogin(result, data);
-                    ajLoadJs(method);
-
-                }
-            });
-
-        }
-
-        if (type.equalsIgnoreCase(Login.TYPE_LOGIN_FACEBOOK)) {
-
-            mLoginHelp.loginFacebook(this);
-
-        } else if (type.equalsIgnoreCase(Login.TYPE_LOGIN_GOOGLE)) {
-
-            mLoginHelp.loginGoogle(this);
-
-        } else if (type.equalsIgnoreCase(Login.TYPE_LOGIN_TWITTER)) {
-
-            mLoginHelp.loginTwitter(this);
-
-        } else {
-            Tlog.e(H5Config.TAG, " login unknown type ");
-        }
-
-    }
-
     private boolean status = true;
 
     @Override
@@ -497,7 +449,11 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
     @Override
     public void onAjStartActivityForResult(Intent intent, int requestPhotoCode) {
         Tlog.d(TAG, "onAjStartActivityForResult " + requestPhotoCode);
-        this.startActivityForResult(intent, requestPhotoCode);
+        if (requestPhotoCode <= 0) {
+            this.startActivity(intent);
+        } else {
+            this.startActivityForResult(intent, requestPhotoCode);
+        }
     }
 
     private static final int SKIP_WEB = 0x6352;
@@ -597,13 +553,9 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
             return;
         }
 
-        if (mLoginHelp != null) {
-            mLoginHelp.onActivityResult(requestCode, resultCode, data);
-        }
-
-        NetworkManager networkManager = Controller.getInstance().getNetworkManager();
-        if (networkManager != null) {
-            networkManager.onActivityResult(requestCode, resultCode, data);
+        AbsHardwareManager hardwareManager = Controller.getInstance().getHardwareManager();
+        if (hardwareManager != null) {
+            hardwareManager.onActivityResult(requestCode, resultCode, data);
         } else {
             Tlog.e(TAG, " NetworkManager == null ");
         }

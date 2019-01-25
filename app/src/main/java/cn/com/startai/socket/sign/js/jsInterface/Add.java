@@ -36,9 +36,19 @@ public class Add extends AbsHandlerJsInterface {
         void onJSACloseDiscoveryLanDevice();
 
         void onJSABindLanDevice(LanBindInfo obj);
+
+        void onJSScanQRCode();
     }
 
     public static final class Method {
+
+
+        private static final String SCAN_QR = "javascript:callThePhoneScanResponse($result,'$data')";
+
+        public static String callJsScanQR(boolean result, String data) {
+            return SCAN_QR.replace("$result", String.valueOf(result))
+                    .replace("$data", String.valueOf(data));
+        }
 
         private static final String WIFI_IS_CON = "javascript:isConnectToWiFiResponse($result)";
 
@@ -60,7 +70,7 @@ public class Add extends AbsHandlerJsInterface {
 
         private static final String DEVICE_CON_RESULT = "javascript:connectionNetworkResponse($result,'$mac')";
 
-        public static String callJsDeviceConResult(boolean result,String mac) {
+        public static String callJsDeviceConResult(boolean result, String mac) {
             return DEVICE_CON_RESULT.replace("$result", String.valueOf(result))
                     .replace("$mac", String.valueOf(mac));
         }
@@ -187,6 +197,13 @@ public class Add extends AbsHandlerJsInterface {
 
     }
 
+    @JavascriptInterface
+    public void callThePhoneScanRequest() {
+        Tlog.v(TAG, " callThePhoneScanRequest ");
+
+        getHandler().sendEmptyMessage(MSG_SCAN_OR);
+    }
+
 
     private static final int MSG_IS_WIFI_CON = 0x25;
     private static final int MSG_REQ_CON_WIFI_SSID = 0x26;
@@ -195,6 +212,8 @@ public class Add extends AbsHandlerJsInterface {
     private static final int MSG_DISCOVERY_LAN_DEVICE = 0x29;
     private static final int MSG_CLOSE_DISCOVERY_LAN_DEVICE = 0x2A;
     private static final int MSG_BIND_LAN_DEVICE = 0x2B;
+
+    private static final int MSG_SCAN_OR = 0x2C;
 
     @Override
     protected void handleMessage(Message msg) {
@@ -237,6 +256,11 @@ public class Add extends AbsHandlerJsInterface {
             if (mCallBack != null) {
                 mCallBack.onJSABindLanDevice((LanBindInfo) msg.obj);
             }
+        } else if (msg.what == MSG_SCAN_OR) {
+            if (mCallBack != null) {
+                mCallBack.onJSScanQRCode();
+            }
+
         } else {
             Tlog.e(TAG, NAME_JSI + " handleMessage unknown what:" + msg.what);
         }

@@ -28,24 +28,13 @@ public class DBManager implements IApp {
         return ClassHolder.DBMANAGER;
     }
 
-    private WeakReference<Context> wr;
 
     @Override
     public void init(Application app) {
-        this.wr = new WeakReference<>(app.getApplicationContext());
-        initDB();
+        initDB(app);
     }
 
-    private void initDB() {
-        Context app = null;
-        if (wr != null && (app = wr.get()) != null) {
-            app = wr.get();
-        }
-
-        if (app == null) {
-            Tlog.e(" DBManager init fail.(Context==null)");
-            return;
-        }
+    private void initDB(Application app) {
 
         UpdateOpenHelper updateOpenHelper = new UpdateOpenHelper(app);
 //                Database writableDb = updateOpenHelper.getEncryptedWritableDb("123");

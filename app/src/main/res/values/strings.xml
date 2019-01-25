@@ -16,6 +16,10 @@
     <string name="generating_verification_fail">Generating verification report fail</string>
     <string name="out_of_memory_need_clear">The memory is about to overflow, please generate the verification report in time</string>
 
+    <string name="device_offline">Device offline</string>
+    <string name="offline">offline</string>
+    <string name="temp_sensor_error_title">Abnormal temperature detection</string>
+    <string name="temp_sensor_error">Please make sure temperature sensor is properly plugged on</string>
 
     <string name="facebook_app_id">395768114167191</string>
     <string name="fb_login_protocol_scheme">fb395768114167191</string>

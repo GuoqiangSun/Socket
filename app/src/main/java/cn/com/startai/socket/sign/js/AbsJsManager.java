@@ -56,7 +56,7 @@ public abstract class AbsJsManager implements Device.IJSDeviceCallBack,//
         User.IJSUserCallBack, Store.IJSStoreCallBack, State.IJSStateCallBack,//
         StatusBar.IJSStatusBarCallBack, Version.IJSVersionCallBack,
         ColourLamp.IJSColourLampCallBack, NightLight.IJSNightLightCallBack,
-        USBSwitch.IJSUSBSwitchCallBack ,Weather.IJSWeatherCallBack {
+        USBSwitch.IJSUSBSwitchCallBack, Weather.IJSWeatherCallBack {
 
     public abstract void regJsManagerCallBack(IJSManagerCallback mJSManagerCallBack);
 
@@ -149,7 +149,7 @@ public abstract class AbsJsManager implements Device.IJSDeviceCallBack,//
 
         void onJSThirdLogin(String type);
 
-        void onJSGetMobileLoginCode(String phone,int type);
+        void onJSGetMobileLoginCode(String phone, int type);
 
         void onJSMobileLogin(MobileLogin obj);
 
@@ -292,6 +292,17 @@ public abstract class AbsJsManager implements Device.IJSDeviceCallBack,//
         void onJSSetNightLightColor(ColorLampRGB obj);
 
         void onJSQueryWeatherByIp();
+
+        void onJSCallPhone(String phone);
+
+        void onJSQueryIndicatorState(String mac);
+
+        void onJSControlIndicatorState(String obj, boolean b);
+
+        void queryTemperatureSensor(String mac);
+
+        void onJSScanQRCode();
+
     }
 
 }

@@ -78,23 +78,26 @@ public class DownloadTask extends AsyncTask<Void, Void, Void> {
     @Override
     protected Void doInBackground(Void... voids) {
 
-        boolean hasSuffix = true;
 
-        int i = url.lastIndexOf("/");
-        if (i > 0) {
-            String substring = url.substring(i + 1);
+        formBitmap();
 
-            int i1 = substring.indexOf(".");
-            if (i1 < 0) {
-                hasSuffix = false;
-            }
-        }
 
-        if (hasSuffix) {
-            fromHttp();
-        } else {
-            formBitmap();
-        }
+//        boolean hasSuffix = true;
+//
+//        int i = url.lastIndexOf("/");
+//        if (i > 0) {
+//            String substring = url.substring(i + 1);
+//
+//            int i1 = substring.indexOf(".");
+//            if (i1 < 0) {
+//                hasSuffix = false;
+//            }
+//        }
+//        if (hasSuffix) {
+//            fromHttp();
+//        } else {
+//            formBitmap();
+//        }
 
         return null;
     }
@@ -120,15 +123,27 @@ public class DownloadTask extends AsyncTask<Void, Void, Void> {
 
                 Bitmap bitmap = BitmapFactory.decodeStream(bis);
 
-                FileOutputStream fos = new FileOutputStream(outputFile);
-                BufferedOutputStream bos = new BufferedOutputStream(fos);
+                BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(outputFile));
 
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos);
+                Tlog.v(TAG, "DownloadTask formBitmap start compress length:" + outputFile.length());
+
+//                bmp,jpg,png,tif,gif,pcx,tga,exif,fpx,svg,psd,cdr,pcd,dxf,ufo,eps,ai,raw,WMF,webp等。
+
+                if (url.endsWith(".jpg") || url.endsWith(".jpeg")) {
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos);
+                } else if (url.endsWith(".png")) {
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, bos);
+                } else if (url.endsWith(".webp")) {
+                    bitmap.compress(Bitmap.CompressFormat.WEBP, 100, bos);
+                } else {
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos);
+                }
+
+                Tlog.v(TAG, "DownloadTask formBitmap compress finish  length:" + outputFile.length());
 
                 bis.close();
 
                 bos.flush();
-
                 bos.close();
 
             }
@@ -187,16 +202,22 @@ public class DownloadTask extends AsyncTask<Void, Void, Void> {
 
                 }
 
-                Tlog.v(TAG, "DownloadTask success syncFile ; allLength:" + allLength);
+                bos.flush();
+
                 FileUtil.syncFile(fos.getFD());
                 FileUtil.copyFileUsingFileChannels(file, outputFile);
 
-                boolean delete = file.delete();
-                Tlog.v(TAG, "DownloadTask copyFile success delete cache " + delete);
+                Tlog.v(TAG, "DownloadTask success syncFile ; allLength:" + allLength
+                        + "  outputFile.length():" + outputFile.length());
+
+                file.delete(); // delete cache
+
+                if (outputFile.length() < allLength) {
+                    boolean delete = outputFile.delete();
+                    Tlog.v(TAG, "DownloadTask success ; but outputFile.length()< allLength: delete :" + delete);
+                }
 
                 bis.close();
-
-                bos.flush();
 
                 bos.close();
 

@@ -1,10 +1,5 @@
 package cn.com.startai.socket.sign.hardware.WiFi.util;
 
-/**
- * author: Guoqiang_Sun
- * date : 2018/7/9 0009
- * desc :
- */
 
 import android.content.Context;
 import android.hardware.Sensor;
@@ -14,11 +9,14 @@ import android.hardware.SensorManager;
 
 import cn.com.swain.baselib.log.Tlog;
 
-
 /**
+ * author: Guoqiang_Sun
+ * date : 2018/7/9 0009
+ * desc :
  * 一个检测手机摇晃的监听器 加速度传感器 values[0]： x-axis 方向加速度 values[1]： y-axis 方向加速度
  * values[2]： z-axis 方向加速度
  */
+
 public class ShakeListener implements SensorEventListener {
 
     private String TAG = "shake";

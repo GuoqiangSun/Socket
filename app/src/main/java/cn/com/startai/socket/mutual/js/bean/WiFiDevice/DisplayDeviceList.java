@@ -100,10 +100,10 @@ public class DisplayDeviceList {
 //                    tmpDisplayLanDevice.setState(displayDeviceByMac.getState());
                 }
 
-//                Tlog.e(DeviceManager.TAG, " DisplayDeviceList.addAll() put " + tmpDisplayLanDevice.deviceID + " " + tmpDisplayLanDevice.mac);
+                Tlog.e(TAG, " DisplayDeviceList.addAll() put " + tmpDisplayLanDevice.deviceID + " " + tmpDisplayLanDevice.mac);
                 add(tmpDisplayLanDevice);
 
-                mIDArrayCopy.remove(tmpDisplayLanDevice.deviceID);
+                mIDArrayCopy.remove(tmpDisplayLanDevice.deviceID);// 没有移除的,后来要从全局缓存中移除。
 
             }
 

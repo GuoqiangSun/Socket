@@ -19,8 +19,6 @@ public interface IAndJSCallBack {
 
     void skipProductDetection(String conMac);
 
-    void login(String type);
-
     void ajDisableGoBack(boolean status);
 
     void onAjStartActivityForResult(Intent intent, int requestPhotoCode);

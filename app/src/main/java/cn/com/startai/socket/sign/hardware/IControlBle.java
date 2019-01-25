@@ -15,33 +15,33 @@ public interface IControlBle {
      *
      * @return
      */
-    boolean isHWEnabled();
+    boolean isBleEnabled();
 
     /**
      * 激活HW
      */
-    boolean enableHW();
+    boolean enableBle();
 
 
     /**
      * 扫描HW
      */
-    void scanningHW();
+    void scanningBle();
 
     /**
      * 停止扫描HW
      */
-    void stopScanningHW();
+    void stopScanningBle();
 
     /**
      * @param mac
      */
-    void connectHW(String mac);
+    void connectBle(String mac);
 
     /**
      * @param mac
      */
-    void disconnectHW(String mac);
+    void disconnectBle(String mac);
 
 
     void regIBleResultCallBack(IBleResultCallBack mHWCallBack);

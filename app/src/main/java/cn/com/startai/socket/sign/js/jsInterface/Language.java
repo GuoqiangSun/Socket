@@ -11,8 +11,8 @@ import java.util.Locale;
 import cn.com.startai.socket.mutual.js.xml.LocalData;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.swain.baselib.jsInterface.AbsHandlerJsInterface;
-import cn.com.swain.baselib.util.ChangeLanguageHelper;
 import cn.com.swain.baselib.log.Tlog;
+import cn.com.swain.baselib.util.ChangeLanguageHelper;
 
 /**
  * author: Guoqiang_Sun

@@ -163,6 +163,10 @@ public class LanDeviceInfo implements Cloneable {
         return clone;
     }
 
+    public String toJsonStr() {
+        return toJsonObj().toString();
+    }
+
     public JSONObject toJsonObj() {
 
         JSONObject obj = new JSONObject();

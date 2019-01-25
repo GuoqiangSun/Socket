@@ -2,7 +2,7 @@ package cn.com.startai.socket.mutual.js;
 
 import cn.com.startai.socket.sign.hardware.AbsWiFi;
 import cn.com.startai.socket.sign.hardware.IControlBle;
-import cn.com.startai.socket.sign.hardware.IControlWiFi;
+import cn.com.startai.socket.sign.hardware.manager.AbsHardwareManager;
 import cn.com.startai.socket.sign.js.AbsJsManager;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.AbsSocketScm;
@@ -29,16 +29,6 @@ public abstract class AbsAndJsBridge implements AbsJsManager.IJSManagerCallback,
         }
     }
 
-    protected IControlBle mBleManager;
-
-    public void regIJsCallBle(IControlBle mBleManager) {
-        this.mBleManager = mBleManager;
-        if (this.mBleManager != null) {
-            this.mBleManager.regIBleResultCallBack(this);
-        } else {
-            Tlog.e(TAG, " AbsAndJsBridge regIJsCallHW()  IControlBle==null ");
-        }
-    }
 
     protected IVirtualSocketScm mScmVirtual;
 
@@ -51,15 +41,15 @@ public abstract class AbsAndJsBridge implements AbsJsManager.IJSManagerCallback,
         }
     }
 
-    protected IControlWiFi mNetworkManager;
+    protected AbsHardwareManager mHardwareManager;
 
-    public void regIJsCallWiFi(IControlWiFi mWiFi) {
-        this.mNetworkManager = mWiFi;
-
-        if (this.mNetworkManager != null) {
-            mWiFi.regWiFiResultCallBack(this);
+    public void regIJsCallHardware(AbsHardwareManager mHardware) {
+        this.mHardwareManager = mHardware;
+        if (this.mHardwareManager != null) {
+            this.mHardwareManager.regIBleResultCallBack(this);
+            this.mHardwareManager.regWiFiResultCallBack(this);
         } else {
-            Tlog.e(TAG, " AbsAndJsBridge regIJsCallWiFi()  IControlWiFi==null ");
+            Tlog.e(TAG, " AbsAndJsBridge regIJsCallHardware()  HardwareManager==null ");
         }
     }
 

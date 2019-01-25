@@ -44,7 +44,7 @@ public class SocketApplication extends MultiDexApplication implements Thread.Unc
         }
 
         Tlog.i("SocketApplication onCreate(); pid:" + android.os.Process.myPid()
-                + "; Build.VERSION.SDK_INT :" + Build.VERSION.SDK_INT);
+                + "; SDK_INT :" + Build.VERSION.SDK_INT + " RELEASE:" + Build.VERSION.RELEASE);
 
     }
 

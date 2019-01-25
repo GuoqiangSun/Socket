@@ -63,6 +63,8 @@ public class DeviceManager implements IService {
 
     private static final int MAG_WHAT_SHAKE = 0x05;
 
+    private static final int MAG_WHAT_FLUSH_ONE_DEVICE = 0x06;
+
     private Handler mDisplayHandler;
 
     @Override
@@ -77,7 +79,7 @@ public class DeviceManager implements IService {
                     displayBindDeviceLst(id);
                 } else if (msg.what == MAG_WHAT_FLUSH_DISPLAY_DEVICE) {
                     String id = (String) msg.obj;
-                    flushDevice(id);
+                    flushDevice(id, null);
                 } else if (msg.what == MAG_WHAT_WIFI_CONFIG_SUCCESS) {
                     String mac = (String) msg.obj;
 
@@ -130,6 +132,9 @@ public class DeviceManager implements IService {
                     String id = (String) msg.obj;
                     shakeSwitchNight(id);
 
+                } else if (msg.what == MAG_WHAT_FLUSH_ONE_DEVICE) {
+                    String mac = (String) msg.obj;
+                    flushDevice(null, mac);
                 }
             }
         };
@@ -294,6 +299,8 @@ public class DeviceManager implements IService {
         }
     };
 
+    private boolean hasQuery = false;
+
     /**
      * 查询绑定列表关系
      */
@@ -301,11 +308,19 @@ public class DeviceManager implements IService {
 
         Tlog.v(TAG, " queryBindDeviceList() " + mid);
 
-        StartAI.getInstance().getBaseBusiManager().getBindList(mid, 1, mGetBindingLsn);
-
         if (mDisplayHandler != null) {
-            mDisplayHandler.obtainMessage(MAG_WHAT_DISPLAY_BIND_DEVICE, mid).sendToTarget();
+            Message message = mDisplayHandler.obtainMessage(MAG_WHAT_DISPLAY_BIND_DEVICE, mid);
+            if (hasQuery) {
+                if (mDisplayHandler.hasMessages(MAG_WHAT_DISPLAY_BIND_DEVICE)) {
+                    mDisplayHandler.removeMessages(MAG_WHAT_DISPLAY_BIND_DEVICE);
+                }
+                mDisplayHandler.sendMessageDelayed(message, 1000);
+            } else {
+                message.sendToTarget();
+            }
         }
+        StartAI.getInstance().getBaseBusiManager().getBindList(mid, 1, mGetBindingLsn);
+        hasQuery = true;
     }
 
     void onDeviceUpdateResult(UpdateVersion mVersion) {
@@ -322,7 +337,9 @@ public class DeviceManager implements IService {
             LanDeviceInfo displayDeviceByMac = mDisplayDeviceLst.getDisplayDeviceByMac(mVersion.mac);
 
             if (displayDeviceByMac != null) {
-                int version = displayDeviceByMac.getVersion();
+
+                int oldVersion = displayDeviceByMac.getVersion();
+
                 displayDeviceByMac.setMainVersion((mVersion.curVersion >> 8) & 0xFF);
                 displayDeviceByMac.setSubVersion(mVersion.curVersion & 0xFF);
 
@@ -332,7 +349,7 @@ public class DeviceManager implements IService {
                     mResultCallBack.onResultWiFiDeviceListDisplay(mLst);
                 }
 
-                if (mVersion.curVersion != version) {
+                if (mVersion.curVersion != oldVersion) {
                     updateDaoLanDeviceInfo(displayDeviceByMac);
                 }
 
@@ -989,11 +1006,12 @@ public class DeviceManager implements IService {
                 }
 
 
-                if (!isAutoBindResult) {
-                    if (mResultCallBack != null) {
-                        mResultCallBack.onResultMsgSendError(resp.getContent().getErrcode());
-                        mResultCallBack.onResultBindDevice(false, bindMac);
-                    }
+                if (!isAutoBindResult) { // 广域网绑定失败不再告诉UI.
+
+//                    if (mResultCallBack != null) {
+//                        mResultCallBack.onResultMsgSendError(resp.getContent().getErrcode());
+//                        mResultCallBack.onResultBindDevice(false, bindMac);
+//                    }
                 } else {
                     Tlog.w(TAG, " bind fail is auto bind");
                 }
@@ -1168,7 +1186,15 @@ public class DeviceManager implements IService {
 
 
         if (mDisplayHandler != null) {
-            mDisplayHandler.obtainMessage(MAG_WHAT_DISPLAY_BIND_DEVICE, mid).sendToTarget();
+            if (mDisplayHandler.hasMessages(MAG_WHAT_DISPLAY_BIND_DEVICE)) {
+                mDisplayHandler.removeMessages(MAG_WHAT_DISPLAY_BIND_DEVICE);
+            }
+            Message message = mDisplayHandler.obtainMessage(MAG_WHAT_DISPLAY_BIND_DEVICE, mid);
+            if (hasQuery) {
+                mDisplayHandler.sendMessageDelayed(message, 1000);
+            } else {
+                message.sendToTarget();
+            }
         }
 
     }
@@ -1240,10 +1266,14 @@ public class DeviceManager implements IService {
     }
 
 
-    private void flushDevice(String mid) {
-        Tlog.v(TAG, "flushDevice() " + mid);
+    private void flushDevice(String mid, String mac) {
+        Tlog.v(TAG, "flushDevice()  mid:" + mid + " mac:" + mac);
 
-        if (mid == null || !mid.equals(mDisplayDeviceLst.getUserID())) {
+        if (mid == null && mac != null) {
+            // 只刷新单台设备，不校验mid
+
+        } else if (mid == null || !mid.equals(mDisplayDeviceLst.getUserID())) {
+
             Tlog.e(TAG, "flushDevice() mid not equals cache id:" + mDisplayDeviceLst.getUserID());
             return;
         }
@@ -1262,7 +1292,14 @@ public class DeviceManager implements IService {
 
             String key = entries.getKey();
 
-            LanDeviceInfo lanDeviceByMac = mDiscoveryDeviceLst.getLanDeviceByMac(key);
+            if (mac != null) {
+                if (!mac.equalsIgnoreCase(key)) {
+                    continue;
+                }
+            } else {
+                // mac == null flush all device
+            }
+
 
             LanDeviceInfo value = entries.getValue();
 
@@ -1280,48 +1317,55 @@ public class DeviceManager implements IService {
                 continue;
             }
 
-            if (lanDeviceByMac == null) {
+            if (value == null) {
+                Tlog.e(TAG, " value == null ");
+                continue;
+            }
 
-                if (value == null || !value.isWanBind) {
-                    Tlog.e(TAG, "flushDevice not wan bind " + String.valueOf(value));
-                    continue;
-                }
+            if (!value.isWanBind) {
+                // 没有广域网绑定,拦截,否则再发消息，会提示没有广域网绑定。
 
+                Tlog.e(TAG, "flushDevice not wan bind " + String.valueOf(value));
 
-                if (connectState == PersistentConnectState.CONNECTED) {
+                LanDeviceInfo lanDeviceByMac = mDiscoveryDeviceLst.getLanDeviceByMac(key);
 
-                    Tlog.w(TAG, "quickQueryRelay " + key);
+                if (lanDeviceByMac != null) {
+                    Tlog.w(TAG, "quickQueryRelay from lan " + key);
 
                     scmManager.quickQueryRelay(key);
-
-                    Tlog.w(TAG, "queryDeviceName " + key);
-
-                    scmManager.queryDeviceName(key);
-
-                    Tlog.w(TAG, "queryDeviceVersion " + key);
-
-                    scmManager.queryVersion(key);
-
-                    Tlog.w(TAG, "querySSID " + key);
-
-                    scmManager.querySSID(key);
-
-                    if (CustomManager.getInstance().isMUSIK()) {
-                        Tlog.w(TAG, "queryNightLight " + key);
-
-                        scmManager.queryNightLight(key);
-                    }
-
-                } else {
-                    Tlog.w(TAG, " flush device info " + key + " mqtt not con:" + String.valueOf(connectState));
                 }
 
-            } else {
+                continue;
+            }
+
+            if (connectState == PersistentConnectState.CONNECTED) {
 
                 Tlog.w(TAG, "quickQueryRelay " + key);
 
                 scmManager.quickQueryRelay(key);
+
+                Tlog.w(TAG, "queryDeviceName " + key);
+
+                scmManager.queryDeviceName(key);
+
+                Tlog.w(TAG, "queryDeviceVersion " + key);
+
+                scmManager.queryVersion(key);
+
+                Tlog.w(TAG, "querySSID " + key);
+
+                scmManager.querySSID(key);
+
+                if (CustomManager.getInstance().isMUSIK()) {
+                    Tlog.w(TAG, "queryNightLight " + key);
+
+                    scmManager.queryNightLight(key);
+                }
+
+            } else {
+                Tlog.w(TAG, " flush device info " + key + " mqtt not con:" + String.valueOf(connectState));
             }
+
 
         }
 
@@ -1440,7 +1484,7 @@ public class DeviceManager implements IService {
             }
 
             Message message = mDisplayHandler.obtainMessage(MAG_WHAT_FLUSH_DISPLAY_DEVICE, mid);
-            mDisplayHandler.sendMessageDelayed(message, 1000);
+            mDisplayHandler.sendMessageDelayed(message, 1000 * 3);
         }
 
     }
@@ -1450,6 +1494,7 @@ public class DeviceManager implements IService {
         tokenMap.clear();
 
         if (result == 1) {
+            hasQuery = false;
             if (mDisplayHandler != null) {
                 mDisplayHandler.removeMessages(MAG_WHAT_DISPLAY_BIND_DEVICE);
             }
@@ -1465,6 +1510,9 @@ public class DeviceManager implements IService {
 
     void onLoginResult(int result) {
         Tlog.e(TAG, " onLoginResult " + result);
+        if (result == 1) {
+            hasQuery = false;
+        }
     }
 
     private final IOnCallListener mRenameDeviceLsn = new IOnCallListener() {
@@ -1589,6 +1637,15 @@ public class DeviceManager implements IService {
         }
 
         mDisplayDeviceLst.updateConnectStatus(sn, mac, status == 1);
+
+        if (status == 0) {
+            mDiscoveryDeviceLst.removeDeviceByMac(mac);
+        } else {
+            if (mDisplayHandler != null) {
+                Message message = mDisplayHandler.obtainMessage(MAG_WHAT_FLUSH_ONE_DEVICE, mac);
+                mDisplayHandler.sendMessageDelayed(message, 1000 * 2);
+            }
+        }
 
         LanDeviceInfo displayDeviceByFromId = mDisplayDeviceLst.getDisplayDeviceById(sn);
 

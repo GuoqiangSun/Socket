@@ -48,9 +48,7 @@ public class FileManager extends FileTemplate {
 
 
     /**
-     * 获取app缓存数据的目录
-     *
-     * @return
+     * app缓存数据的目录
      */
     protected File initMyProjectPath() {
         if (CustomManager.getInstance().isTriggerBle()) {

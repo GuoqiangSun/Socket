@@ -187,20 +187,29 @@ dependencies {
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0'
     implementation files('libs/startai-esptouch-sender-1.0.jar')
 
-    implementation 'cn.com.startai:mqsdk:3.1.38'
+    implementation 'cn.com.startai:mqsdk:3.1.39'
     implementation 'com.blankj:utilcode:1.22.1'
     implementation 'org.xutils:xutils:3.5.0'
     implementation 'cn.com.startai:fastdfssdk:1.0.2'
     api 'com.android.support:multidex:1.0.3'
 
-    api 'cn.com.swain169:baselib:3.2.05'
+    api 'cn.com.swain169:baselib:3.2.06'
     //    api 'cn.com.swain169:Tlog:3.1.10'
     implementation 'cn.com.swain169:fastble:3.2.01'
-    implementation 'cn.com.swain169:protocolEngine:3.2.01'
+    implementation 'cn.com.swain169:protocolEngine:3.2.06'
     implementation 'cn.com.swain169:fastudp:3.2.01'
     // 调试
     api 'com.facebook.stetho:stetho:1.5.0'
     //支付宝 sdk
     api(name: 'alipaySdk-15.5.9-20181123210601', ext: 'aar')
+
+
+    //zxing二维码识别 基础包
+    implementation 'com.google.zxing:core:3.3.0'
+    //二维码扫描 ui 库
+    implementation 'com.mylhyl:zxingscanner:2.1.0'
+    //startai 二维码扫描 sdk
+    implementation 'cn.com.startai:scansdk:1.1.4'
+
 }
 

@@ -6,7 +6,6 @@
     <string name="jump_product_detection_near_step">请再按$step下进入产测</string>
     <string name="wifi_state_allow_permission">您必须允许这个权限，否则无法获取WiFi信息</string>
 
-
     <string name="skip_product_detection">进入产测模式</string>
     <string name="sign_out_product_detection">退出产测模式</string>
     <string name="detection_rec_area">接受区:</string>
@@ -16,5 +15,10 @@
     <string name="generating_verification_success">生成报告成功</string>
     <string name="generating_verification_fail">生成报告失败</string>
     <string name="out_of_memory_need_clear">内存即将溢出,请及时生成验证报告</string>
+
+    <string name="device_offline">设备离线</string>
+    <string name="offline">离线</string>
+    <string name="temp_sensor_error_title">温度检测异常！</string>
+    <string name="temp_sensor_error">温度检测异常！请确保温度传感器已正确插入！</string>
 
 </resources>

@@ -24,12 +24,12 @@ public class DaoMaster extends AbstractDaoMaster {
         CountAverageElectricityDao.createTable(db, ifNotExists);
         CountElectricityDao.createTable(db, ifNotExists);
         DisplayBleDeviceDao.createTable(db, ifNotExists);
+        JsUserInfoDao.createTable(db, ifNotExists);
+        JsWeatherInfoDao.createTable(db, ifNotExists);
         LanDeviceInfoDao.createTable(db, ifNotExists);
         UserInfoDao.createTable(db, ifNotExists);
         WanBindingDeviceDao.createTable(db, ifNotExists);
         PowerCountdownDao.createTable(db, ifNotExists);
-        JsUserInfoDao.createTable(db, ifNotExists);
-        JsWeatherInfoDao.createTable(db, ifNotExists);
     }
 
     /** Drops underlying database table using DAOs. */
@@ -37,12 +37,12 @@ public class DaoMaster extends AbstractDaoMaster {
         CountAverageElectricityDao.dropTable(db, ifExists);
         CountElectricityDao.dropTable(db, ifExists);
         DisplayBleDeviceDao.dropTable(db, ifExists);
+        JsUserInfoDao.dropTable(db, ifExists);
+        JsWeatherInfoDao.dropTable(db, ifExists);
         LanDeviceInfoDao.dropTable(db, ifExists);
         UserInfoDao.dropTable(db, ifExists);
         WanBindingDeviceDao.dropTable(db, ifExists);
         PowerCountdownDao.dropTable(db, ifExists);
-        JsUserInfoDao.dropTable(db, ifExists);
-        JsWeatherInfoDao.dropTable(db, ifExists);
     }
 
     /**
@@ -64,12 +64,12 @@ public class DaoMaster extends AbstractDaoMaster {
         registerDaoClass(CountAverageElectricityDao.class);
         registerDaoClass(CountElectricityDao.class);
         registerDaoClass(DisplayBleDeviceDao.class);
+        registerDaoClass(JsUserInfoDao.class);
+        registerDaoClass(JsWeatherInfoDao.class);
         registerDaoClass(LanDeviceInfoDao.class);
         registerDaoClass(UserInfoDao.class);
         registerDaoClass(WanBindingDeviceDao.class);
         registerDaoClass(PowerCountdownDao.class);
-        registerDaoClass(JsUserInfoDao.class);
-        registerDaoClass(JsWeatherInfoDao.class);
     }
 
     public DaoSession newSession() {

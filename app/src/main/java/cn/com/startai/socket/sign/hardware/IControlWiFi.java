@@ -1,5 +1,6 @@
 package cn.com.startai.socket.sign.hardware;
 
+import android.app.Activity;
 import android.content.Intent;
 
 import cn.com.startai.socket.mutual.js.bean.JsUserInfo;
@@ -141,6 +142,12 @@ public interface IControlWiFi {
 
     void queryWeatherByIp();
 
+    void callPhone(String phone);
+
+    void thirdLogin(Activity act, String type);
+
+    void scanQRCode(Activity act);
+
 
     interface IWiFiResultCallBack {
 
@@ -227,6 +234,11 @@ public interface IControlWiFi {
         void onResultUnbindWX(boolean b);
 
         void onResultUnbindAli(boolean b);
+
+        void onResultCallPhone(boolean b);
+
+        void onResultScanQRCode(boolean b, String scanResult);
+        
     }
 
 }

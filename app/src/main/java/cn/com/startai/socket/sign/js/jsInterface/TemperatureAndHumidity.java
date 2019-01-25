@@ -36,9 +36,24 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
         void onJSTHSetTemperatureTimingAlarm(TimingTempHumiData obj);
 
         void onJSTHQueryTemperatureTimingAlarm(String obj, int model);
+
+        void onJSQueryTemperatureSensor(String mac);
     }
 
     public static final class Method {
+
+
+        private static final String METHOD_TEMPERATURE_SENSOR_STATE
+                = "javascript:temperatureSensorStateResponse('$mac',$state)";
+
+        public static final String callJsTemperatureSensorState(String mac, boolean state) {
+            if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
+            return METHOD_TEMPERATURE_SENSOR_STATE.replace("$mac", mac)
+                    .replace("$state", String.valueOf(state));
+        }
+
+
+
 
         private static final String METHOD_TEMPERATURE_HUMIDITY_DATA
                 = "javascript:temperatureAndHumidityDataResponse('$mac','$data')";
@@ -214,6 +229,13 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
 
     }
 
+
+    @JavascriptInterface
+    public void temperatureSensorStateRequest(String mac) {
+        Tlog.v(TAG, " temperatureSensorStateRequest mac:" + mac);
+        getHandler().obtainMessage(MSG_QUERY_TEMP_SENSOR, mac).sendToTarget();
+    }
+
     private static final int MSG_QUERY_TEMP_HUMIDITY = 0x0F;
 
     private static final int MSG_SET_TEMP_ALARM = 0x10;
@@ -223,6 +245,8 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
     private static final int MSG_SET_TEMP_TIMING = 0x12;
 
     private static final int MSG_QUERY_TEMP_TIMING = 0x13;
+
+    private static final int MSG_QUERY_TEMP_SENSOR = 0x14;
 
     @Override
     protected void handleMessage(Message msg) {
@@ -247,6 +271,10 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
         } else if (msg.what == MSG_QUERY_TEMP_TIMING) {
             if (mCallBack != null) {
                 mCallBack.onJSTHQueryTemperatureTimingAlarm((String) msg.obj, msg.arg1);
+            }
+        } else if (msg.what == MSG_QUERY_TEMP_SENSOR) {
+            if (mCallBack != null) {
+                mCallBack.onJSQueryTemperatureSensor((String) msg.obj);
             }
         }
 

@@ -20,6 +20,13 @@ public class User extends AbsHandlerJsInterface {
 
     public static class Method {
 
+        private static final String METHOD_CALL_PHONE = "javascript:makePhoneCallResponse($result)";
+
+        public static String callJsCallPhone(boolean result) {
+            return METHOD_CALL_PHONE.replace("$result", String.valueOf(result));
+        }
+
+
         private static final String METHOD_UNBIND_ALI = "javascript:untiedAlipayResponse($result)";
 
         public static String callJsUnbindAliResult(boolean result) {
@@ -138,6 +145,7 @@ public class User extends AbsHandlerJsInterface {
 
         void onJSUnBindAli();
 
+        void onJSCallPhone(String phone);
     }
 
     public static final String NAME_JSI = "User";
@@ -250,6 +258,12 @@ public class User extends AbsHandlerJsInterface {
         getHandler().sendEmptyMessage(MSG_UNBIND_ALI);
     }
 
+    @JavascriptInterface
+    public void makePhoneCallRequest(String phone) {
+        Tlog.v(TAG, " makePhoneCallRequest " + phone);
+        getHandler().obtainMessage(MSG_MAKE_PHONE, phone).sendToTarget();
+    }
+
     private static final int MSG_UPDATE_PWD = 0x02;
     private static final int MSG_CHECK_IS_NEED_UPDATE = 0x03;
     private static final int MSG_NEED_UPDATE = 0x04;
@@ -275,6 +289,8 @@ public class User extends AbsHandlerJsInterface {
     private static final int MSG_UNBIND_WX = 0x10;
 
     private static final int MSG_UNBIND_ALI = 0x11;
+
+    private static final int MSG_MAKE_PHONE = 0x12;
 
     @Override
     protected void handleMessage(Message msg) {
@@ -381,6 +397,12 @@ public class User extends AbsHandlerJsInterface {
             case MSG_UNBIND_ALI:
                 if (mCallBack != null) {
                     mCallBack.onJSUnBindAli();
+                }
+                break;
+
+            case MSG_MAKE_PHONE:
+                if (mCallBack != null) {
+                    mCallBack.onJSCallPhone((String)msg.obj);
                 }
                 break;
         }

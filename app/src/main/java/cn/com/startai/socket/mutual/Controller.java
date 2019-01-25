@@ -5,13 +5,12 @@ import android.app.Application;
 import java.util.ArrayList;
 
 import cn.com.startai.socket.debuger.Debuger;
-import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.mutual.js.IAndJSCallBack;
 import cn.com.startai.socket.mutual.js.impl.AndJsBridge;
 import cn.com.startai.socket.mutual.protocol.SocketProtocolWrapper;
-import cn.com.startai.socket.sign.hardware.AbsHardware;
 import cn.com.startai.socket.sign.hardware.WiFi.impl.NetworkManager;
-import cn.com.startai.socket.sign.hardware.ble.impl.BleManager;
+import cn.com.startai.socket.sign.hardware.manager.AbsHardwareManager;
+import cn.com.startai.socket.sign.hardware.manager.HardwareManager;
 import cn.com.startai.socket.sign.js.impl.JsManager;
 import cn.com.startai.socket.sign.scm.impl.SocketScmManager;
 import cn.com.swain.baselib.app.IApp.IService;
@@ -58,33 +57,7 @@ public class Controller implements IService {
         // js
         final JsManager mJsManager = new JsManager();
 
-
-        AbsHardware mHardware = null;
-
-        if (CustomManager.getInstance().isTriggerBle()) {
-            // 协议输出，jsToBle,
-            mHardware = new BleManager(app);
-
-        } else if (CustomManager.getInstance().isTriggerWiFi()) {
-            mHardware = new NetworkManager(app);
-
-        } else if (CustomManager.getInstance().isGrowroomate()) {
-            mHardware = new NetworkManager(app);
-
-        } else if (CustomManager.getInstance().isMUSIK()) {
-            mHardware = new NetworkManager(app);
-
-        }else if(CustomManager.getInstance().isTestProject()){
-
-            mHardware = new NetworkManager(app);
-
-        }else if(CustomManager.getInstance().isAirtempNBProject()){
-            mHardware = new NetworkManager(app);
-        }
-
-        if (mHardware == null) {
-            throw new RuntimeException(" AbsHardware is null ");
-        }
+        final AbsHardwareManager mHardware = new HardwareManager(app);
 
         // 协议输入，jsToScm,
         final SocketScmManager mScmManager = new SocketScmManager(app);
@@ -94,12 +67,7 @@ public class Controller implements IService {
         mProtocolWrapper.regOutputBase(mHardware);
         mProtocolWrapper.regInputBase(mScmManager);
 
-        if (mHardware instanceof BleManager) {
-            mAndJsBridge.regIJsCallBle((BleManager) mHardware);
-        } else if (mHardware instanceof NetworkManager) {
-            mAndJsBridge.regIJsCallWiFi((NetworkManager) mHardware);
-        }
-
+        mAndJsBridge.regIJsCallHardware(mHardware);
         mAndJsBridge.regIJsManager(mJsManager);
         mAndJsBridge.regIScm(mScmManager);
 
@@ -128,32 +96,17 @@ public class Controller implements IService {
         return (AndJsBridge) mServices.get(INDEX_AND_JS_BRIDGE);
     }
 
-    private AbsHardware getHw() {
+    public AbsHardwareManager getHardwareManager() {
         if (mServices.size() <= INDEX_HW_MANAGER) {
             return null;
         }
-        return (AbsHardware) mServices.get(INDEX_HW_MANAGER);
+        return (AbsHardwareManager) mServices.get(INDEX_HW_MANAGER);
     }
 
-    public BleManager getBleManager() {
-
-        AbsHardware hw = getHw();
-
-        if (hw instanceof BleManager) {
-            return (BleManager) hw;
-        }
-        return null;
-
-    }
 
     public NetworkManager getNetworkManager() {
-
-        AbsHardware hw = getHw();
-
-        if (hw instanceof NetworkManager) {
-            return (NetworkManager) hw;
-        }
-        return null;
+        AbsHardwareManager hw = getHardwareManager();
+        return ((HardwareManager) hw).getNetworkManager();
     }
 
     public SocketScmManager getScmManager() {

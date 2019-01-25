@@ -42,7 +42,9 @@ public class WXLoginHelper implements IApp {
                         appid = Consts.APP_ID_TRIGGER_WIFI;
                     } else if (CustomManager.getInstance().isMUSIK()) {
                         appid = Consts.APP_ID_MUSIK;
-                    } else {
+                    } else if(CustomManager.getInstance().isAirtempNBProject()){
+                        appid = Consts.APP_ID_NBAirtemp;
+                    }else {
                         Tlog.e("WXLoginHelper unknown custom ");
                     }
 
@@ -83,6 +85,11 @@ public class WXLoginHelper implements IApp {
 
         public static final String APP_ID_MUSIK = "wx437231624c76739a";
         public static final String APP_SECRET_MUSIK = "9e55e990268e5461fbbb0c904077a602";
+
+
+        public static final String APP_ID_NBAirtemp="wx002f27d00923b2a2";
+        public static final String APP_SECRET_NBSOCKET = "9eff0bff2a68356bfe278edc2480c9a8";
+
 
         //https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code
 

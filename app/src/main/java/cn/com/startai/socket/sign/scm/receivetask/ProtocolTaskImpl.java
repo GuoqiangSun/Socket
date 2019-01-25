@@ -13,11 +13,14 @@ import cn.com.startai.socket.sign.scm.receivetask.impl.control.CountdownQueryRec
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.CountdownSetReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.CumuParamQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.HistoryCountTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.control.IndicatorStatusControlReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.control.IndicatorStatusQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.MaxOutputQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.NightLightQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.NightLightSetReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.RGBQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.RGBSetReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.control.SensorStatusQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.SpendingElectricityQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.SpendingElectricitySetReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.SwitchControllerReceiveTask;
@@ -33,6 +36,7 @@ import cn.com.startai.socket.sign.scm.receivetask.impl.control.TimingTempHumiSet
 import cn.com.startai.socket.sign.scm.receivetask.impl.report.CountdownReportReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.report.NewElectricReportReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.report.PointReportReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.report.SensorStatusReportReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.report.TempHumiRelayReportReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.report.TempHumiReportReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.report.TimingExecuteReportReceiveTask;
@@ -63,13 +67,13 @@ import cn.com.startai.socket.sign.scm.receivetask.impl.system.SetTimezoneReceive
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.SleepReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.UpdateReceiveTask;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
+import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolOutput;
 import cn.com.swain.support.protocolEngine.ProtocolCode;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.result.SimpleProtocolResult;
 import cn.com.swain.support.protocolEngine.task.FailTaskResult;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun
@@ -310,7 +314,16 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                     case SocketSecureKey.Cmd.CMD_QUERY_NIGHT_LIGHT_RESPONSE:
                         new NightLightQueryReceiveTask(mTaskCallBack).execute(mParam);
                         break;
+                    case SocketSecureKey.Cmd.CMD_QUERY_TEMP_SENSOR_STATUS_RESPONSE:
+                        new SensorStatusQueryReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
 
+                    case SocketSecureKey.Cmd.CMD_QUERY_ANYNET_FLASH_RESPONSE:
+                        new IndicatorStatusQueryReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_CONTROL_ANYNET_FLASH_RESPONSE:
+                        new IndicatorStatusControlReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
                     default:
                         new ScmErrorTask(ProtocolCode.ERROR_CODE_RESOLVE_CMD, mTaskCallBack).execute(mParam);
                         break;
@@ -338,6 +351,9 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                         break;
                     case SocketSecureKey.Cmd.CMD_ELECTRICITY_REPORT:
                         new PointReportReceiveTask(mTaskCallBack, mResponse).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_TEMP_SENSOR_REPORT:
+                        new SensorStatusReportReceiveTask(mTaskCallBack, mResponse).execute(mParam);
                         break;
                     default:
                         new ScmErrorTask(ProtocolCode.ERROR_CODE_RESOLVE_CMD, mTaskCallBack).execute(mParam);

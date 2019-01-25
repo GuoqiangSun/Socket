@@ -365,6 +365,13 @@ public class JsManager extends AbsJsManager implements IService {
         }
     }
 
+    @Override
+    public void onJSQueryTemperatureSensor(String mac) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.queryTemperatureSensor(mac);
+        }
+    }
+
 
     @Override
     public void onJSTSetCommonTiming(TimingCommonData mTimingCommonData) {
@@ -475,6 +482,17 @@ public class JsManager extends AbsJsManager implements IService {
     }
 
     @Override
+    public void onJSQueryIndicatorLightState(String mac) {
+        mHandler.obtainMessage(MSG_QUERY_INDICATOR_STATE, mac).sendToTarget();
+    }
+
+    @Override
+    public void onJSControlIndicatorLightState(String mac, boolean on) {
+        int i = on ? 1 : 0;
+        mHandler.obtainMessage(MSG_CONTROL_INDICATOR_STATE, i, i, mac).sendToTarget();
+    }
+
+    @Override
     public void onJSQueryBackupTimeDirectory(String mac) {
 
         if (mJSManagerCallBack != null) {
@@ -496,6 +514,7 @@ public class JsManager extends AbsJsManager implements IService {
             mJSManagerCallBack.onJSRecoveryData(mac);
         }
     }
+
 
     @Override
     public void onJSLSetLanguage(String type) {
@@ -557,6 +576,13 @@ public class JsManager extends AbsJsManager implements IService {
     public void onJSABindLanDevice(LanBindInfo mLanBindInfo) {
         if (mJSManagerCallBack != null) {
             mJSManagerCallBack.onJSBindLanDevice(mLanBindInfo);
+        }
+    }
+
+    @Override
+    public void onJSScanQRCode() {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSScanQRCode();
         }
     }
 
@@ -981,6 +1007,13 @@ public class JsManager extends AbsJsManager implements IService {
         }
     }
 
+    @Override
+    public void onJSCallPhone(String phone) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSCallPhone(phone);
+        }
+    }
+
     private static class JmHandler extends Handler {
         private final WeakReference<JsManager> wr;
 
@@ -1046,6 +1079,9 @@ public class JsManager extends AbsJsManager implements IService {
     private static final int MSG_QUERY_TEMPERATURE_UNIT = 0x20;
     private static final int MSG_QUERY_MONETARY_UNIT = 0x21;
     private static final int MSG_QUERY_ELECTRICITY_PRICE = 0x22;
+
+    private static final int MSG_QUERY_INDICATOR_STATE = 0x23;
+    private static final int MSG_CONTROL_INDICATOR_STATE = 0x24;
 
 
     private static final int MSG_REQUEST_BLE_STATE = 0x31;
@@ -1205,7 +1241,11 @@ public class JsManager extends AbsJsManager implements IService {
                     mJSManagerCallBack.onJSQueryElectricityPrice((String) msg.obj);
                 }
                 break;
-
+            case MSG_QUERY_INDICATOR_STATE:
+                if (mJSManagerCallBack != null) {
+                    mJSManagerCallBack.onJSQueryIndicatorState((String) msg.obj);
+                }
+                break;
 
             case MSG_REQUEST_BLE_STATE:
                 if (mJSManagerCallBack != null) {
@@ -1222,6 +1262,12 @@ public class JsManager extends AbsJsManager implements IService {
             case MSG_RECONNECT_DEVICE:
                 if (mJSManagerCallBack != null) {
                     mJSManagerCallBack.onJSReconDevice((String) msg.obj);
+                }
+                break;
+
+            case MSG_CONTROL_INDICATOR_STATE:
+                if (mJSManagerCallBack != null) {
+                    mJSManagerCallBack.onJSControlIndicatorState((String) msg.obj, msg.arg1 == 1);
                 }
                 break;
 

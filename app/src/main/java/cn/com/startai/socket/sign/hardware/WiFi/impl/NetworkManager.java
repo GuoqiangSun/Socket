@@ -1,6 +1,7 @@
 package cn.com.startai.socket.sign.hardware.WiFi.impl;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -194,6 +195,7 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
         this.app = app;
         this.mUserManager = new UserManager(app);
         this.mDeviceManager = new DeviceManager();
+        Tlog.e(TAG, " NetworkManager new DeviceManager() " + mDeviceManager.hashCode());
     }
 
     public static final String TAG = "NetworkManager";
@@ -211,7 +213,6 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
     public void onSCreate() {
 
         Tlog.v(TAG, " NetworkManager onSCreate() ");
-
 
         // mqtt
         PersistentEventDispatcher.getInstance().registerOnTunnelStateListener(mConnectionStateListener);
@@ -285,6 +286,7 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
 
         if (mUdpCom != null) {
             mUdpCom.release();
+            mUdpCom = null;
         }
 
         if (mBroadcastUtil != null) {
@@ -301,6 +303,9 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
         }
 
         StartAI.getInstance().unInit();
+        PersistentEventDispatcher.getInstance().unregisterOnTunnelStateListener(mConnectionStateListener);
+        PersistentEventDispatcher.getInstance().unregisterOnPushListener(mComMessageListener);
+
     }
 
     @Override
@@ -704,6 +709,21 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
     }
 
     @Override
+    public void callPhone(String phone) {
+        mUserManager.callPhone(phone);
+    }
+
+    @Override
+    public void thirdLogin(Activity act, String type) {
+        mUserManager.thirdLogin(act, type);
+    }
+
+    @Override
+    public void scanQRCode(Activity act) {
+        mUserManager.scanQRCode(act);
+    }
+
+    @Override
     public void enableLocation() {
         mUserManager.enableLocation();
     }
@@ -745,7 +765,7 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
 
         if (getLoginUserID() != null) {
             mDeviceManager.queryBindDeviceList(getLoginUserID());
-            discoveryLanDevice(2);
+            discoveryLanDevice(9);
         }
 
     }
@@ -755,7 +775,7 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
     public void discoveryLanDevice() {
         Tlog.v(TAG, " discoveryLanDevice ");
         lanDiscoveryDisplay = true;
-        discoveryLanDevice(8);
+        discoveryLanDevice(9);
     }
 
     private void discoveryLanDevice(int times) {
@@ -773,14 +793,16 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
     public void closeDiscoveryLanDevice() {
         Tlog.v(TAG, " closeDiscoveryLanDevice ");
         lanDiscoveryDisplay = false;
-        if (mBroadcastUtil != null) {
-            mBroadcastUtil.stopDiscovery();
-        }
+//        if (mBroadcastUtil != null) {
+//            mBroadcastUtil.stopDiscovery();
+//        }
     }
 
     @Override
     public void onDeviceUpdateResult(boolean result, UpdateVersion mVersion) {
-        discoveryLanDevice(12);
+        if (mVersion.isUpdateVersionAction()) {
+            discoveryLanDevice(12);
+        }
         if (result) {
             mDeviceManager.onDeviceUpdateResult(mVersion);
         }
@@ -1180,6 +1202,8 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
                 return false;
             }
 
+            AbsFastUdp mUdpCom = this.mUdpCom;
+
             if (mUdpCom == null) {
                 if (Debuger.isLogDebug) {
                     Tlog.w(TAG, "onOutputDataToServerByLan() mUdpCom=null :" + String.valueOf(mResponseData));
@@ -1247,11 +1271,19 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
             mResponseData.obj = deviceID;
             mResponseData.getRepeatMsgModel().setNeedRepeatSend(false);
 
-            if (Debuger.isLogDebug) {
-                Tlog.w(TAG, "onOutputDataToServerByWan() :" + mResponseData.toString());
-            }
+            if (displayDeviceByMac.state) {
 
-            StartAI.getInstance().getBaseBusiManager().passthrough(deviceID, mResponseData.data, mSendDataListener);
+                if (Debuger.isLogDebug) {
+                    Tlog.w(TAG, "onOutputDataToServerByWan() :" + mResponseData.toString());
+                }
+
+                StartAI.getInstance().getBaseBusiManager().passthrough(deviceID, mResponseData.data, mSendDataListener);
+
+            } else {
+                if (Debuger.isLogDebug) {
+                    Tlog.e(TAG, "onOutputDataToServerByWan() device offline :" + mResponseData.toString());
+                }
+            }
 
         } else {
 
@@ -1338,11 +1370,11 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
             mReceives.onInputServerData(mReceiveData);
 
             if (Debuger.isLogDebug) {
-                Tlog.d(TAG, "onSocketReceiveData() :" + String.valueOf(mReceiveData));
+                Tlog.d(TAG, "onUDPSocketReceiveData() :" + String.valueOf(mReceiveData));
             }
 
         } else {
-            Tlog.e(TAG, " onSocketReceiveData  mReceives==null ");
+            Tlog.e(TAG, " onUDPSocketReceiveData  mReceives==null ");
         }
 
     }
@@ -1355,6 +1387,9 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
     private void onWanSocketReceiveData(String fromId, byte[] data) {
 
         if (mReceives != null) {
+
+//            Tlog.e(TAG, " onWanSocketReceiveData : " + mDeviceManager.hashCode());
+
             String mac = mDeviceManager.getDisplayDeviceMacByID(fromId);
 
             if (mac == null) {
@@ -1363,7 +1398,9 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
                     mac = fromId;
                 } else {
                     if (Debuger.isLogDebug) {
-                        Tlog.e(TAG, "onWanSocketReceiveData() not find mac:" + fromId + StrUtil.toString(data));
+                        Tlog.e(TAG, "onWanSocketReceiveData() not find mac " + fromId
+                                + " deviceManager:" + mDeviceManager.hashCode()
+                                + StrUtil.toString(data));
                     }
                     return;
                 }
@@ -1525,7 +1562,7 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
                 Tlog.d(TAG, "onDeviceConnectStatusChange  sn " + sn + "  status:" + status + " userid:" + userid);
             }
             mDeviceManager.onDeviceConnectStatusChange(userid, status, sn);
-            discoveryLanDevice(2);
+            discoveryLanDevice(3);
 
         }
 

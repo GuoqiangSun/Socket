@@ -18,20 +18,17 @@ android {
         applicationId "cn.com.startai.superplug"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 16058
-        versionName "1.6.058"
-
+        versionCode 16063
+        versionName "1.6.063"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }
-
     lintOptions {
         checkReleaseBuilds false
         // Or, if you prefer, you can continue to check for errors in release builds,
         // but continue the build even when errors are found:
         abortOnError false
     }
-
     buildTypes {
         release {
             minifyEnabled false
@@ -46,6 +43,8 @@ android {
         variant.outputs.all {
             outputFileName = "MUSIK-${variant.versionName}-${variant.buildType.name}.apk"
         }
+    }
+    productFlavors {
     }
 }
 

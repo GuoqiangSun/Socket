@@ -5,6 +5,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Handler;
@@ -34,6 +35,7 @@ import cn.com.startai.socket.mutual.js.bean.CountElectricity;
 import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
 import cn.com.startai.socket.mutual.js.bean.TimingSetResult;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
+import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.AbsSocketScm;
 import cn.com.startai.socket.sign.scm.bean.CostRate;
 import cn.com.startai.socket.sign.scm.bean.CountdownData;
@@ -154,11 +156,10 @@ public class SocketScmManager extends AbsSocketScm
 
         mScmDeviceUtils = new ScmDeviceUtils(this, this);
 
-        int version = CustomManager.getInstance().getProtocolVersion();
 
         pm = ProtocolProcessorFactory.newMultiChannelSingleTask(LooperManager.getInstance().getProtocolLooper(),
                 new ProtocolTaskImpl(this, this, app),
-                version, true);
+                CustomManager.getInstance().getProtocolVersion(), true);
 
     }
 
@@ -1104,6 +1105,34 @@ public class SocketScmManager extends AbsSocketScm
     }
 
     @Override
+    public void queryIndicatorState(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getQueryAllIndicatorState(mac);
+
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryIndicatorState  data:" + String.valueOf(mResponseData));
+        }
+        onOutputDataToServer(mResponseData);
+    }
+
+    @Override
+    public void controlIndicatorState(String mac, boolean b) {
+        ResponseData mResponseData = MySocketDataCache.getTrunAllIndicatorState(mac, b);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " controlIndicatorState  data:" + String.valueOf(mResponseData));
+        }
+        onOutputDataToServer(mResponseData);
+    }
+
+    @Override
+    public void queryTemperatureSensor(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getQueryTempSensorStatus(mac);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryTemperatureSensor  data:" + String.valueOf(mResponseData));
+        }
+        onOutputDataToServer(mResponseData);
+    }
+
+    @Override
     public void queryRunningNightLight(String mac) {
         ResponseData mResponseData = MySocketDataCache.getQueryRunningNightLight(mac);
         if (Debuger.isLogDebug) {
@@ -1559,25 +1588,19 @@ public class SocketScmManager extends AbsSocketScm
 
         if (notificationManager == null) {
             //发送通知请求
-            Toast.makeText(app, "设备离线", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String ticker;
-        if (mac != null) {
-            ticker = String.valueOf(mac) + " 离线";
+        Resources resources = app.getResources();
 
-        } else {
-            ticker = " 设备离线";
-        }
-
+        String offline = resources.getString(R.string.offline);
+        String ticker = String.valueOf(mac) + offline;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             //创建通知渠道
-            CharSequence name = ticker;
 
             int importance = NotificationManager.IMPORTANCE_DEFAULT;//重要性级别
-            NotificationChannel mChannel = new NotificationChannel(ticker, name, importance);
+            NotificationChannel mChannel = new NotificationChannel(ticker, ticker, importance);
 
 //            String description = "渠道描述1";
 //            mChannel.setDescription(description);//渠道描述
@@ -1598,11 +1621,11 @@ public class SocketScmManager extends AbsSocketScm
          *  设置Builder
          */
         //设置标题
-        mBuilder.setContentTitle("设备离线")
+        mBuilder.setContentTitle(resources.getString(R.string.device_offline))
                 //设置内容
-                .setContentText(String.valueOf(mac) + " 离线")
+                .setContentText(String.valueOf(mac) + offline)
                 //设置大图标
-                .setLargeIcon(BitmapFactory.decodeResource(app.getResources(), R.mipmap.ic_launcher))
+                .setLargeIcon(BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher))
                 //设置小图标
                 .setSmallIcon(R.mipmap.ic_launcher_round)
                 //设置通知时间
@@ -1611,7 +1634,8 @@ public class SocketScmManager extends AbsSocketScm
                 .setTicker(ticker)
                 //设置通知方式，声音，震动，呼吸灯等效果，这里通知方式为声音
                 .setDefaults(Notification.DEFAULT_SOUND);
-        notificationManager.notify(10, mBuilder.build());
+        int id = mac.hashCode();
+        notificationManager.notify(id, mBuilder.build());
     }
 
     private static final long DIFF = 1000 * 32; //32s
@@ -1845,23 +1869,30 @@ public class SocketScmManager extends AbsSocketScm
                 mScmResultCallBack.onResultPublishSensorData(mac, sensorData);
             }
         }
+
+        // debug
+//        onQueryTempSensorResult(true, mac, false);
+
     }
 
 
     @Override
     public void onQueryTimingResult(String mac, boolean result, TimingListData mData) {
 
-        final TimingListData mTimingListData = mScmDeviceUtils.getScmDevice(mac).getTimingListData();
+        if (result) {
+            final TimingListData mTimingListData = mScmDeviceUtils.getScmDevice(mac).getTimingListData();
 
-        if (mData.isAdvanceModel()) {
-            mTimingListData.advanceDataArrayCopy(mData.getAdvanceDataArray());
-        } else if (mData.isCommonModel()) {
-            mTimingListData.commonDataArrayCopy(mData.getCommonDataArray());
+            if (mData.isAdvanceModel()) {
+                mTimingListData.advanceDataArrayCopy(mData.getAdvanceDataArray());
+            } else if (mData.isCommonModel()) {
+                mTimingListData.commonDataArrayCopy(mData.getCommonDataArray());
+            }
+
+            if (mScmResultCallBack != null) {
+                mScmResultCallBack.onResultQueryTiming(mac, mTimingListData);
+            }
         }
 
-        if (mScmResultCallBack != null) {
-            mScmResultCallBack.onResultQueryTiming(mac, mTimingListData);
-        }
     }
 
     @Override
@@ -1965,9 +1996,12 @@ public class SocketScmManager extends AbsSocketScm
                 int requestRandom = scmDevice.getRequestRandom();
                 Tlog.e(TAG, " requestRandom:" + requestRandom + " " + random);
                 if (requestRandom == random - 1) {
+
                     scmDevice.setToken(token);
-                    mScmResultCallBack.onResultRequestToken(mac, token);
                     MySocketDataCache.putToken(mac, token);
+
+                    mScmResultCallBack.onResultRequestToken(mac, token);
+
                 }
             }
         }
@@ -2307,6 +2341,103 @@ public class SocketScmManager extends AbsSocketScm
         if (mScmResultCallBack != null) {
             mScmResultCallBack.onResultColorLam(id, b);
         }
+    }
+
+    @Override
+    public void onIndicatorStatusResult(String mac, boolean result, byte seq, boolean on) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onResultIndicatorStatus(mac, result, seq, on);
+        }
+    }
+
+    @Override
+    public void onQueryTempSensorResult(boolean result, String mac, boolean status) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onResultQueryTempSensor(result, mac, status);
+        }
+    }
+
+    @Override
+    public void onReportTempSensorResult(String mac, boolean status) {
+
+        if (!status) {
+            notifyDeviceSensorError(mac);
+        }
+    }
+
+
+    private void notifyDeviceSensorError(String mac) {
+
+        if (app == null) {
+            return;
+        }
+        if (mac == null || H5Config.DEFAULT_MAC.equalsIgnoreCase(mac)) {
+            Tlog.e(TAG, " notifyDeviceSensorError mac == null");
+            return;
+        }
+
+        /**
+         *  创建通知栏管理工具
+         */
+
+        Context applicationContext = app.getApplicationContext();
+
+        NotificationManager notificationManager = (NotificationManager)
+                applicationContext.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (notificationManager == null) {
+            //发送通知请求
+            Tlog.e(TAG, " notifyDeviceSensorError notificationManager == null");
+            return;
+
+        }
+
+        String ticker = String.valueOf(mac) + " sensor error";
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            //创建通知渠道
+
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;//重要性级别
+            NotificationChannel mChannel = new NotificationChannel(ticker, ticker, importance);
+
+//            String description = "渠道描述1";
+//            mChannel.setDescription(description);//渠道描述
+//            mChannel.enableLights(true);//是否显示通知指示灯
+//            mChannel.enableVibration(true);//是否振动
+
+            //创建通知渠道
+            notificationManager.createNotificationChannel(mChannel);
+        }
+
+        /**
+         *  实例化通知栏构造器
+         */
+
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(app, ticker);
+
+        Resources resources = app.getResources();
+        String title = resources.getString(R.string.temp_sensor_error_title);
+        String error = resources.getString(R.string.temp_sensor_error);
+
+        /**
+         *  设置Builder
+         */
+        //设置标题
+        mBuilder.setContentTitle(String.valueOf(mac) + title)
+                //设置内容
+                .setContentText(error)
+                //设置大图标
+                .setLargeIcon(BitmapFactory.decodeResource(resources, R.mipmap.warning))
+                //设置小图标
+                .setSmallIcon(R.mipmap.warning)
+                //设置通知时间
+                .setWhen(System.currentTimeMillis())
+                //首次进入时显示效果
+                .setTicker(String.valueOf(mac) + title)
+                //设置通知方式，声音，震动，呼吸灯等效果，这里通知方式为声音
+                .setDefaults(Notification.DEFAULT_SOUND);
+        int id = mac.hashCode();
+        notificationManager.notify(id, mBuilder.build());
     }
 
 

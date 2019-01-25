@@ -46,6 +46,10 @@ public class Setting extends AbsJsInterface {
         void onJSSaveBackupData(String mac, String jsonData);
 
         void onJSRecoveryData(String mac);
+
+        void onJSQueryIndicatorLightState(String mac);
+
+        void onJSControlIndicatorLightState(String mac, boolean on);
     }
 
     public static final class Method {
@@ -199,6 +203,16 @@ public class Setting extends AbsJsInterface {
             return METHOD_BACKUPRECOVERY_RESPONSE.replace("$mac", mac)
                     .replace("$data", String.valueOf(data));
         }
+
+        private static final String METHOD_INDICATOR_RESPONSE
+                = "javascript:indicatorLightStateResponse('$mac',$state)";
+
+        public static String callJsIndicatorData(String mac, boolean state) {
+            if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
+            return METHOD_INDICATOR_RESPONSE.replace("$mac", mac)
+                    .replace("$state", String.valueOf(state));
+        }
+
     }
 
     private final IJSSettingCallBack mCallBack;
@@ -362,6 +376,23 @@ public class Setting extends AbsJsInterface {
         Tlog.v(TAG, " BackupDataRequest " + mac);
         if (mCallBack != null) {
             mCallBack.onJSRecoveryData(mac);
+        }
+    }
+
+
+    @JavascriptInterface
+    public void indicatorLightStateRequest(String mac) {
+        Tlog.v(TAG, " indicatorLightStateRequest " + mac);
+        if (mCallBack != null) {
+            mCallBack.onJSQueryIndicatorLightState(mac);
+        }
+    }
+
+    @JavascriptInterface
+    public void indicatorLightSwitchRequest(String mac, boolean on) {
+        Tlog.v(TAG, " indicatorLightStateRequest " + mac + " on:" + on);
+        if (mCallBack != null) {
+            mCallBack.onJSControlIndicatorLightState(mac, on);
         }
     }
 

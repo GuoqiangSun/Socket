@@ -234,7 +234,7 @@ public class ControlDevice {
     // 检测通信模式
     private void checkComModel(int token, String loginUserID) {
 
-        if (getSendConTokenTimes() > 3) {
+        if (getSendConTokenTimes() > 5) {
             Tlog.e(TAG, " checkComModel() getSendConTokenTimes " + getSendConTokenTimes()
                     + " responseConnectedTimes:" + responseConnectedTimes + " return;");
             return;

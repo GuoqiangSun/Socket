@@ -263,6 +263,12 @@ public interface IVirtualSocketScm {
 
     void setNightLightColor(ColorLampRGB obj);
 
+    void queryIndicatorState(String mac);
+
+    void controlIndicatorState(String mac, boolean b);
+
+    void queryTemperatureSensor(String mac);
+
     /**
      * author: Guoqiang_Sun
      * date : 2018/4/10 0010
@@ -378,6 +384,10 @@ public interface IVirtualSocketScm {
         void onResultColorLam(String id, boolean b);
 
         void onRGBYellowSetResult(boolean b, ColorLampRGB mColorLamp);
+
+        void onResultIndicatorStatus(String mac, boolean result, byte seq, boolean on);
+
+        void onResultQueryTempSensor(boolean result, String mac, boolean status);
     }
 
 

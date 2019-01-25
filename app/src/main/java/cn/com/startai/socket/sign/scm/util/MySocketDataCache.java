@@ -8,6 +8,7 @@ import java.util.Map;
 import cn.com.startai.socket.sign.scm.IVirtualSocketScm;
 import cn.com.startai.socket.sign.scm.impl.SocketScmManager;
 import cn.com.swain.baselib.app.IApp.IService;
+import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.support.protocolEngine.ProtocolBuild;
 import cn.com.swain.support.protocolEngine.Repeat.RepeatMsgModel;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
@@ -15,7 +16,6 @@ import cn.com.swain.support.protocolEngine.datagram.dataproducer.ISocketDataProd
 import cn.com.swain.support.protocolEngine.datagram.dataproducer.SyncSocketDataQueueProducer;
 import cn.com.swain.support.protocolEngine.pack.ResponseData;
 import cn.com.swain.support.protocolEngine.utils.SEQ;
-import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun
@@ -497,6 +497,37 @@ public class MySocketDataCache implements IService {
         mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_NIGHT_LIGHT);
         final byte[] params = new byte[1];
         params[0] = (byte) id;
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getQueryTempSensorStatus(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_TEMP_SENSOR_STATUS);
+        final byte[] params = new byte[1];
+        params[0] = SocketSecureKey.Model.MODEL_TEMP_SENSOR;
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getQueryAllIndicatorState(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_ANYNET_FLASH);
+        final byte[] params = new byte[1];
+        params[0] = (byte) 0xFF;
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getTrunAllIndicatorState(String mac,boolean state) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_CONTROL_ANYNET_FLASH);
+        final byte[] params = new byte[2];
+        params[0] = (byte) 0xFF;
+        params[1] = SocketSecureKey.Util.on(state);
         mSecureDataPack.setParams(params);
         return newResponseDataRecord(mac, mSecureDataPack);
     }

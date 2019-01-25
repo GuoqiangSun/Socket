@@ -224,4 +224,10 @@ public interface OnTaskCallBack {
     void onQueryNightLightResult(boolean result, NightLightTiming mNightLightTiming);
 
     void onColorLamResult(String id, boolean b);
+
+    void onIndicatorStatusResult(String mac, boolean result, byte seq, boolean on);
+
+    void onQueryTempSensorResult(boolean result, String mac,boolean status);
+
+    void onReportTempSensorResult( String mac,boolean status);
 }

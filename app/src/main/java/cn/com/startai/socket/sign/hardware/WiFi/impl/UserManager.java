@@ -20,10 +20,12 @@ import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.widget.Toast;
 
 import com.alipay.sdk.app.AuthTask;
 import com.blankj.utilcode.util.AppUtils;
 import com.tencent.mm.opensdk.modelbase.BaseResp;
+import com.tencent.mm.opensdk.modelbiz.JumpToBizProfile;
 import com.tencent.mm.opensdk.modelmsg.SendAuth;
 import com.tencent.mm.opensdk.openapi.IWXAPI;
 
@@ -71,6 +73,7 @@ import cn.com.startai.mqttsdk.busi.entity.C_0x8037;
 import cn.com.startai.mqttsdk.busi.entity.type.Type;
 import cn.com.startai.mqttsdk.listener.IOnCallListener;
 import cn.com.startai.mqttsdk.mqtt.request.MqttPublishRequest;
+import cn.com.startai.scansdk.ChargerScanActivity;
 import cn.com.startai.socket.db.gen.JsUserInfoDao;
 import cn.com.startai.socket.db.gen.JsWeatherInfoDao;
 import cn.com.startai.socket.db.gen.UserInfoDao;
@@ -78,6 +81,7 @@ import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.FileManager;
+import cn.com.startai.socket.global.LoginHelp;
 import cn.com.startai.socket.global.LooperManager;
 import cn.com.startai.socket.global.WXLoginHelper;
 import cn.com.startai.socket.mutual.Controller;
@@ -85,6 +89,7 @@ import cn.com.startai.socket.mutual.js.bean.JsUserInfo;
 import cn.com.startai.socket.mutual.js.bean.JsWeatherInfo;
 import cn.com.startai.socket.mutual.js.bean.MobileBind;
 import cn.com.startai.socket.mutual.js.bean.MobileLogin;
+import cn.com.startai.socket.mutual.js.bean.ThirdLoginUser;
 import cn.com.startai.socket.mutual.js.bean.UpdateProgress;
 import cn.com.startai.socket.mutual.js.bean.UserRegister;
 import cn.com.startai.socket.mutual.js.bean.UserUpdateInfo;
@@ -94,6 +99,7 @@ import cn.com.startai.socket.sign.hardware.WiFi.bean.UserInfo;
 import cn.com.startai.socket.sign.hardware.WiFi.util.AuthResult;
 import cn.com.startai.socket.sign.hardware.WiFi.util.DownloadTask;
 import cn.com.startai.socket.sign.hardware.WiFi.util.NetworkData;
+import cn.com.startai.socket.sign.js.jsInterface.Login;
 import cn.com.swain.baselib.app.IApp.IService;
 import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.baselib.util.PermissionGroup;
@@ -383,6 +389,86 @@ public class UserManager implements IService {
 
     }
 
+    private static final int REQUEST_SCAN_QR = 0x3593;
+
+
+    public void scanQRCode(Activity act) {
+
+        ChargerScanActivity.showActivityForResult(act, REQUEST_SCAN_QR);
+
+    }
+
+
+    //拨打电话（跳转到拨号界面，用户手动点击拨打）
+    public void callPhone(String phone) {
+        Intent intent = new Intent(Intent.ACTION_DIAL);
+        Uri data = Uri.parse("tel:" + phone);
+        intent.setData(data);
+        mResultCallBack.onResultStartActivityForResult(intent, -1);
+
+        mResultCallBack.onResultCallPhone(true);
+    }
+
+    private LoginHelp mLoginHelp;
+
+    public void thirdLogin(Activity act, String type) {
+
+        if (mLoginHelp == null) {
+            mLoginHelp = LoginHelp.getInstance();
+            mLoginHelp.regLoginCallBack(new LoginHelp.OnLoginResult() {
+                @Override
+                public void onResult(boolean result, ThirdLoginUser mUser) {
+
+                    if (result) {
+                        LooperManager.getInstance().getWorkHandler().post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(app, " not impl ", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+
+//                    String data;
+//
+//                    if (mUser != null) {
+//                        Tlog.v(H5Config.TAG, " loginResult :" + mUser.toString());
+//                        data = mUser.toJsonStr();
+//                    } else {
+//                        data = "{}";
+//                    }
+//
+//                    String method = Login.Method.callJsThirdLogin(result, data);
+//                    ajLoadJs(method);
+
+                }
+            });
+
+        }
+
+        if (act == null) {
+            Tlog.e(TAG, " login act == null ");
+            return;
+        }
+
+        if (type.equalsIgnoreCase(Login.TYPE_LOGIN_FACEBOOK)) {
+
+            mLoginHelp.loginFacebook(act);
+
+        } else if (type.equalsIgnoreCase(Login.TYPE_LOGIN_GOOGLE)) {
+
+            mLoginHelp.loginGoogle(act);
+
+        } else if (type.equalsIgnoreCase(Login.TYPE_LOGIN_TWITTER)) {
+
+            mLoginHelp.loginTwitter(act);
+
+        } else {
+            Tlog.e(TAG, " login unknown type ");
+        }
+
+    }
+
+
     private static class GetLatLngTask extends AsyncTask<Void, Void, Void> {
 
         private IControlWiFi.IWiFiResultCallBack mResultCallBack;
@@ -609,6 +695,33 @@ public class UserManager implements IService {
 
         StartAI.getInstance().getBaseBusiManager().getUserInfo(mGetUserInfoLsn);
 
+    }
+
+    void skipWxBiz() {
+
+        IWXAPI wxApi = WXLoginHelper.getInstance().getWXApi(app);
+
+        if (wxApi == null) {
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError(ERROR_CODE_WX_LOGIN_UNKNOWN);
+            }
+            return;
+        }
+
+        if (wxApi.isWXAppInstalled()) {
+            JumpToBizProfile.Req req = new JumpToBizProfile.Req();
+            req.toUserName = "StartAI会员中心";
+            req.extMsg = "";
+            req.profileType = JumpToBizProfile.JUMP_TO_NORMAL_BIZ_PROFILE;
+            wxApi.sendReq(req);
+
+        } else {
+
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError(ERROR_CODE_WX_LOGIN_NO_CLIENT);
+            }
+
+        }
     }
 
     private void getUserInfoFromDao() {
@@ -865,23 +978,22 @@ public class UserManager implements IService {
 
     void wxLogin() {
 
-        if (cn.com.swain.baselib.util.AppUtils.isAppInstalled(app, "com.tencent.mm")) {
+        IWXAPI wxApi = WXLoginHelper.getInstance().getWXApi(app);
+        if (wxApi == null) {
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError(ERROR_CODE_WX_LOGIN_UNKNOWN);
+            }
+            return;
+        }
+
+        if (wxApi.isWXAppInstalled()) {
 
             SendAuth.Req req = new SendAuth.Req();
             req.scope = "snsapi_userinfo";
             req.state = WX_LOGIN;
             //向微信发送请求
-
-            IWXAPI wxApi = WXLoginHelper.getInstance().getWXApi(app);
-
-            if (wxApi == null) {
-                if (mResultCallBack != null) {
-                    mResultCallBack.onResultMsgSendError(ERROR_CODE_WX_LOGIN_UNKNOWN);
-                }
-            } else {
-                Tlog.v(TAG, " wxApi  sendReq ");
-                wxApi.sendReq(req);
-            }
+            Tlog.v(TAG, " wxApi  sendReq ");
+            wxApi.sendReq(req);
 
         } else {
             if (mResultCallBack != null) {
@@ -921,6 +1033,7 @@ public class UserManager implements IService {
     }
 
     public void unbindWx() {
+
         //发送请求
         C_0x8036.Req.ContentBean req = new C_0x8036.Req.ContentBean(getLoginUserID(), C_0x8036.THIRD_WECHAT);
         //解绑 微信
@@ -972,6 +1085,8 @@ public class UserManager implements IService {
 
 
     public void onWxLoginResult(BaseResp baseResp) {
+
+        Tlog.d(TAG, "onWxLoginResult : BaseResp-" + String.valueOf(baseResp));
 
         if (baseResp.errCode == BaseResp.ErrCode.ERR_OK) {
 
@@ -1037,6 +1152,11 @@ public class UserManager implements IService {
 
         } else {
 
+            if (baseResp instanceof SendAuth.Resp) {
+                String state = ((SendAuth.Resp) baseResp).state;
+                Tlog.e(TAG, " user rejection wx :" + state);
+            }
+
             switch (baseResp.errCode) {
                 case BaseResp.ErrCode.ERR_AUTH_DENIED:
                     Tlog.e(TAG, " user rejection wx login");
@@ -1085,18 +1205,17 @@ public class UserManager implements IService {
     private final IOnCallListener mGetLoginCodeLsn = new IOnCallListener() {
         @Override
         public void onSuccess(MqttPublishRequest mqttPublishRequest) {
-            Tlog.v(TAG, " getIdentifyCode msg send success:");
+            Tlog.v(TAG, " mGetLoginCodeLsn msg send success:");
 
         }
 
         @Override
         public void onFailed(MqttPublishRequest mqttPublishRequest, StartaiError startaiError) {
-            Tlog.e(TAG, " getIdentifyCode msg send failed: " + startaiError.getErrorCode());
+            Tlog.e(TAG, " mGetLoginCodeLsn msg send failed: " + startaiError.getErrorCode());
             if (mResultCallBack != null) {
                 mResultCallBack.onResultGetMobileLoginCode(false, 1);
                 mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
             }
-            mLastSendMillis = 0L;
         }
 
         @Override
@@ -1108,18 +1227,17 @@ public class UserManager implements IService {
     private final IOnCallListener mGetBindCodeLsn = new IOnCallListener() {
         @Override
         public void onSuccess(MqttPublishRequest mqttPublishRequest) {
-            Tlog.v(TAG, " getIdentifyCode msg send success:");
+            Tlog.v(TAG, " mGetBindCodeLsn msg send success:");
 
         }
 
         @Override
         public void onFailed(MqttPublishRequest mqttPublishRequest, StartaiError startaiError) {
-            Tlog.e(TAG, " getIdentifyCode msg send failed: " + startaiError.getErrorCode());
+            Tlog.e(TAG, " mGetBindCodeLsn msg send failed: " + startaiError.getErrorCode());
             if (mResultCallBack != null) {
                 mResultCallBack.onResultGetMobileLoginCode(false, 5);
                 mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
             }
-            mLastSendMillis = 0L;
         }
 
         @Override
@@ -1128,11 +1246,8 @@ public class UserManager implements IService {
         }
     };
 
-    private long mLastSendMillis;
-    private String mLastSendPhone;
-
     void getMobileLoginCode(String phone, int type) {
-        Tlog.e(TAG, " getMobileLoginCode " + phone);
+        Tlog.e(TAG, " getMobileLoginCode " + phone + " type:" + type);
 
         IOnCallListener callBack;
         if (type == 1) {
@@ -1143,29 +1258,7 @@ public class UserManager implements IService {
             callBack = mGetLoginCodeLsn;
         }
 
-        long currentTimeMillis = System.currentTimeMillis();
-
-        if (!phone.equalsIgnoreCase(mLastSendPhone)) {
-
-            StartAI.getInstance().getBaseBusiManager().getIdentifyCode(phone, type, callBack);
-
-        } else {
-            if (Math.abs(currentTimeMillis - mLastSendMillis) > 1000 * 60) {
-
-                StartAI.getInstance().getBaseBusiManager().getIdentifyCode(phone, type, callBack);
-
-            } else {
-
-                Tlog.e(TAG, " getMobileLoginCode too fast ");
-
-                if (mResultCallBack != null) {
-                    mResultCallBack.onResultGetMobileLoginCode(false, type);
-                }
-            }
-
-        }
-        mLastSendMillis = currentTimeMillis;
-        mLastSendPhone = phone;
+        StartAI.getInstance().getBaseBusiManager().getIdentifyCode(phone, type, callBack);
 
     }
 
@@ -1392,15 +1485,39 @@ public class UserManager implements IService {
             return;
         }
 
-        Tlog.v(TAG, "takePhoto() " + savePhotoFile.getAbsolutePath());
+        if (!PermissionHelper.isGranted(app, Manifest.permission.CAMERA)) {
 
-        Uri imageUri = PhotoUtils.getTakePhotoURI(app, savePhotoFile);
-        Intent intent = PhotoUtils.requestTakePhoto(imageUri);
-        takePhotoUri = imageUri;
+            PermissionHelper.requestPermission(app, new PermissionRequest.OnPermissionResult() {
+                @Override
+                public void onPermissionRequestResult(String permission, boolean granted) {
+                    if (granted) {
 
-        if (mResultCallBack != null) {
-            mResultCallBack.onResultStartActivityForResult(intent, TAKE_PHOTO_CODE);
+                        Tlog.v(TAG, "takePhoto() " + savePhotoFile.getAbsolutePath());
+
+                        Uri imageUri = PhotoUtils.getTakePhotoURI(app, savePhotoFile);
+                        Intent intent = PhotoUtils.requestTakePhoto(imageUri);
+                        takePhotoUri = imageUri;
+
+                        if (mResultCallBack != null) {
+                            mResultCallBack.onResultStartActivityForResult(intent, TAKE_PHOTO_CODE);
+                        }
+                    }
+                }
+            }, Manifest.permission.CAMERA);
+
+        } else {
+
+            Tlog.v(TAG, "takePhoto() " + savePhotoFile.getAbsolutePath());
+
+            Uri imageUri = PhotoUtils.getTakePhotoURI(app, savePhotoFile);
+            Intent intent = PhotoUtils.requestTakePhoto(imageUri);
+            takePhotoUri = imageUri;
+
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultStartActivityForResult(intent, TAKE_PHOTO_CODE);
+            }
         }
+
 
     }
 
@@ -1512,6 +1629,20 @@ public class UserManager implements IService {
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         Tlog.d(TAG, " onActivityResult requestCode:" + requestCode + " resultCode:" + resultCode);
+
+        if (mLoginHelp != null) {
+            mLoginHelp.onActivityResult(requestCode, resultCode, data);
+        }
+
+        if (requestCode == REQUEST_SCAN_QR) {
+            String scanResult = data.getStringExtra("result");
+            Tlog.i(TAG, "scanResult = " + scanResult);
+
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultScanQRCode(resultCode == Activity.RESULT_OK, scanResult);
+            }
+
+        }
 
         if (requestCode == REUQEST_LOCATION) {
 
@@ -1637,7 +1768,9 @@ public class UserManager implements IService {
 
         Uri outUri = Uri.fromFile(path);
 
-        Intent intent = PhotoUtils.cropImg(imageUri, outUri);
+//        Intent intent = PhotoUtils.cropImg(imageUri, outUri);
+
+        Intent intent = PhotoUtils.cropHeadpic(imageUri, outUri);
 
         // 启动裁剪程序
         if (mResultCallBack != null) {
@@ -1646,7 +1779,6 @@ public class UserManager implements IService {
 
         return path;
     }
-
 
     private final IOnCallListener mGetVersionLsn = new IOnCallListener() {
         @Override
@@ -1987,7 +2119,6 @@ public class UserManager implements IService {
         if (Debuger.isLogDebug) {
             Tlog.d(TAG, " onGetIdentifyCodeResult : " + String.valueOf(resp));
         }
-        mLastSendMillis = 0L;
         if (mResultCallBack != null) {
             mResultCallBack.onResultGetMobileLoginCode(resp.getResult() == 1, resp.getContent().getType());
         }
@@ -2193,6 +2324,8 @@ public class UserManager implements IService {
                 }
 
                 mUserInfo.setThirdInfos(mthirdInfos);
+            } else {
+                mUserInfo.setThirdInfos(null);
             }
 
             if (mUserInfo.getId() == null) {
@@ -2297,11 +2430,38 @@ public class UserManager implements IService {
 
 
         String targetId = authResult.getTargetId();
-        if (targetId.startsWith(C_0x8033.AUTH_TYPE_LOGIN)) {
+
+        Tlog.e(TAG, " aliAuthInfo: " + String.valueOf(authResult));
+
+        if (targetId == null) {
+
+            String resultStatus = authResult.getResultStatus();
+            if ("6001".equalsIgnoreCase(resultStatus)) {
+                resultStatus = "60016001";
+            }
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError(resultStatus);
+            }
+
+        } else if (targetId.startsWith(C_0x8033.AUTH_TYPE_LOGIN)) {
+
             aliLogin(authResult);
+
         } else if (targetId.startsWith(C_0x8033.AUTH_TYPE_AUTH)) {
+
             // alibind
             aliBind(authResult);
+
+        } else {
+
+            String resultStatus = authResult.getResultStatus();
+            if ("6001".equalsIgnoreCase(resultStatus)) {
+                resultStatus = "60016001";
+            }
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError(resultStatus);
+            }
+
         }
 
     }
@@ -2354,6 +2514,9 @@ public class UserManager implements IService {
 //                            200	业务处理成功，会返回authCode
 //                            1005	账户已冻结，如有疑问，请联系支付宝技术支持
 //                            202	系统异常，请稍后再试或联系支付宝技术支持
+            if ("6001".equalsIgnoreCase(resultStatus)) {
+                resultStatus = "60016001";
+            }
             if (mResultCallBack != null) {
                 mResultCallBack.onResultMsgSendError(resultStatus);
             }

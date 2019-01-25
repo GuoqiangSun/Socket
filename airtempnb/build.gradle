@@ -1,42 +1,50 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'airtemp-nb'
+            keyPassword 'startai'
+            storeFile file('D:/AS_project/key/startai-key-nb')
+            storePassword 'startai'
+        }
+    }
     compileSdkVersion 27
-
     compileOptions {
         sourceCompatibility 1.8
         targetCompatibility 1.8
     }
-
     lintOptions {
         checkReleaseBuilds false
         // Or, if you prefer, you can continue to check for errors in release builds,
         // but continue the build even when errors are found:
         abortOnError false
     }
-
     defaultConfig {
         applicationId "cn.com.startai.aritempnb"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 16106
-        versionName "1.6.106"
-
+        versionCode 16107
+        versionName "1.6.107"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }
-
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
+        }
+        debug {
+            signingConfig signingConfigs.config
         }
     }
-
     android.applicationVariants.all { variant ->
         variant.outputs.all {
             outputFileName = "AirTempNB-${variant.versionName}-${variant.buildType.name}.apk"
         }
+    }
+    productFlavors {
     }
 }
 
@@ -53,8 +61,7 @@ android {
 //}
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
     implementation 'com.android.support:recyclerview-v7:27.1.1'
     implementation 'com.android.support:appcompat-v7:27.1.1'
@@ -64,7 +71,5 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-
     implementation project(':app')
-
 }

@@ -285,14 +285,14 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
     /***************/
 
     @Override
-    public boolean isHWEnabled() {
+    public boolean isBleEnabled() {
         return mBleEnabler.beIsBleEnable();
     }
 
     private boolean mLastBleEnabled = true;
 
     @Override
-    public boolean enableHW() {
+    public boolean enableBle() {
         boolean b = mBleEnabler.beEnableBle();
         checkBleStatus();
         mLastBleEnabled = b;
@@ -417,7 +417,7 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
 
 
     @Override
-    public void scanningHW() {
+    public void scanningBle() {
         Tlog.v(TAG, " scanningBle() ");
 
         com.blankj.utilcode.util.PermissionUtils permission =
@@ -453,7 +453,7 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
     private void scanBle() {
 
         if (mScanning) {
-            stopScanningHW();
+            stopScanningBle();
         }
 
         mScanning = true;
@@ -469,7 +469,7 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
                 if (mBleArray.getDisplaySize() <= 0 && mCurConnectedBle == null) {
                     // 没有扫描到；
                     if (mScanning) {
-                        stopScanningHW();
+                        stopScanningBle();
                         if (mBmCallJs != null) {
                             mBmCallJs.onResultScanHWIsNull();
                         }
@@ -487,7 +487,7 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
     }
 
     @Override
-    public void stopScanningHW() {
+    public void stopScanningBle() {
         Tlog.v(TAG, " stopScanningBle() ");
         mScanning = false;
         if (mBleScan != null) {
@@ -587,7 +587,7 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
     }
 
     @Override
-    public void connectHW(String mac) {
+    public void connectBle(String mac) {
 
         Tlog.v(TAG, " connectBle()  mac:" + mac);
 
@@ -671,9 +671,9 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
             boolean bcon = mLastConScanBle != null || mAutoReconBle != null;
 
             if (mCurConnectedBle == null && bcon) {
-                Tlog.e(TAG, " checkConResult disconnectHW ");
+                Tlog.e(TAG, " checkConResult disconnectBle ");
                 if (mBleScanResult.mBle != null) {
-                    disconnectHW(mBleScanResult.mBle.address);
+                    disconnectBle(mBleScanResult.mBle.address);
                 }
             } else {
                 Tlog.e(TAG, " checkConResult connectedBle" + ((mCurConnectedBle != null) ? "!=null " : "=null "));
@@ -683,7 +683,7 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
     };
 
     @Override
-    public void disconnectHW(String mac) {
+    public void disconnectBle(String mac) {
 
         Tlog.v(TAG, " disconnectBle()  mac:" + mac);
 
@@ -918,10 +918,10 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
 
             if (address != null && mCurConnectedBle != null && address.equalsIgnoreCase(mCurConnectedBle.address)) {
                 Tlog.v(TAG, " disconnect CurConnectedBle  ");
-                disconnectHW(address);
+                disconnectBle(address);
             } else if (address != null && mCurConnectingBle != null && address.equalsIgnoreCase(mCurConnectingBle.address)) {
                 Tlog.v(TAG, " disconnect CurConnectingBle  ");
-                disconnectHW(address);
+                disconnectBle(address);
             } else {
                 //  说明当前连接的设备已经断开连接了
                 // 有可能是用户取消了连接，所以不做任何操作

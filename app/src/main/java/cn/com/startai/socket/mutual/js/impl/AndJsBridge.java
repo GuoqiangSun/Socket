@@ -291,6 +291,10 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onJSSetTemperatureUnit(String mac, int unit) {
         Tlog.v(TAG, " onJSSetTemperatureUnit() " + unit);
+
+//        String method = Setting.Method.callJsSetTemperatureUnitResult(mac, true);
+//        loadJs(method);
+
         if (mScmVirtual != null) {
             mScmVirtual.setSetTemperatureUnit(mac, unit);
         }
@@ -395,32 +399,32 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onJSIsWiFiCon() {
         Tlog.v(TAG, " onJSIsWiFiCon() ");
-        if (mNetworkManager != null) {
-            mNetworkManager.queryWiFiConnectState();
+        if (mHardwareManager != null) {
+            mHardwareManager.queryWiFiConnectState();
         }
     }
 
     @Override
     public void onJSReqConWiFiSSID() {
         Tlog.v(TAG, " onJSReqConWiFiSSID() ");
-        if (mNetworkManager != null) {
-            mNetworkManager.queryConWiFiSSID();
+        if (mHardwareManager != null) {
+            mHardwareManager.queryConWiFiSSID();
         }
     }
 
     @Override
     public void onJSConfigureWiFi(WiFiConfig mConfig) {
         Tlog.v(TAG, " onJSConfigureWiFi() ");
-        if (mNetworkManager != null) {
-            mNetworkManager.configureWiFi(mConfig);
+        if (mHardwareManager != null) {
+            mHardwareManager.configureWiFi(mConfig);
         }
     }
 
     @Override
     public void onJSStopConfigureWiFi() {
         Tlog.v(TAG, " onJSStopConfigureWiFi() ");
-        if (mNetworkManager != null) {
-            mNetworkManager.stopConfigureWiFi();
+        if (mHardwareManager != null) {
+            mHardwareManager.stopConfigureWiFi();
         }
     }
 
@@ -430,16 +434,16 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
 //        String userID = "";
 //
-//        if (mNetworkManager != null) {
-//            userID = mNetworkManager.getUserID();
+//        if (mHardwareManager != null) {
+//            userID = mHardwareManager.getUserID();
 //        }
 //
 //        if (mScmVirtual != null) {
 //            mScmVirtual.discoveryDevice(userID);
 //        }
 
-        if (mNetworkManager != null) {
-            mNetworkManager.queryBindDeviceList();
+        if (mHardwareManager != null) {
+            mHardwareManager.queryBindDeviceList();
         }
 
     }
@@ -447,8 +451,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onJSThirdLogin(String type) {
         Tlog.v(TAG, " onJSThirdLogin() " + type);
-        if (mCallBack != null) {
-            mCallBack.login(type);
+        if (mHardwareManager != null) {
+            mHardwareManager.thirdLogin(getActivity(), type);
         }
     }
 
@@ -459,8 +463,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         int random = (int) ((Math.random() * 9 + 1) * 100000);
         Tlog.v(TAG, " random:" + random);
 
-        if (mNetworkManager != null) {
-            mNetworkManager.getMobileLoginCode(phone, type);
+        if (mHardwareManager != null) {
+            mHardwareManager.getMobileLoginCode(phone, type);
         }
 
     }
@@ -469,8 +473,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onJSMobileLogin(MobileLogin mLogin) {
         Tlog.v(TAG, " onJSMobileLogin() " + mLogin.toString());
 
-        if (mNetworkManager != null) {
-            mNetworkManager.loginMobile(mLogin);
+        if (mHardwareManager != null) {
+            mHardwareManager.loginMobile(mLogin);
         }
 
     }
@@ -499,14 +503,13 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         }
     }
 
-
     @Override
     public void onJSRequestBleState() {
         Tlog.v(TAG, " onJSRequestBleState() ");
 
         boolean hwEnabled = false;
-        if (mBleManager != null) {
-            hwEnabled = mBleManager.isHWEnabled();
+        if (mHardwareManager != null) {
+            hwEnabled = mHardwareManager.isBleEnabled();
         }
 
         String method = Device.Method.callJsBleState(hwEnabled);
@@ -518,8 +521,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onJSRequestIsFirstBinding() {
         Tlog.v(TAG, " onJSRequestIsFirstBinding() ");
 
-        if (mBleManager != null) {
-            mBleManager.requestIsFirstBinding();
+        if (mHardwareManager != null) {
+            mHardwareManager.requestIsFirstBinding();
         }
 
     }
@@ -527,8 +530,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onJSReconDevice(String mac) {
         Tlog.v(TAG, " onJSReconDevice() " + mac);
-        if (mBleManager != null) {
-            mBleManager.reconDevice(mac);
+        if (mHardwareManager != null) {
+            mHardwareManager.reconDevice(mac);
         }
     }
 
@@ -595,8 +598,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onJSDiscoveryLanDevice() {
         Tlog.v(TAG, " onJSDiscoveryLanDevice() ");
 
-        if (mNetworkManager != null) {
-            mNetworkManager.discoveryLanDevice();
+        if (mHardwareManager != null) {
+            mHardwareManager.discoveryLanDevice();
         }
 
     }
@@ -604,8 +607,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onJSCloseDiscoveryLanDevice() {
         Tlog.v(TAG, " onJSCloseDiscoveryLanDevice() ");
-        if (mNetworkManager != null) {
-            mNetworkManager.closeDiscoveryLanDevice();
+        if (mHardwareManager != null) {
+            mHardwareManager.closeDiscoveryLanDevice();
         }
     }
 
@@ -614,9 +617,9 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         Tlog.v(TAG, " onJSBindLanDevice() ");
 
         String loginUserID = null;
-        if (mNetworkManager != null) {
-            loginUserID = mNetworkManager.getLoginUserID();
-            mNetworkManager.bindingDevice(mLanBindInfo);
+        if (mHardwareManager != null) {
+            loginUserID = mHardwareManager.getLoginUserID();
+            mHardwareManager.bindingDevice(mLanBindInfo);
 
         }
 
@@ -639,8 +642,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onJSIsLogin() {
         Tlog.v(TAG, " onJSIsLogin() ");
 
-        if (mNetworkManager != null) {
-            mNetworkManager.isLogin();
+        if (mHardwareManager != null) {
+            mHardwareManager.isLogin();
         }
 
     }
@@ -650,8 +653,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onJSControlWiFiDevice(LanDeviceInfo obj) {
         Tlog.v(TAG, " onJSControlWiFiDevice() ");
 
-        if (mNetworkManager != null) {
-            mNetworkManager.controlWiFiDevice(obj);
+        if (mHardwareManager != null) {
+            mHardwareManager.controlWiFiDevice(obj);
         }
 
     }
@@ -709,6 +712,17 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         Tlog.v(TAG, " onResultModifyUserInformation() result " + result);
         String data = "{}";
         if (result && mUserInfo != null) {
+
+            String headPic = mUserInfo.getHeadPic();
+            if (headPic != null && !"".equalsIgnoreCase(headPic)) {
+                File cacheDownPath = DownloadTask.getCacheDownPath(headPic);
+                if (cacheDownPath.exists() && PermissionHelper.isGranted(app, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    String absolutePath = cacheDownPath.getAbsolutePath();
+                    Tlog.w(TAG, " onResultModifyUserInformation() use cache path:" + absolutePath);
+                    mUserInfo.setHeadPic("file://" + absolutePath);
+                }
+            }
+
             data = mUserInfo.toJsonStr();
         }
 
@@ -731,11 +745,13 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         if (result && mUserInfo != null) {
 
             String headPic = mUserInfo.getHeadPic();
-            File cacheDownPath = DownloadTask.getCacheDownPath(headPic);
-            if (cacheDownPath.exists() && PermissionHelper.isGranted(app, Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                String absolutePath = cacheDownPath.getAbsolutePath();
-                Tlog.w(TAG, " onResultGetUserInfo() use cache path:" + absolutePath);
-                mUserInfo.setHeadPic("file://" + absolutePath);
+            if (headPic != null && !"".equalsIgnoreCase(headPic)) {
+                File cacheDownPath = DownloadTask.getCacheDownPath(headPic);
+                if (cacheDownPath.exists() && PermissionHelper.isGranted(app, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    String absolutePath = cacheDownPath.getAbsolutePath();
+                    Tlog.w(TAG, " onResultGetUserInfo() use cache path:" + absolutePath);
+                    mUserInfo.setHeadPic("file://" + absolutePath);
+                }
             }
 
             data = mUserInfo.toJsonStr();
@@ -779,8 +795,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onJSDisControlWiFiDevice(String mac) {
         Tlog.v(TAG, " onJSDisControlWiFiDevice() " + mac);
 
-        if (mNetworkManager != null) {
-            mNetworkManager.disControlDevice(mac);
+        if (mHardwareManager != null) {
+            mHardwareManager.disControlDevice(mac);
         }
 
     }
@@ -789,9 +805,9 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onJSUnbindingDevice(String mac) {
         Tlog.v(TAG, " onJSUnbindingDevice() " + mac);
         String loginUserID = null;
-        if (mNetworkManager != null) {
-            loginUserID = mNetworkManager.getLoginUserID();
-            mNetworkManager.unbindingDevice(mac);
+        if (mHardwareManager != null) {
+            loginUserID = mHardwareManager.getLoginUserID();
+            mHardwareManager.unbindingDevice(mac);
         }
 
         if (mScmVirtual != null) {
@@ -802,23 +818,23 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onJSIsLoginOut() {
         Tlog.v(TAG, " onJSIsLoginOut() ");
-        if (mNetworkManager != null) {
-            mNetworkManager.loginOut();
+        if (mHardwareManager != null) {
+            mHardwareManager.loginOut();
         }
     }
 
     @Override
     public void onJSEmailLogin(MobileLogin mLogin) {
         Tlog.v(TAG, " onJSEmailLogin() ");
-        if (mNetworkManager != null) {
-            mNetworkManager.emailLogin(mLogin);
+        if (mHardwareManager != null) {
+            mHardwareManager.emailLogin(mLogin);
         }
     }
 
     @Override
     public void onJSEmailRegister(UserRegister obj) {
-        if (mNetworkManager != null) {
-            mNetworkManager.emailRegister(obj);
+        if (mHardwareManager != null) {
+            mHardwareManager.emailRegister(obj);
         }
     }
 
@@ -840,8 +856,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onJSUpdateUserPwd(UserUpdateInfo mPwd) {
-        if (mNetworkManager != null) {
-            mNetworkManager.updateUserPwd(mPwd);
+        if (mHardwareManager != null) {
+            mHardwareManager.updateUserPwd(mPwd);
         }
     }
 
@@ -849,29 +865,29 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onJSCheckIsLatestVersion() {
 
 
-        if (mNetworkManager != null) {
-            mNetworkManager.checkIsLatestVersion();
+        if (mHardwareManager != null) {
+            mHardwareManager.checkIsLatestVersion();
         }
     }
 
     @Override
     public void onJSUpdateApp() {
-        if (mNetworkManager != null) {
-            mNetworkManager.updateApp();
+        if (mHardwareManager != null) {
+            mHardwareManager.updateApp();
         }
     }
 
     @Override
     public void onJSUpdateUserName(UserUpdateInfo obj) {
-        if (mNetworkManager != null) {
-            mNetworkManager.updateUserName(obj);
+        if (mHardwareManager != null) {
+            mHardwareManager.updateUserName(obj);
         }
     }
 
     @Override
     public void onJSRequestTakePhoto() {
-        if (mNetworkManager != null) {
-            mNetworkManager.takePhoto();
+        if (mHardwareManager != null) {
+            mHardwareManager.takePhoto();
         }
 
 
@@ -879,16 +895,16 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onJSRequestLocalPhoto() {
-        if (mNetworkManager != null) {
-            mNetworkManager.localPhoto();
+        if (mHardwareManager != null) {
+            mHardwareManager.localPhoto();
         }
 
     }
 
     @Override
     public void onJSQueryUserInformation() {
-        if (mNetworkManager != null) {
-            mNetworkManager.queryUserInfo();
+        if (mHardwareManager != null) {
+            mHardwareManager.queryUserInfo();
         }
     }
 
@@ -911,15 +927,15 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onJSCancelUpdate() {
-        if (mNetworkManager != null) {
-            mNetworkManager.cancelUpdate();
+        if (mHardwareManager != null) {
+            mHardwareManager.cancelUpdate();
         }
     }
 
     @Override
     public void onJSEmailForgot(String email) {
-        if (mNetworkManager != null) {
-            mNetworkManager.emailForgot(email);
+        if (mHardwareManager != null) {
+            mHardwareManager.emailForgot(email);
         }
     }
 
@@ -974,8 +990,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onJSWxLogin() {
-        if (mNetworkManager != null) {
-            mNetworkManager.wxLogin();
+        if (mHardwareManager != null) {
+            mHardwareManager.wxLogin();
         }
     }
 
@@ -1089,29 +1105,29 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onJSShakeNightLight(String mac, boolean b) {
-        if (mNetworkManager != null) {
-            mNetworkManager.setShakeNightLight(mac, b);
+        if (mHardwareManager != null) {
+            mHardwareManager.setShakeNightLight(mac, b);
         }
     }
 
     @Override
     public void onJSQueryShakeNightLight(String mac) {
-        if (mNetworkManager != null) {
-            mNetworkManager.queryShakeNightLight(mac);
+        if (mHardwareManager != null) {
+            mHardwareManager.queryShakeNightLight(mac);
         }
     }
 
     @Override
     public void onJSUpdateNickName(String nickName) {
-        if (mNetworkManager != null) {
-            mNetworkManager.updateNickName(nickName);
+        if (mHardwareManager != null) {
+            mHardwareManager.updateNickName(nickName);
         }
     }
 
     @Override
     public void onJSAliLogin() {
-        if (mNetworkManager != null) {
-            mNetworkManager.aliLogin();
+        if (mHardwareManager != null) {
+            mHardwareManager.aliLogin();
         }
     }
 
@@ -1156,8 +1172,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
         boolean enable = false;
 
-        if (mBleManager != null) {
-            enable = mBleManager.isHWEnabled();
+        if (mHardwareManager != null) {
+            enable = mHardwareManager.isBleEnabled();
         }
 
         Tlog.v(TAG, " isHWEnable(): " + enable);
@@ -1173,22 +1189,57 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onJSTurnOnDevice() {
         Tlog.v(TAG, " onJSTurnOnDevice()");
-        if (mBleManager != null) {
-            mBleManager.enableHW();
+        if (mHardwareManager != null) {
+            mHardwareManager.enableBle();
         }
     }
 
     @Override
     public void onJSBindPhone(MobileBind mMobileBind) {
-        if (mNetworkManager != null) {
-            mNetworkManager.bindPhone(mMobileBind);
+        if (mHardwareManager != null) {
+            mHardwareManager.bindPhone(mMobileBind);
         }
     }
 
     @Override
     public void onJSQueryWeatherByIp() {
-        if (mNetworkManager != null) {
-            mNetworkManager.queryWeatherByIp();
+        if (mHardwareManager != null) {
+            mHardwareManager.queryWeatherByIp();
+        }
+    }
+
+    @Override
+    public void onJSCallPhone(String phone) {
+        if (mHardwareManager != null) {
+            mHardwareManager.callPhone(phone);
+        }
+    }
+
+    @Override
+    public void onJSQueryIndicatorState(String mac) {
+        if (mScmVirtual != null) {
+            mScmVirtual.queryIndicatorState(mac);
+        }
+    }
+
+    @Override
+    public void onJSControlIndicatorState(String mac, boolean b) {
+        if (mScmVirtual != null) {
+            mScmVirtual.controlIndicatorState(mac, b);
+        }
+    }
+
+    @Override
+    public void queryTemperatureSensor(String mac) {
+        if (mScmVirtual != null) {
+            mScmVirtual.queryTemperatureSensor(mac);
+        }
+    }
+
+    @Override
+    public void onJSScanQRCode() {
+        if (mHardwareManager != null) {
+            mHardwareManager.scanQRCode(getActivity());
         }
     }
 
@@ -1225,16 +1276,16 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         Tlog.v(TAG, " skip scan view ... ");
         String methodStr = Device.Method.callJsScanHW();
         loadJs(methodStr);
-        if (mBleManager != null) {
-            mBleManager.scanningHW();
+        if (mHardwareManager != null) {
+            mHardwareManager.scanningBle();
         }
     }
 
     @Override
     public void onJSStopScan() {
         Tlog.v(TAG, " onJSStopScan()");
-        if (mBleManager != null) {
-            mBleManager.stopScanningHW();
+        if (mHardwareManager != null) {
+            mHardwareManager.stopScanningBle();
         }
     }
 
@@ -1242,15 +1293,15 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onJSBindWX() {
 
-        if (mNetworkManager != null) {
-            mNetworkManager.bindWX();
+        if (mHardwareManager != null) {
+            mHardwareManager.bindWX();
         }
     }
 
     @Override
     public void onJSBindAli() {
-        if (mNetworkManager != null) {
-            mNetworkManager.bindAli();
+        if (mHardwareManager != null) {
+            mHardwareManager.bindAli();
         }
     }
 
@@ -1268,8 +1319,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
         Tlog.v(TAG, " onJSConDevice() mac: " + mac);
 
-        if (mBleManager != null) {
-            mBleManager.connectHW(mac);
+        if (mHardwareManager != null) {
+            mHardwareManager.connectBle(mac);
         }
     }
 
@@ -1278,8 +1329,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
         Tlog.v(TAG, " onJSDisconDevice() mac: " + mac);
 
-        if (mBleManager != null) {
-            mBleManager.disconnectHW(mac);
+        if (mHardwareManager != null) {
+            mHardwareManager.disconnectBle(mac);
         }
     }
 
@@ -1348,8 +1399,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         String method = Main.Method.callJsSwitchPower(mac, status);
         loadJs(method);
 
-        if (mNetworkManager != null) {
-            mNetworkManager.onDeviceResponseRelaySwitch(mac, status);
+        if (mHardwareManager != null) {
+            mHardwareManager.onDeviceResponseRelaySwitch(mac, status);
         }
 
     }
@@ -1563,7 +1614,12 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
         String str;
         if (mList != null) {
-            str = mList.toJsonStr();
+            if (mHardwareManager.getLoginUserID() != null) {
+                str = mList.toJsonStr();
+            } else {
+                Tlog.e(TAG, " onResultWiFiDeviceListDisplay() not login");
+                str = "{}";
+            }
         } else {
             str = "{}";
         }
@@ -1579,6 +1635,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         String str;
         if (mList != null) {
             str = mList.toJsonStr();
+
         } else {
             str = "{}";
         }
@@ -1599,7 +1656,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
         String mDeviceStr;
         if (mDevice != null) {
-            mDeviceStr = mDevice.toJsonObj().toString();
+            mDeviceStr = mDevice.toJsonStr();
         } else {
             mDeviceStr = "{}";
             result = false;
@@ -1724,21 +1781,33 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onJSUnBindWX() {
-        if (mNetworkManager != null) {
-            mNetworkManager.unbindWX();
+        if (mHardwareManager != null) {
+            mHardwareManager.unbindWX();
         }
     }
 
     @Override
     public void onJSUnBindAli() {
-        if (mNetworkManager != null) {
-            mNetworkManager.unbindAli();
+        if (mHardwareManager != null) {
+            mHardwareManager.unbindAli();
         }
     }
 
     @Override
     public void onResultUnbindAli(boolean b) {
         String method = User.Method.callJsUnbindAliResult(b);
+        loadJs(method);
+    }
+
+    @Override
+    public void onResultCallPhone(boolean b) {
+        String method = User.Method.callJsCallPhone(b);
+        loadJs(method);
+    }
+
+    @Override
+    public void onResultScanQRCode(boolean b, String scanResult) {
+        String method = Add.Method.callJsScanQR(b, scanResult);
         loadJs(method);
     }
 
@@ -1758,22 +1827,22 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onJSQueryWeather() {
-        if (mNetworkManager != null) {
-            mNetworkManager.requestWeather();
+        if (mHardwareManager != null) {
+            mHardwareManager.requestWeather();
         }
     }
 
     @Override
     public void onJSEnableLocation() {
-        if (mNetworkManager != null) {
-            mNetworkManager.enableLocation();
+        if (mHardwareManager != null) {
+            mHardwareManager.enableLocation();
         }
     }
 
     @Override
     public void onJSQueryLocationEnabled() {
-        if (mNetworkManager != null) {
-            mNetworkManager.queryLocationEnabled();
+        if (mHardwareManager != null) {
+            mHardwareManager.queryLocationEnabled();
         }
     }
 
@@ -1856,8 +1925,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
         if (result && mDevice != null) {
 
-            if (mNetworkManager != null) {
-                mNetworkManager.lanDeviceDiscovery(mDevice);
+            if (mHardwareManager != null) {
+                mHardwareManager.lanDeviceDiscovery(mDevice);
             }
 
         } else {
@@ -1872,8 +1941,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         Tlog.v(TAG, " onResultQueryRename() result:" + result);
 
         if (result) {
-            if (mNetworkManager != null) {
-                mNetworkManager.onDeviceResponseRename(id, name);
+            if (mHardwareManager != null) {
+                mHardwareManager.onDeviceResponseRename(id, name);
             }
         }
     }
@@ -1882,8 +1951,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onResultQueryDeviceSSID(String id, boolean result, int rssi, String ssid) {
         Tlog.v(TAG, " onResultQueryDeviceSSID() result:" + result + " mac:" + id + " ssid:" + ssid);
         if (result) {
-            if (mNetworkManager != null) {
-                mNetworkManager.onDeviceResponseDeviceSSID(id, rssi, ssid);
+            if (mHardwareManager != null) {
+                mHardwareManager.onDeviceResponseDeviceSSID(id, rssi, ssid);
             }
         }
 
@@ -1914,11 +1983,13 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onNightLightResult(String id, boolean on) {
         Tlog.v(TAG, " onNightLightResult() id:" + id + " on:" + on);
+
+        // 这个接口不在回调给js了,用 callJsYellowLight 这个接口。
 //        String method = NightLight.Method.callNightLightSwitch(id, on);
 //        loadJs(method);
 
-        if (mNetworkManager != null) {
-            mNetworkManager.onDeviceResponseNightLightState(id, on);
+        if (mHardwareManager != null) {
+            mHardwareManager.onDeviceResponseNightLightState(id, on);
         }
     }
 
@@ -1929,8 +2000,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         loadJs(method);
 
         if (result) {
-            if (mNetworkManager != null) {
-                mNetworkManager.onDeviceResponseRename(id, name);
+            if (mHardwareManager != null) {
+                mHardwareManager.onDeviceResponseRename(id, name);
             }
         }
 
@@ -1983,40 +2054,40 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onResultDeviceLanBind(boolean result, LanBindingDevice mLanBindingDevice) {
         Tlog.v(TAG, " onResultDeviceLanBind() result:" + result);
 
-        if (mNetworkManager != null) {
-            mNetworkManager.onDeviceResponseLanBind(result, mLanBindingDevice);
+        if (mHardwareManager != null) {
+            mHardwareManager.onDeviceResponseLanBind(result, mLanBindingDevice);
         }
 
     }
 
     @Override
     public void onResultHeartbeatLose(String mac, int loseTimes) {
-        if (mNetworkManager != null) {
-            mNetworkManager.heartbeatLose(mac, loseTimes);
+        if (mHardwareManager != null) {
+            mHardwareManager.heartbeatLose(mac, loseTimes);
         }
     }
 
     @Override
     public void onTokenInvalid(String mac) {
         Tlog.v(TAG, " onTokenInvalid() mac:" + mac);
-        if (mNetworkManager != null) {
-            mNetworkManager.onTokenInvalid(mac);
+        if (mHardwareManager != null) {
+            mHardwareManager.onTokenInvalid(mac);
         }
     }
 
     @Override
     public void onLanUnBindResult(boolean result, LanBindingDevice mLanBindingDevice) {
         Tlog.v(TAG, " onLanUnBindResult() result:" + result);
-        if (mNetworkManager != null) {
-            mNetworkManager.onDeviceResponseLanUnBind(result, mLanBindingDevice);
+        if (mHardwareManager != null) {
+            mHardwareManager.onDeviceResponseLanUnBind(result, mLanBindingDevice);
         }
     }
 
     @Override
     public void onResultRequestToken(String mac, int token) {
         Tlog.v(TAG, " onResultRequestToken()  mac:" + mac + " token" + token);
-        if (mNetworkManager != null) {
-            mNetworkManager.onDeviceResponseToken(mac, token);
+        if (mHardwareManager != null) {
+            mHardwareManager.onDeviceResponseToken(mac, token);
         }
 
     }
@@ -2024,24 +2095,24 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onResultConnect(boolean result, String id) {
         Tlog.v(TAG, " onResultConnect()  mac:" + id + " result" + result);
-        if (mNetworkManager != null) {
-            mNetworkManager.onDeviceResponseConnect(result, id);
+        if (mHardwareManager != null) {
+            mHardwareManager.onDeviceResponseConnect(result, id);
         }
     }
 
     @Override
     public void onResultSleep(boolean result, String id) {
         Tlog.v(TAG, " onResultSleep()  mac:" + id + " result" + result);
-        if (mNetworkManager != null) {
-            mNetworkManager.onDeviceResponseSleep(result, id);
+        if (mHardwareManager != null) {
+            mHardwareManager.onDeviceResponseSleep(result, id);
         }
     }
 
     @Override
     public void onResultDisconnect(boolean result, String id) {
         Tlog.v(TAG, " onResultDisconnect()  mac:" + id + " result" + result);
-        if (mNetworkManager != null) {
-            mNetworkManager.onDeviceResponseDisconnect(result, id);
+        if (mHardwareManager != null) {
+            mHardwareManager.onDeviceResponseDisconnect(result, id);
         }
     }
 
@@ -2078,16 +2149,16 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onResultHeartbeatReceive(String mac, boolean result) {
-        if (mNetworkManager != null) {
-            mNetworkManager.receiveHeartbeat(mac, result);
+        if (mHardwareManager != null) {
+            mHardwareManager.receiveHeartbeat(mac, result);
         }
     }
 
     @Override
     public void onResultUpdateVersion(boolean result, UpdateVersion mVersion) {
 
-        if (mNetworkManager != null) {
-            mNetworkManager.onDeviceUpdateResult(result, mVersion);
+        if (mHardwareManager != null) {
+            mHardwareManager.onDeviceUpdateResult(result, mVersion);
         }
 
         if (mVersion.isQueryVersionAction()) {
@@ -2098,12 +2169,13 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
             loadJs(method);
         } else if (mVersion.isUpdateVersionAction()) {
 
-            String nameByMac;
-            if (mNetworkManager != null) {
-                nameByMac = mNetworkManager.getNameByMac(mVersion.mac);
+            String nameByMac = null;
+            if (mHardwareManager != null) {
+                nameByMac = mHardwareManager.getNameByMac(mVersion.mac);
 
-            } else {
-                nameByMac = mVersion.mac + "-" + String.valueOf(mVersion.getDoubleCurVersion());
+            }
+            if (nameByMac == null) {
+                nameByMac = mVersion.mac;
             }
 
             String method = Version.Method.callJsScmUpdate(mVersion.mac, nameByMac
@@ -2128,8 +2200,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public int getTokenFromDB(String mac) {
-        if (mNetworkManager != null) {
-            return mNetworkManager.getToken(mac);
+        if (mHardwareManager != null) {
+            return mHardwareManager.getToken(mac);
         }
         return -1;
     }
@@ -2140,6 +2212,24 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         String method = NightLight.Method.callJsYellowLight(mColorLampRGB.mac, !state,
                 mColorLampRGB.seq, mColorLampRGB.r, mColorLampRGB.g, mColorLampRGB.b);
         loadJs(method);
+    }
+
+    @Override
+    public void onResultIndicatorStatus(String mac, boolean result, byte seq, boolean on) {
+
+        if (result) {
+            String method = Setting.Method.callJsIndicatorData(mac, on);
+            loadJs(method);
+        }
+
+    }
+
+    @Override
+    public void onResultQueryTempSensor(boolean result, String mac, boolean status) {
+        if (result) {
+            String method = TemperatureAndHumidity.Method.callJsTemperatureSensorState(mac, status);
+            loadJs(method);
+        }
     }
 
     @Override

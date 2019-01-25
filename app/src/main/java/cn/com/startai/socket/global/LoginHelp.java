@@ -50,6 +50,7 @@ import java.util.Arrays;
 
 import cn.com.startai.socket.R;
 import cn.com.startai.socket.mutual.js.bean.ThirdLoginUser;
+import cn.com.startai.socket.sign.hardware.WiFi.impl.UserManager;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.swain.baselib.log.Tlog;
 import retrofit2.Call;
@@ -84,7 +85,7 @@ public class LoginHelp {
         this.mOnLoginResult = mOnLoginResult;
     }
 
-    private String TAG = H5Config.TAG;
+    private String TAG = UserManager.TAG;
 
     private GoogleSignInClient mGoogleSignInClient;
 

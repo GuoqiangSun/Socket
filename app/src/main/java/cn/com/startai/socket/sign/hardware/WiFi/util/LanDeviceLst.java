@@ -44,4 +44,12 @@ public class LanDeviceLst {
     public synchronized LanDeviceInfo getLanDeviceByIP(String ip) {
         return mLanDeviceArrayIP.get(ip);
     }
+
+    public synchronized void removeDeviceByMac(String mac) {
+        LanDeviceInfo lanDeviceInfo = mLanDeviceArrayMac.get(mac);
+        mLanDeviceArrayMac.remove(mac);
+        if (lanDeviceInfo != null) {
+            mLanDeviceArrayIP.remove(lanDeviceInfo.ip);
+        }
+    }
 }

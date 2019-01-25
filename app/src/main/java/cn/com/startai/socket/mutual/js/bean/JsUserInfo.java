@@ -84,10 +84,13 @@ public class JsUserInfo {
                 data.put("isHavePwd", isHavePwd == 1);
             }
 
+            JSONArray array;
             if (thirdInfosJson != null) {
-                JSONArray array = new JSONArray(thirdInfosJson);
-                data.put("thirdInfos", array);
+                array = new JSONArray(thirdInfosJson);
+            } else {
+                array = new JSONArray();
             }
+            data.put("thirdInfos", array);
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -119,10 +122,10 @@ public class JsUserInfo {
 
     @Generated(hash = 171564962)
     public JsUserInfo(String email, String mobile, int isHavePwd, String userName,
-            String birthday, String province, String city, String town,
-            String address, String nickName, String headPic, String sex,
-            String firstName, String lastName, String userid, String thirdInfosJson,
-            Long id) {
+                      String birthday, String province, String city, String town,
+                      String address, String nickName, String headPic, String sex,
+                      String firstName, String lastName, String userid, String thirdInfosJson,
+                      Long id) {
         this.email = email;
         this.mobile = mobile;
         this.isHavePwd = isHavePwd;
@@ -166,6 +169,8 @@ public class JsUserInfo {
             }
 
             thirdInfosJson = array.toString();
+        } else {
+            thirdInfosJson = null;
         }
     }
 
