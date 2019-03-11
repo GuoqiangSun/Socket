@@ -52,6 +52,9 @@ public class CountdownReportReceiveTask extends SocketResponseTask {
         if (protocolParams.length >= 6) {
             mCountdownData.allTime = (protocolParams[4] & 0xFF) * 60;
             mCountdownData.allTime += protocolParams[5] & 0xFF;
+            if (protocolParams.length >= 7) {
+                mCountdownData.seconds = (protocolParams[6] & 0xFF);
+            }
         }
 
         Tlog.v(TAG, " CountdownReportReceiveTask  :" + String.valueOf(mCountdownData));

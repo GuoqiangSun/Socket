@@ -23,6 +23,7 @@ import cn.com.startai.socket.db.gen.DaoSession;
 import cn.com.startai.socket.db.gen.PowerCountdownDao;
 import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.global.FileManager;
+import cn.com.startai.socket.global.LooperManager;
 import cn.com.startai.socket.mutual.js.AbsAndJsBridge;
 import cn.com.startai.socket.mutual.js.IAndJSCallBack;
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
@@ -227,8 +228,6 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         }
     }
 
-    private Toast toast;
-
     @Override
     public void onJSProductDetectionNearStep(String mac, int step) {
         Tlog.v(TAG, " onJSProductDetectionNearStep() mac: " + mac + " step:" + step);
@@ -236,21 +235,18 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
             String mNearStep = app.getResources().getString(R.string.jump_product_detection_near_step);
             String msg = mNearStep.replace("$step", String.valueOf(step));
 
-            if (toast == null) {
-                toast = Toast.makeText(app, msg, Toast.LENGTH_SHORT);
-            } else {
-                toast.setText(msg);
-            }
-            toast.show();
+            LooperManager.getInstance().getMainHandler().post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(app, msg, Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 
     @Override
     public void onJSSkipProductDetection(String mac) {
         Tlog.v(TAG, " onJSSkipProductDetection() mac: " + mac);
-        if (toast != null) {
-            toast.cancel();
-        }
         if (mCallBack != null) {
             mCallBack.skipProductDetection(mac);
         }
@@ -376,8 +372,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     public void onJSSetLanguage(String lan) {
         Tlog.v(TAG, " onJSSetLanguage() " + lan);
 
-        LocalData localData = LocalData.getLocalData(app);
-        localData.setLanguage(lan);
+        LocalData.getLocalData(app).setLanguage(lan);
 
         Language.changeLanguage(app);
 
@@ -1244,6 +1239,20 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
+    public void onJSQueryTotalElectric(SpendingElectricityData obj) {
+        if (mScmVirtual != null) {
+            mScmVirtual.onJSQueryTotalElectric(obj);
+        }
+    }
+
+    @Override
+    public void onResultTotalElectricData(SpendingElectricityData obj) {
+        String method = SpendingCountdown.Method.callJsElectricityDataByTime(obj.mac, obj.model,
+                obj.totalElectric, obj.year, obj.month, obj.day);
+        loadJs(method);
+    }
+
+    @Override
     public void onResultHWEnable() {
         onDeviceEnabledSkipScanView();
     }
@@ -1458,6 +1467,9 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
             QueryBuilder<PowerCountdown> where = powerCountdownDao.queryBuilder().where(PowerCountdownDao.Properties.Mac.eq(mCountdownData.mac));
 
             int time = mCountdownData.hour * 60 + mCountdownData.minute;
+//            if (mCountdownData.seconds > 0) {
+//                time += mCountdownData.seconds;
+//            }
 
             List<PowerCountdown> list;
             if (where != null && (list = where.list()) != null && list.size() > 0) {
@@ -1808,6 +1820,12 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onResultScanQRCode(boolean b, String scanResult) {
         String method = Add.Method.callJsScanQR(b, scanResult);
+        loadJs(method);
+    }
+
+    @Override
+    public void onResultThirdLogin(boolean result, String type) {
+        String method = Login.Method.callJsThirdLogin(result, type);
         loadJs(method);
     }
 
@@ -2230,6 +2248,12 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
             String method = TemperatureAndHumidity.Method.callJsTemperatureSensorState(mac, status);
             loadJs(method);
         }
+    }
+
+    @Override
+    public void onResultTempSensorReport(String mac, boolean status) {
+        String method = TemperatureAndHumidity.Method.callJsTemperatureSensorStateReport(mac, status);
+        loadJs(method);
     }
 
     @Override

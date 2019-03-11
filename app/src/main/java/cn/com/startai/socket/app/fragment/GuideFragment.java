@@ -34,8 +34,14 @@ public class GuideFragment extends BaseFragment {
             return View.inflate(getActivity(), R.layout.framgment_guide_smart_socket,
                     null);
 
-        } else if(CustomManager.getInstance().isMUSIK()){
+        } else if (CustomManager.getInstance().isMUSIK()) {
             return View.inflate(getActivity(), R.layout.framgment_guide_super_socket,
+                    null);
+        } else if (CustomManager.getInstance().isTriggerBle()) {
+            return View.inflate(getActivity(), R.layout.framgment_guide_triggerhomeble,
+                    null);
+        } else if (CustomManager.getInstance().isTriggerWiFi()) {
+            return View.inflate(getActivity(), R.layout.framgment_guide_triggerhomewifi,
                     null);
         } else {
             return View.inflate(getActivity(), R.layout.framgment_guide,

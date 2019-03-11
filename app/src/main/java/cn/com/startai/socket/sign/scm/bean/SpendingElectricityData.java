@@ -22,6 +22,8 @@ public class SpendingElectricityData {
     public int day;
     public int currentValue;
 
+    public float totalElectric;//总电量 ,查询时用到这个值
+
 
     public JSONObject toJsonObj() {
 

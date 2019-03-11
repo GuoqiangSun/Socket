@@ -495,6 +495,11 @@ public class ProductDetectionManager implements DetectionRecyclerAdapter.OnClick
         mUIHandler.obtainMessage(REFRESH_NIGHT_RGB_QUERY, mRGB).sendToTarget();
     }
 
+    @Override
+    public void receiveSetRGB(Object obj, boolean result, ColorLampRGB mRGB) {
+        mUIHandler.obtainMessage(REFRESH_NIGHT_RGB_SET, mRGB).sendToTarget();
+    }
+
     private void recOnePkg(int type) {
         if (mDatas.size() > 0) {
             for (DetectInfo mDetect : mDatas) {
@@ -527,6 +532,7 @@ public class ProductDetectionManager implements DetectionRecyclerAdapter.OnClick
     private static final int REFRESH_NIGHT_LIGHT_SET = 0x06;
     private static final int REFRESH_NIGHT_LIGHT_QUERY = 0x07;
     private static final int REFRESH_NIGHT_RGB_QUERY = 0x08;
+    private static final int REFRESH_NIGHT_RGB_SET = 0x09;
 
     private void uiHandlerMessage(Message msg) {
         switch (msg.what) {
@@ -586,6 +592,9 @@ public class ProductDetectionManager implements DetectionRecyclerAdapter.OnClick
 
             case REFRESH_NIGHT_RGB_QUERY:
                 mRecyclerAdapter.rgbQueryResult((ColorLampRGB) msg.obj);
+                break;
+            case REFRESH_NIGHT_RGB_SET:
+                mRecyclerAdapter.rgbSetResult((ColorLampRGB) msg.obj);
                 break;
         }
 

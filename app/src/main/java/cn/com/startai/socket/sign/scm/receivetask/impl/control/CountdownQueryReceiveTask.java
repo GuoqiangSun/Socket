@@ -3,10 +3,10 @@ package cn.com.startai.socket.sign.scm.receivetask.impl.control;
 import cn.com.startai.socket.debuger.impl.IDebugerProtocolStream;
 import cn.com.startai.socket.sign.scm.bean.CountdownData;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
-import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
-import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.baselib.log.Tlog;
+import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
+import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
 
 /**
  * author: Guoqiang_Sun
@@ -54,6 +54,10 @@ public class CountdownQueryReceiveTask extends SocketResponseTask {
         if (protocolParams.length >= 7) {
             mCountdownData.allTime = (protocolParams[5] & 0xFF) * 60;
             mCountdownData.allTime += protocolParams[6] & 0xFF;
+
+            if (protocolParams.length >= 8) {
+                mCountdownData.seconds = (protocolParams[7] & 0xFF);
+            }
         }
 
         Tlog.v(TAG, " CountdownQueryReceiveTask :" + String.valueOf(mCountdownData));

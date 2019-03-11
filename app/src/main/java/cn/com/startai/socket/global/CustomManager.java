@@ -116,31 +116,31 @@ public class CustomManager implements IApp {
         if (isTriggerBle()) {
             CUSTOM = SocketSecureKey.Custom.CUSTOM_WAN;
             PRODUCT = SocketSecureKey.Custom.PRODUCT_TRIGGER_BLE;
-            PROTOCOL_VERSION = ProtocolBuild.VERSION.VERSION_0;
+            PROTOCOL_VERSION = ProtocolBuild.XX.XX_VERSION_0;
         } else if (isTriggerWiFi()) {
             CUSTOM = SocketSecureKey.Custom.CUSTOM_WAN;
             PRODUCT = SocketSecureKey.Custom.PRODUCT_TRIGGER_WIFI;
-            PROTOCOL_VERSION = ProtocolBuild.VERSION.VERSION_SEQ;
+            PROTOCOL_VERSION = ProtocolBuild.XX.XX_VERSION_SEQ;
         } else if (isGrowroomate()) {
             CUSTOM = SocketSecureKey.Custom.CUSTOM_WAN;
             PRODUCT = SocketSecureKey.Custom.PRODUCT_GROWROOMATE;
-            PROTOCOL_VERSION = ProtocolBuild.VERSION.VERSION_SEQ;
+            PROTOCOL_VERSION = ProtocolBuild.XX.XX_VERSION_SEQ;
         } else if (isMUSIK()) {
 
             CUSTOM = SocketSecureKey.Custom.CUSTOM_STARTAI;
             PRODUCT = SocketSecureKey.Custom.PRODUCT_MUSIK;
-            PROTOCOL_VERSION = ProtocolBuild.VERSION.VERSION_SEQ;
+            PROTOCOL_VERSION = ProtocolBuild.XX.XX_VERSION_SEQ;
 
         } else if (isAirtempNBProject()) {
 
             CUSTOM = SocketSecureKey.Custom.CUSTOM_WAN;
             PRODUCT = SocketSecureKey.Custom.PRODUCT_NB_AIRTEMP;
-            PROTOCOL_VERSION = ProtocolBuild.VERSION.VERSION_SEQ;
+            PROTOCOL_VERSION = ProtocolBuild.XX.XX_VERSION_SEQ;
 
         } else {
             CUSTOM = SocketSecureKey.Custom.CUSTOM_STARTAI;
             PRODUCT = SocketSecureKey.Custom.PRODUCT_MUSIK;
-            PROTOCOL_VERSION = ProtocolBuild.VERSION.VERSION_SEQ;
+            PROTOCOL_VERSION = ProtocolBuild.XX.XX_VERSION_SEQ;
         }
 
     }

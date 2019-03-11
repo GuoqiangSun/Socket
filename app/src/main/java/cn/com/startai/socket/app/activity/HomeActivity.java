@@ -2,22 +2,18 @@ package cn.com.startai.socket.app.activity;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
 import android.widget.Toast;
 
@@ -31,17 +27,15 @@ import cn.com.startai.socket.app.SocketApplication;
 import cn.com.startai.socket.app.fragment.BaseFragment;
 import cn.com.startai.socket.app.fragment.GuideFragment;
 import cn.com.startai.socket.app.fragment.WebFragment;
-import cn.com.startai.socket.app.service.MutualService;
+import cn.com.startai.socket.app.service.CoreService;
 import cn.com.startai.socket.debuger.Debuger;
+import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.FileManager;
-import cn.com.startai.socket.global.LoginHelp;
 import cn.com.startai.socket.mutual.Controller;
 import cn.com.startai.socket.mutual.js.IAndJSCallBack;
 import cn.com.startai.socket.mutual.js.bean.StatusBarBean;
-import cn.com.startai.socket.mutual.js.bean.ThirdLoginUser;
 import cn.com.startai.socket.sign.hardware.manager.AbsHardwareManager;
 import cn.com.startai.socket.sign.js.jsInterface.Language;
-import cn.com.startai.socket.sign.js.jsInterface.Login;
 import cn.com.startai.socket.sign.js.jsInterface.Router;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.swain.baselib.Queue.LimitQueue;
@@ -57,18 +51,8 @@ import cn.com.swain.baselib.util.StatusBarUtil;
  * date : 2018/3/28 0028
  * desc :
  * <p>
- * View.SYSTEM_UI_FLAG_VISIBLE：显示状态栏，Activity不全屏显示(恢复到有状态的正常情况)。
- * View.INVISIBLE：隐藏状态栏，同时Activity会伸展全屏显示。
- * View.SYSTEM_UI_FLAG_FULLSCREEN：Activity全屏显示，且状态栏被隐藏覆盖掉。
- * View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN：Activity全屏显示，但状态栏不会被隐藏覆盖，
- * 状态栏依然可见，Activity顶端布局部分会被状态遮住。
- * View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION：效果同View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
- * View.SYSTEM_UI_LAYOUT_FLAGS：效果同View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
- * View.SYSTEM_UI_FLAG_HIDE_NAVIGATION：隐藏虚拟按键(导航栏)。有些手机会用虚拟按键来代替物理按键。
- * View.SYSTEM_UI_FLAG_LOW_PROFILE：状态栏显示处于低能显示状态(low profile模式)，
- * 状态栏上一些图标显示会被隐藏。
  */
-public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
+public class HomeActivity extends XWalkWebActivity implements IAndJSCallBack,
         WebFragment.IWebFragmentCallBack {
 
     private static final String TAG = SocketApplication.TAG;
@@ -103,10 +87,8 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         Tlog.v(TAG, "HomeActivity  onWindowFocusChanged() ");
     }
 
-    private boolean isDistributed = false;
 
     IService IService;
-    ServiceConnection connection;
 
     private long createTs;
 
@@ -126,96 +108,74 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
             mUiHandler = new UiHandler(this);
         }
 
-        if (isDistributed) {
-            showGuideFragment(savedInstanceState);
-
-            if (savedInstanceState != null) {
-                Fragment fragmentWeb = getFragmentByCache(savedInstanceState, String.valueOf(ID_WEB));
-                if (fragmentWeb != null) {
-                    Tlog.e(TAG, " savedInstanceState!=null, add cache web fragment ");
-
-                    mFragments.add(ID_WEB, (BaseFragment) fragmentWeb);
-                }
-            }
-
-        } else {
-            restoreFragment(savedInstanceState);
-        }
-
         Tlog.d(TAG, "activity mFragment : " + mFragments.hashCode());
 
-        if (mPermissionRequest == null) {
-            Tlog.v(TAG, "HomeActivity new PermissionRequest() ");
-            mPermissionRequest = new PermissionRequest(this);
+        restoreFragment(savedInstanceState);
+
+        requestPermission();
+
+        if (CustomManager.getInstance().isMUSIK()) {
+            startService(new Intent(this, CoreService.class));
         }
-
-        String[] per = new String[2];
-//        per[1] = Manifest.permission.ACCESS_COARSE_LOCATION; // 开启蓝牙,wifi配网 需要此权限
-        per[0] = PermissionGroup.LOCATION;
-        per[1] = Manifest.permission.WRITE_EXTERNAL_STORAGE;
-
-        mPermissionRequest.requestPermissions(() -> {
-            Tlog.v(TAG, "HomeActivity onPermissionRequestFinish() ");
-            FileManager.getInstance().recreate(getApplication());
-            Debuger.getInstance().reCheckLogRecord(HomeActivity.this);
-        }, (permission, granted) -> {
-            Tlog.v(TAG, "HomeActivity permission :" + permission + " granted:" + granted);
-        }, per);
-
-//        startService(new Intent(this, CoreService.class));
 
         Tlog.v(TAG, " Controller hashCode: " + Controller.getInstance().hashCode());
 
         Controller.getInstance().init(getApplication(), this);
+        IService = Controller.getInstance();
+        IService.onSCreate();
 
-        if (isDistributed) {
-            Intent mutualService = new Intent(this, MutualService.class);
-            connection = new ServiceConnection() {
-                @Override
-                public void onServiceConnected(ComponentName name, IBinder service) {
+    }
 
-                    Tlog.d(TAG, " onServiceConnected:" + name);
+    @Override
+    protected void onXWalkReady(Bundle savedInstanceState) {
+        super.onXWalkReady(savedInstanceState);
+        restoreFragment(savedInstanceState);
+        if (mFragments.size() > ID_WEB) {
+            BaseFragment baseFragment = mFragments.get(ID_WEB);
+            ((WebFragment) baseFragment).onXwalReady();
+        }
+    }
 
-                    MutualService.MBinder service1 = (MutualService.MBinder) service;
-                    IService = service1.getIService();
-                    IService.onSCreate();
-                    resLoadFinish();
-                }
+    private void requestPermission() {
 
-                @Override
-                public void onServiceDisconnected(ComponentName name) {
-                    Tlog.d(TAG, " onServiceDisconnected:" + name);
-                }
-            };
-            bindService(mutualService, connection, Context.BIND_AUTO_CREATE);
+        Context applicationContext = getApplicationContext();
+
+        ArrayList<String> permissions = new ArrayList<>(2);
+
+        if (!PermissionHelper.isGranted(applicationContext, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                || !PermissionHelper.isGranted(applicationContext, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+
+            permissions.add(PermissionGroup.STORAGE);
+
         } else {
-            IService = Controller.getInstance();
-            IService.onSCreate();
-        }
-    }
-
-    protected void resLoadFinish() {
-
-        if (mFragments.size() > ID_WEB && mFragments.get(ID_WEB) != null) {
-            Tlog.e(" resLoadFinish but web fragment not null ");
-            return;
+            FileManager.getInstance().recreate(getApplication());
+            Debuger.getInstance().reCheckLogRecord(this);
         }
 
-        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        addWebFragment(fragmentTransaction, null);
-        if (mCurFrame == ID_GUIDE) {
-            fragmentTransaction.hide(mFragments.get(ID_WEB));
+        if (!PermissionHelper.isGranted(applicationContext, Manifest.permission.ACCESS_COARSE_LOCATION)
+                || !PermissionHelper.isGranted(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            permissions.add(PermissionGroup.LOCATION); // 开启蓝牙,wifi配网 需要此权限
         }
-        fragmentTransaction.commit();
-    }
 
-    private void showGuideFragment(Bundle savedInstanceState) {
-        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        addGuideFragment(fragmentTransaction, savedInstanceState);
-        if (mCurFrame == ID_GUIDE) {
-            fragmentTransaction.show(mFragments.get(ID_GUIDE));
+        if (permissions.size() > 0) {
+
+            String[] per = permissions.toArray(new String[0]);
+
+            if (mPermissionRequest == null) {
+                Tlog.v(TAG, "HomeActivity new PermissionRequest() ");
+                mPermissionRequest = new PermissionRequest(this);
+            }
+
+            mPermissionRequest.requestPermissions(() -> Tlog.v(TAG, "HomeActivity onPermissionRequestFinish() "),
+                    (permission, granted) -> {
+                        Tlog.v(TAG, "HomeActivity onPermissionRequestResult permission :" + permission + " granted:" + granted);
+                        if (granted && PermissionGroup.STORAGE.equalsIgnoreCase(permission)) {
+                            FileManager.getInstance().recreate(getApplication());
+                            Debuger.getInstance().reCheckLogRecord(this);
+                        }
+                        return true;
+                    }, per);
         }
-        fragmentTransaction.commit();
     }
 
     private void addGuideFragment(FragmentTransaction fragmentTransaction, Bundle savedInstanceState) {
@@ -237,10 +197,14 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
 
         Fragment fragmentWeb = getFragmentByCache(savedInstanceState, String.valueOf(ID_WEB));
         if (fragmentWeb == null) {
-            Tlog.w(TAG, " mFragments add new webFragment");
-            mCallJs = false;
-            mFragments.add(ID_WEB, new WebFragment());
-            fragmentTransaction.add(R.id.frame_content, mFragments.get(ID_WEB), String.valueOf(ID_WEB));
+            if (isXWalkReady()) {
+                mCallJs = false;
+                Tlog.w(TAG, " mFragments add new webFragment");
+                mFragments.add(ID_WEB, new WebFragment());
+                fragmentTransaction.add(R.id.frame_content, mFragments.get(ID_WEB), String.valueOf(ID_WEB));
+            } else {
+                Tlog.w(TAG, " new webFragment but XWalk not ready");
+            }
         } else {
             Tlog.w(TAG, " mFragments add cache webFragment");
             if (mFragments.size() <= ID_WEB) {
@@ -310,7 +274,6 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         Tlog.d(TAG, "HomeActivity onRestoreInstanceState() ");
-        mCurFrame = ID_WEB;
         restoreFragment(savedInstanceState);
     }
 
@@ -322,13 +285,21 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
 
         if (mCurFrame == ID_GUIDE) {
             fragmentTransaction.show(mFragments.get(ID_GUIDE));
-            fragmentTransaction.hide(mFragments.get(ID_WEB));
+            if (mFragments.size() > ID_WEB) {
+                fragmentTransaction.hide(mFragments.get(ID_WEB));
+            }
         } else if (mCurFrame == ID_WEB) {
             fragmentTransaction.hide(mFragments.get(ID_GUIDE));
-            fragmentTransaction.show(mFragments.get(ID_WEB));
+            if (mFragments.size() > ID_WEB) {
+                fragmentTransaction.show(mFragments.get(ID_WEB));
+            }
         }
 
-        fragmentTransaction.commit();
+        if (mActPause) {
+            fragmentTransaction.commitAllowingStateLoss();
+        } else {
+            fragmentTransaction.commit();
+        }
 
     }
 
@@ -372,11 +343,6 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         mFragments.clear();
         mMethodCache.clear();
 
-
-        if (null != connection) {
-            unbindService(connection);
-        }
-
     }
 
 
@@ -410,7 +376,9 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
     @Override
     public void ajLoadJs(String method) {
 
-        if (mWebShowed && mCallJs) {
+        if (
+//                mWebShowed &&
+                mCallJs) {
             if (mUiHandler != null) {
                 mUiHandler.obtainMessage(MSG_WHAT_LOAD_JS, method).sendToTarget();
             } else {
@@ -510,9 +478,11 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
             delay = MAX_DELAY_SHOW_WEB - loadDuration;
         }
 
-        Tlog.d(TAG, " onWebLoadFinish delay " + delay + " show");
+        Tlog.d(TAG, " onWebLoadFinish load:" + loadDuration + " delay " + delay + " show ");
 
-        showWeb(delay);
+        if (mUiHandler != null) {
+            mUiHandler.sendEmptyMessageDelayed(MSG_WHAT_WEB_VIEW_LOAD_FINISH, delay);
+        }
     }
 
     @Override
@@ -532,10 +502,10 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
     private void showWeb(long delay) {
         if (!mActPause) {
             if (mUiHandler != null) {
-                mUiHandler.sendEmptyMessageDelayed(MSG_WHAT_WEB_VIEW_LOAD_FINISH, delay);
+                mUiHandler.sendEmptyMessageDelayed(MSG_WHAT_SHOW_WEB, delay);
             }
         } else {
-            Tlog.e(TAG, " onWebLoadFinish activity is pause . ");
+            Tlog.e(TAG, " showWeb activity is pause . ");
         }
     }
 
@@ -578,7 +548,7 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
 
     private static final int MSG_WHAT_CHANGE_STATUS_BAR = 0x04;
 
-    private static final int MSG_WHAT_CAN_CALL_JS = 0x05;
+    private static final int MSG_WHAT_SHOW_WEB = 0x05;
 
 
     private void handleMessage(Message msg) {
@@ -597,22 +567,7 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
 
         } else if (msg.what == MSG_WHAT_WEB_VIEW_LOAD_FINISH) {
 
-            if (!mActPause && !mWebShowed && mFragments.size() > ID_WEB) {
-                mWebShowed = true;
-                FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-                fragmentTransaction.hide(mFragments.get(ID_GUIDE));
-                fragmentTransaction.show(mFragments.get(ID_WEB));
-                fragmentTransaction.commit();
-                mCurFrame = ID_WEB;
-                Tlog.d(TAG, " show mWebFragment ");
-
-                if (mUiHandler != null) {
-                    mUiHandler.sendEmptyMessageDelayed(MSG_WHAT_CAN_CALL_JS, 100);
-                }
-
-            } else {
-                Tlog.e(TAG, "WebView loaded ; pause:" + mActPause + " show:" + mWebShowed + " " + mFragments.size());
-            }
+            new LoadCacheJsTask(HomeActivity.this).execute();
 
         } else if (msg.what == MSG_WHAT_FINISH) {
 
@@ -627,9 +582,20 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
             } else {
                 StatusBarUtil.fullScreenHideStatusBar(getWindow(), true);
             }
-        } else if (msg.what == MSG_WHAT_CAN_CALL_JS) {
+        } else if (msg.what == MSG_WHAT_SHOW_WEB) {
             mCallJs = true;
-            new LoadCacheJsTask(HomeActivity.this).execute();
+            if (!mActPause && !mWebShowed && mFragments.size() > ID_WEB) {
+                mWebShowed = true;
+                FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+                fragmentTransaction.hide(mFragments.get(ID_GUIDE));
+                fragmentTransaction.show(mFragments.get(ID_WEB));
+                fragmentTransaction.commit();
+                mCurFrame = ID_WEB;
+                Tlog.d(TAG, " show mWebFragment ");
+
+            } else {
+                Tlog.e(TAG, "WebView loaded ; pause:" + mActPause + " show:" + mWebShowed + " " + mFragments.size());
+            }
         }
 
     }
@@ -645,6 +611,8 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         @Override
         protected Void doInBackground(Void... voids) {
 
+            Tlog.v(TAG, " LoadCacheJsTask doInBackground");
+
             HomeActivity homeActivity = wr.get();
             if (homeActivity == null) {
                 Tlog.e(TAG, " LoadCacheJsTask homeActivity=null");
@@ -657,11 +625,21 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
                 String method = null;
                 while ((method = mMethodCache.poll()) != null) {
                     Tlog.e(H5Config.TAG, " poll cache method: " + method);
-                    homeActivity.ajLoadJs(method);
+
+                    if (homeActivity.mUiHandler != null) {
+                        homeActivity.mUiHandler.obtainMessage(MSG_WHAT_LOAD_JS, method).sendToTarget();
+                    } else {
+                        Tlog.e(TAG, " ajLoadJs mUiHandler is null; " + method);
+                    }
                 }
             }
+
+            homeActivity.mCallJs = true;
+            homeActivity.showWeb(300);
+
             return null;
         }
+
     }
 
     private static class UiHandler extends Handler {

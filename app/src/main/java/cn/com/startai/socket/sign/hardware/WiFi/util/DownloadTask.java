@@ -78,26 +78,24 @@ public class DownloadTask extends AsyncTask<Void, Void, Void> {
     @Override
     protected Void doInBackground(Void... voids) {
 
+//        formBitmap();
 
-        formBitmap();
+        boolean hasSuffix = true;
 
+        int i = url.lastIndexOf("/");
+        if (i > 0) {
+            String substring = url.substring(i + 1);
 
-//        boolean hasSuffix = true;
-//
-//        int i = url.lastIndexOf("/");
-//        if (i > 0) {
-//            String substring = url.substring(i + 1);
-//
-//            int i1 = substring.indexOf(".");
-//            if (i1 < 0) {
-//                hasSuffix = false;
-//            }
-//        }
-//        if (hasSuffix) {
-//            fromHttp();
-//        } else {
-//            formBitmap();
-//        }
+            int i1 = substring.indexOf(".");
+            if (i1 < 0) {
+                hasSuffix = false;
+            }
+        }
+        if (hasSuffix) {
+            fromHttp();
+        } else {
+            formBitmap(); // wx用 fromHttp有问题。
+        }
 
         return null;
     }
@@ -148,7 +146,7 @@ public class DownloadTask extends AsyncTask<Void, Void, Void> {
 
             }
 
-        } catch (java.io.IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             Tlog.e(TAG, " DownloadTask IOException ", e);
         }
@@ -159,6 +157,8 @@ public class DownloadTask extends AsyncTask<Void, Void, Void> {
 
     private void fromHttp() {
 
+        File cacheFile = null;
+        long allLength = 0;
 
         try {
 
@@ -178,14 +178,14 @@ public class DownloadTask extends AsyncTask<Void, Void, Void> {
                 BufferedInputStream bis = new BufferedInputStream(inputStream);
 
                 String randomName = UUID.randomUUID().toString();
-                File file = new File(getSaveDownRootPath(), randomName);
+                cacheFile = new File(getSaveDownRootPath(), randomName);
 
-                FileOutputStream fos = new FileOutputStream(file);
+                FileOutputStream fos = new FileOutputStream(cacheFile);
                 BufferedOutputStream bos = new BufferedOutputStream(fos);
 
                 int read;
                 byte[] buffer = new byte[1024 * 8];
-                long allLength = 0;
+
                 int progress;
                 int lastProgress = 0;
                 while ((read = bis.read(buffer)) != -1) {
@@ -205,17 +205,10 @@ public class DownloadTask extends AsyncTask<Void, Void, Void> {
                 bos.flush();
 
                 FileUtil.syncFile(fos.getFD());
-                FileUtil.copyFileUsingFileChannels(file, outputFile);
+                FileUtil.copyFileUsingFileChannels(cacheFile, outputFile);
 
                 Tlog.v(TAG, "DownloadTask success syncFile ; allLength:" + allLength
                         + "  outputFile.length():" + outputFile.length());
-
-                file.delete(); // delete cache
-
-                if (outputFile.length() < allLength) {
-                    boolean delete = outputFile.delete();
-                    Tlog.v(TAG, "DownloadTask success ; but outputFile.length()< allLength: delete :" + delete);
-                }
 
                 bis.close();
 
@@ -226,6 +219,18 @@ public class DownloadTask extends AsyncTask<Void, Void, Void> {
         } catch (java.io.IOException e) {
             e.printStackTrace();
             Tlog.e(TAG, " DownloadTask IOException ", e);
+        } finally {
+
+            if (cacheFile != null && cacheFile.exists()) {
+                boolean delete1 = cacheFile.delete();// delete cache
+                Tlog.v(TAG, "DownloadTask finish ;  delete cache:" + delete1);
+            }
+
+            if (outputFile != null && outputFile.exists() && outputFile.length() < allLength) {
+                boolean delete = outputFile.delete();
+                Tlog.v(TAG, "DownloadTask finish ; but outputFile.length()< allLength: delete :" + delete);
+            }
+
         }
 
     }

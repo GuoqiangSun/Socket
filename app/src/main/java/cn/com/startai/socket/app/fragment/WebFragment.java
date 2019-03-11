@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.ValueCallback;
+import android.widget.RelativeLayout;
 
 import org.xwalk.core.XWalkHttpAuthHandler;
 import org.xwalk.core.XWalkJavascriptResult;
@@ -19,6 +20,7 @@ import org.xwalk.core.XWalkWebResourceRequest;
 import org.xwalk.core.XWalkWebResourceResponse;
 
 import cn.com.startai.socket.R;
+import cn.com.startai.socket.app.activity.XWalkWebActivity;
 import cn.com.startai.socket.app.view.CrossWebView;
 import cn.com.startai.socket.app.view.DialogUtils;
 import cn.com.startai.socket.debuger.Debuger;
@@ -47,20 +49,38 @@ public class WebFragment extends BaseFragment {
 
     private IWebFragmentCallBack mCallBack;
 
+    public void onXwalReady() {
+        onXwalkReady(getRootView());
+    }
+
+    private synchronized void onXwalkReady(View mRootView) {
+        Tlog.w(TAG, " WebFragment onXwalReady() exe ");
+        if (mXWWebView == null) {
+            Activity activity = getActivity();
+            mCallBack = (IWebFragmentCallBack) activity;
+            if (mCallBack != null) {
+                String loadUrl = mCallBack.getLoadUrl();
+                if (((XWalkWebActivity)activity).isXWalkReady()) {
+                    initXW(mRootView, loadUrl);
+                } else {
+                    Tlog.w(TAG, " WebFragment isXReady false ");
+                }
+            } else {
+                Tlog.w(TAG, " WebFragment onXwalkReady mCallBack=null ");
+            }
+        } else {
+            Tlog.w(TAG, " WebFragment onXwalkReady mXWWebView=null ");
+        }
+    }
+
 
     @Override
     protected View inflateView() {
         Tlog.v(TAG, " WebFragment inflateView() " + hashCode());
-        View mRootView = View.inflate(getActivity(), R.layout.framgment_web,
+        View mRootView = View.inflate(getActivity(), R.layout.framgment_web_xwalk,
                 null);
 
-        Activity activity = getActivity();
-        if (activity instanceof IWebFragmentCallBack) {
-            mCallBack = (IWebFragmentCallBack) activity;
-        }
-        String loadUrl = mCallBack.getLoadUrl();
-
-        initXW(mRootView, loadUrl);
+        onXwalkReady(mRootView);
 
         return mRootView;
     }
@@ -113,7 +133,13 @@ public class WebFragment extends BaseFragment {
 
     private void initXW(View mRootView, String loadUrl) {
 
-        mXWWebView = mRootView.findViewById(R.id.web_view);
+
+//        mXWWebView = mRootView.findViewById(R.id.web_view);
+
+        mXWWebView = new CrossWebView(getContext());
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+        ((ViewGroup) mRootView).addView(mXWWebView, params);
 
         if (loadUrl != null) {
 
@@ -253,6 +279,7 @@ public class WebFragment extends BaseFragment {
         void onWebLoadFinish();
 
         String getLoadUrl();
+
     }
 
 

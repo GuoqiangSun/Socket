@@ -45,10 +45,10 @@ public class Login extends AbsHandlerJsInterface {
 
     public static final class Method {
 
-        private static final String THIRD_LOGIN = "javascript:thirdPartyLoginResponse($result,'$data')";
+        private static final String THIRD_LOGIN = "javascript:thirdPartyLoginResponse($result,'$type')";
 
         public static String callJsThirdLogin(boolean result, String data) {
-            return THIRD_LOGIN.replace("$result", String.valueOf(result)).replace("$data", data);
+            return THIRD_LOGIN.replace("$result", String.valueOf(result)).replace("$type", String.valueOf(data));
         }
 
         private static final String ALI_LOGIN = "javascript:alipayLoginResponse($result)";

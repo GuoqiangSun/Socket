@@ -2,6 +2,7 @@ package cn.com.startai.socket.sign.hardware.ble.util;
 
 import android.app.Application;
 import android.os.AsyncTask;
+import android.os.Build;
 
 import org.greenrobot.greendao.query.QueryBuilder;
 import org.json.JSONArray;
@@ -15,10 +16,24 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
+import java.net.Socket;
 import java.net.URL;
+import java.net.UnknownHostException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import cn.com.startai.mqttsdk.StartAI;
 import cn.com.startai.socket.db.gen.DisplayBleDeviceDao;
@@ -36,7 +51,7 @@ import cn.com.swain.baselib.log.Tlog;
  */
 public class DeviceEnablePost extends AsyncTask<Void, Void, String> {
 
-    private String TAG = BleManager.TAG;
+    private static String TAG = BleManager.TAG;
 
     private final String mac;
     private Application app;
@@ -172,7 +187,7 @@ public class DeviceEnablePost extends AsyncTask<Void, Void, String> {
 
     }
 
-    private String sendMsg(String msg) {
+    private static String sendMsg(String msg) {
 
         if (msg == null || msg.length() <= 0) {
             return null;
@@ -186,6 +201,31 @@ public class DeviceEnablePost extends AsyncTask<Void, Void, String> {
 //            URL url = new URL("http://192.168.1.148:8080/service/device/simpleactivate");
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+            if (conn instanceof HttpsURLConnection) {
+
+                SSLContext sc;
+
+                if (Build.VERSION.SDK_INT < 22) {
+                    sc = SSLContext.getInstance("TLSv1.2");
+                    sc.init(null, new TrustManager[]{new TrustAnyTrustManager()},
+                            new java.security.SecureRandom());
+                    ((HttpsURLConnection) conn).setSSLSocketFactory(new Tls12SocketFactory(sc.getSocketFactory()));
+                } else {
+                    sc = SSLContext.getInstance("SSL");
+
+                    sc.init(null, new TrustManager[]{new TrustAnyTrustManager()},
+                            new java.security.SecureRandom());
+                    ((HttpsURLConnection) conn).setSSLSocketFactory(sc.getSocketFactory());
+
+                }
+                ((HttpsURLConnection) conn).setHostnameVerifier(new TrustAnyHostnameVerifier());
+
+            }
+
+
+//            conn.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.2; Trident/4.0; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.30; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729)");
+
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Length", String.valueOf(msg.length()));
             conn.setConnectTimeout(10 * 1000);
@@ -204,7 +244,7 @@ public class DeviceEnablePost extends AsyncTask<Void, Void, String> {
                 e.printStackTrace();
             }
 
-            Tlog.v(TAG, " conn.getResponseCode() " + conn.getResponseCode());
+//            Tlog.v(TAG, " conn.getResponseCode() " + conn.getResponseCode());
             BufferedInputStream bis = null;
             if (200 == conn.getResponseCode()) {
                 InputStream inputStream = conn.getInputStream();
@@ -243,11 +283,99 @@ public class DeviceEnablePost extends AsyncTask<Void, Void, String> {
         } catch (IOException e) {
             e.printStackTrace();
             Tlog.e(TAG, "DeviceEnable IOException ", e);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            Tlog.e(TAG, "DeviceEnable NoSuchAlgorithmException ", e);
+        } catch (KeyManagementException e) {
+            e.printStackTrace();
+            Tlog.e(TAG, "DeviceEnable KeyManagementException ", e);
         }
 
 
         return responseMsg;
     }
 
+    private static class TrustAnyTrustManager implements X509TrustManager {
+
+
+        @Override
+        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType)
+                throws java.security.cert.CertificateException {
+
+        }
+
+        @Override
+        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType)
+                throws java.security.cert.CertificateException {
+
+        }
+
+        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+            return new java.security.cert.X509Certificate[]{};
+        }
+    }
+
+    private static class TrustAnyHostnameVerifier implements HostnameVerifier {
+        public boolean verify(String hostname, SSLSession session) {
+            return true;
+        }
+    }
+
+
+    public static class Tls12SocketFactory extends SSLSocketFactory {
+        private static final String[] TLS_V12_ONLY = {"TLSv1.2"};
+
+        final SSLSocketFactory delegate;
+
+        public Tls12SocketFactory(SSLSocketFactory base) {
+            this.delegate = base;
+        }
+
+        @Override
+        public String[] getDefaultCipherSuites() {
+            return delegate.getDefaultCipherSuites();
+        }
+
+        @Override
+        public String[] getSupportedCipherSuites() {
+            return delegate.getSupportedCipherSuites();
+        }
+
+        @Override
+        public Socket createSocket(Socket s, String host, int port, boolean autoClose) throws IOException {
+            return patch(delegate.createSocket(s, host, port, autoClose));
+        }
+
+        @Override
+        public Socket createSocket(String host, int port) throws IOException, UnknownHostException {
+            return patch(delegate.createSocket(host, port));
+        }
+
+        @Override
+        public Socket createSocket(String host, int port, InetAddress localHost, int localPort) throws IOException, UnknownHostException {
+            return patch(delegate.createSocket(host, port, localHost, localPort));
+        }
+
+        @Override
+        public Socket createSocket(InetAddress host, int port) throws IOException {
+            return patch(delegate.createSocket(host, port));
+        }
+
+        @Override
+        public Socket createSocket(InetAddress address, int port, InetAddress localAddress, int localPort) throws IOException {
+            return patch(delegate.createSocket(address, port, localAddress, localPort));
+        }
+
+        private Socket patch(Socket s) {
+            if (s instanceof SSLSocket) {
+                ((SSLSocket) s).setEnabledProtocols(TLS_V12_ONLY);
+            }
+            return s;
+        }
+    }
+
+    public static void main(String[] args) {
+        sendMsg("123");
+    }
 
 }

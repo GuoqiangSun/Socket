@@ -14,6 +14,7 @@ import cn.com.startai.socket.global.Utils.DateUtils;
 import cn.com.startai.socket.mutual.js.bean.CountAverageElectricity;
 import cn.com.startai.socket.mutual.js.bean.CountElectricity;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
+import cn.com.startai.socket.sign.scm.bean.SpendingElectricityData;
 import cn.com.startai.socket.sign.scm.util.MySocketDataCache;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolOutput;
@@ -301,8 +302,8 @@ public class QueryHistoryUtil {
                 int ss = (countData[4] & 0xFF) << 24 | (countData[5] & 0xFF) << 16
                         | (countData[6] & 0xFF) << 8 | (countData[7] & 0xFF);
 
-                float e = ee / 1000F;
-                float s = ss / 1000F;
+                float e = ee/1000F;
+                float s = ss/1000F;
 
 
 //                if (Debuger.isTest && e == 0) {

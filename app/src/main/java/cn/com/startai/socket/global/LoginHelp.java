@@ -17,6 +17,7 @@ import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
+import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.google.android.gms.auth.api.Auth;
@@ -48,10 +49,8 @@ import org.json.JSONObject;
 
 import java.util.Arrays;
 
-import cn.com.startai.socket.R;
 import cn.com.startai.socket.mutual.js.bean.ThirdLoginUser;
 import cn.com.startai.socket.sign.hardware.WiFi.impl.UserManager;
-import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.swain.baselib.log.Tlog;
 import retrofit2.Call;
 
@@ -158,32 +157,6 @@ public class LoginHelp {
 
     }
 
-    private void getGoogleAccount(GoogleSignInAccount acct) {
-        if (acct != null) {
-
-            String personName = acct.getDisplayName();
-            String personGivenName = acct.getGivenName();
-            String personFamilyName = acct.getFamilyName();
-            String personEmail = acct.getEmail();
-            String personId = acct.getId();
-            Uri personPhoto = acct.getPhotoUrl();
-            Tlog.v(TAG, " personName : " + personName);
-            Tlog.v(TAG, " personGivenName : " + personGivenName);
-            Tlog.v(TAG, " personFamilyName : " + personFamilyName);
-            Tlog.v(TAG, " personEmail : " + personEmail);
-            Tlog.v(TAG, " personId : " + personId);
-
-            if (personPhoto != null) {
-                Tlog.v(TAG, " personPhoto : " + personPhoto.toString());
-            } else {
-                Tlog.v(TAG, " personPhoto ==null ");
-
-            }
-
-        } else {
-            Tlog.e(TAG, " GoogleSignInAccount == null ");
-        }
-    }
 
     public void signOutGoogle(final Activity mAct) {
         final GoogleSignInClient mGoogleSignInClient = getGoogleSignInClient(mAct);
@@ -222,13 +195,16 @@ public class LoginHelp {
         Tlog.v(TAG, " loginTwitter() ");
         Context context = mAct.getApplication();
 
+        String twitterApiKey = "lIMEObknf7gHEsOj9mutp3guq";
+        String twitterSecretKey = "4bPsFNeRm2EoYenuZi1hxoTRtHlOo91eQaK8w5o8weOQPMiYBU";
+
 //        /initialize sdk
         if (!twitterSdkInit) {
             twitterSdkInit = true;
             TwitterConfig authConfig = new TwitterConfig.Builder(context)
                     .logger(new DefaultLogger(Log.DEBUG))
-                    .twitterAuthConfig(new TwitterAuthConfig(context.getResources().getString(R.string.twitter_api_key),
-                            context.getResources().getString(R.string.twitter_secret_key)))
+                    .twitterAuthConfig(new TwitterAuthConfig(twitterApiKey,
+                            twitterSecretKey))
                     .debug(true)
                     .build();
             Twitter.initialize(authConfig);
@@ -327,43 +303,45 @@ public class LoginHelp {
         GraphRequest request = GraphRequest.newMeRequest(accessToken, new GraphRequest.GraphJSONObjectCallback() {
             @Override
             public void onCompleted(JSONObject object, GraphResponse response) {
-                if (object != null) {
+                Tlog.v(TAG, " getFacebookLoginInfo：" + String.valueOf(object));
 
-                    Tlog.v(TAG, "" + object.toString());
-
-                    String id = object.optString("id");   //比如:1565455221565
-                    String name = object.optString("name");  //比如：Zhang San
-                    String gender = object.optString("gender");  //性别：比如 male （男）  female （女）
-                    String emali = object.optString("email");  //邮箱：比如：56236545@qq.com
-
-                    String lastName = object.optString("last_name");
-                    String firstName = object.optString("first_name");
-
-
-                    //获取用户头像
-                    JSONObject object_pic = object.optJSONObject("picture");
-                    JSONObject object_data = object_pic.optJSONObject("data");
-                    String photo = object_data.optString("url");
-
-                    //获取地域信息
-                    String locale = object.optString("locale");   //zh_CN 代表中文简体
-
-                    ThirdLoginUser mUser = new ThirdLoginUser();
-                    mUser.userID = id;
-                    mUser.name = name;
-                    mUser.lastName = lastName;
-                    mUser.firstName = firstName;
-                    mUser.linkURL = object_pic.toString();
-                    mUser.linkURL = photo;
-
-                    if (mOnLoginResult != null) {
-                        mOnLoginResult.onResult(true, mUser);
-                    }
-
-
-                } else {
-                    Tlog.v(TAG, " object==null ");
+                if (mOnLoginResult != null) {
+                    mOnLoginResult.onFacebookResult(true, object);
                 }
+
+//                if (object != null) {
+//
+//                    Tlog.v(TAG, "" + object.toString());
+//
+//                    String id = object.optString("id");   //比如:1565455221565
+//                    String name = object.optString("name");  //比如：Zhang San
+//                    String gender = object.optString("gender");  //性别：比如 male （男）  female （女）
+//                    String emali = object.optString("email");  //邮箱：比如：56236545@qq.com
+//
+//                    String lastName = object.optString("last_name");
+//                    String firstName = object.optString("first_name");
+//
+//
+//                    //获取用户头像
+//                    JSONObject object_pic = object.optJSONObject("picture");
+//                    JSONObject object_data = object_pic.optJSONObject("data");
+//                    String photo = object_data.optString("url");
+//
+//                    //获取地域信息
+//                    String locale = object.optString("locale");   //zh_CN 代表中文简体
+//
+//                    ThirdLoginUser mUser = new ThirdLoginUser();
+//                    mUser.userID = id;
+//                    mUser.name = name;
+//                    mUser.lastName = lastName;
+//                    mUser.firstName = firstName;
+//                    mUser.linkURL = object_pic.toString();
+//                    mUser.linkURL = photo;
+//
+//
+//                } else {
+//                    Tlog.v(TAG, " object==null ");
+//                }
             }
         });
 
@@ -380,7 +358,7 @@ public class LoginHelp {
         if (!FacebookSdkInit) {
             FacebookSdkInit = true;
             FacebookSdk.sdkInitialize(mAct.getApplication());
-//            AppEventsLogger.activateApp(mAct.getApplication());
+            AppEventsLogger.activateApp(mAct.getApplication());
         }
 
         AccessToken accessToken = AccessToken.getCurrentAccessToken();
@@ -403,75 +381,74 @@ public class LoginHelp {
             public void onCancel() {
                 Tlog.v(TAG, " facebook loginResult onCancel() ");
 
-                if (mOnLoginResult != null) {
-                    mOnLoginResult.onResult(false, null);
-                }
-
             }
 
             @Override
             public void onError(FacebookException error) {
-                Tlog.v(TAG, " facebook loginResult onError() ", error);
+                Tlog.e(TAG, " facebook loginResult onError() ", error);
 
                 if (mOnLoginResult != null) {
-                    mOnLoginResult.onResult(false, null);
+                    mOnLoginResult.onFacebookResult(false, null);
                 }
 
             }
         });
 
-        LoginManager.getInstance().logInWithReadPermissions(mAct, Arrays.asList("public_profile", "user_friends", "email"));
-
-    }
-
-    private void callGoogleLoginIn(Task<GoogleSignInAccount> task) {
-        try {
-            GoogleSignInAccount account = task.getResult(ApiException.class);
-            callGoogleLoginIn(account);
-        } catch (ApiException e) {
-            e.printStackTrace();
-            Tlog.v(TAG, " ApiException ", e);
-            if (mOnLoginResult != null) {
-                mOnLoginResult.onResult(false, null);
-            }
-        }
+        LoginManager.getInstance().logInWithReadPermissions(mAct, Arrays.asList("public_profile"
+//                , "user_friends", "email"
+        ));
 
     }
 
 
-    private void callGoogleLoginIn(GoogleSignInAccount account) {
-        getGoogleAccount(account);
+    private void callGoogleLoginIn(GoogleSignInResult result) {
 
-        if (account == null) {
+        GoogleSignInAccount acct = null;
+
+        if (result.isSuccess()) {
+            // Signed in successfully, show authenticated UI.
+            acct = result.getSignInAccount();
+
+            if (acct != null) {
+
+                String personName = acct.getDisplayName();
+                String personGivenName = acct.getGivenName();
+                String personFamilyName = acct.getFamilyName();
+                String personEmail = acct.getEmail();
+                String personId = acct.getId();
+                Uri personPhoto = acct.getPhotoUrl();
+                Tlog.v(TAG, " personName : " + personName);
+                Tlog.v(TAG, " personGivenName : " + personGivenName);
+                Tlog.v(TAG, " personFamilyName : " + personFamilyName);
+                Tlog.v(TAG, " personEmail : " + personEmail);
+                Tlog.v(TAG, " personId : " + personId);
+
+                if (personPhoto != null) {
+                    Tlog.v(TAG, " personPhoto : " + personPhoto.toString());
+                } else {
+                    Tlog.v(TAG, " personPhoto ==null ");
+
+                }
+
+                if (mOnLoginResult != null) {
+                    mOnLoginResult.onGoogleResult(true, acct);
+                }
+
+            } else {
+                Tlog.e(TAG, " GoogleSignInAccount == null ");
+                if (mOnLoginResult != null) {
+                    mOnLoginResult.onGoogleResult(false, null);
+                }
+            }
+
+        } else {
+            Tlog.e(TAG, " result fail ");
             if (mOnLoginResult != null) {
-                mOnLoginResult.onResult(false, null);
-                return;
+                mOnLoginResult.onGoogleResult(false, null);
             }
         }
 
-        String personName = account.getDisplayName();
-        String personGivenName = account.getGivenName();
-        String personFamilyName = account.getFamilyName();
-        String personEmail = account.getEmail();
-        Uri personPhoto = account.getPhotoUrl();
-        String personId = account.getId();
 
-        ThirdLoginUser mUser = new ThirdLoginUser();
-        mUser.userID = personId;
-        mUser.name = personName;
-
-        if (personPhoto != null) {
-            mUser.linkURL = personPhoto.toString();
-        }
-
-//        long expirationTimeSecs = account.getExpirationTimeSecs();
-//        SimpleDateFormat mDataFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-//        Date d = new Date(expirationTimeSecs);
-//        mUser.refreshDate = mDataFormat.format(d);
-
-        if (mOnLoginResult != null) {
-            mOnLoginResult.onResult(true, mUser);
-        }
 
     }
 
@@ -487,16 +464,8 @@ public class LoginHelp {
 //            callGoogleLoginIn(task);
 
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
-            if (result.isSuccess()) {
-                // Signed in successfully, show authenticated UI.
-                GoogleSignInAccount acct = result.getSignInAccount();
-                callGoogleLoginIn(acct);
-            } else {
-                Tlog.e(TAG, " result fail ");
-                if (mOnLoginResult != null) {
-                    mOnLoginResult.onResult(false, null);
-                }
-            }
+            callGoogleLoginIn(result);
+
 
         } else {
 
@@ -537,6 +506,10 @@ public class LoginHelp {
     public interface OnLoginResult {
 
         void onResult(boolean result, ThirdLoginUser mUser);
+
+        void onFacebookResult(boolean result, JSONObject object);
+
+        void onGoogleResult(boolean result, GoogleSignInAccount account);
 
     }
 

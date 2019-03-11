@@ -24,9 +24,12 @@ public class SpendingCountdown extends AbsHandlerJsInterface {
 
         void onJSSetSpendingCountdownAlarm(SpendingElectricityData mSpendingCountdownData);
 
+        void onJSQueryTotalElectric(SpendingElectricityData obj);
     }
 
     public static final class Method {
+
+
         private static final String SPENDING_COUNTDOWN_DATA
                 = "javascript:spendingCountdownDataResponse('$mac',$result,'$data')";
 
@@ -46,6 +49,21 @@ public class SpendingCountdown extends AbsHandlerJsInterface {
                     .replace("$model", String.valueOf(model))
                     .replace("$state", String.valueOf(state))
                     .replace("$result", String.valueOf(result));
+        }
+
+
+        private static final String TOTAL_ELECTRIC_DATA
+                = "javascript:queryElectricityByTimeResponse('$mac',$model,$count,$year,$month,$day)";
+
+        public static String callJsElectricityDataByTime(String mac, int model, float count,
+                                                         int year, int month, int day) {
+            if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
+            return TOTAL_ELECTRIC_DATA.replace("$mac", mac)
+                    .replace("$model", String.valueOf(model))
+                    .replace("$count", String.valueOf(count))
+                    .replace("$year", String.valueOf(year))
+                    .replace("$month", String.valueOf(month))
+                    .replace("$day", String.valueOf(day));
         }
 
     }
@@ -88,9 +106,25 @@ public class SpendingCountdown extends AbsHandlerJsInterface {
         getHandler().obtainMessage(MSG_SET_SPENDING_COUNTDOWN_DATA, mSpendingCountdownData).sendToTarget();
     }
 
+    @JavascriptInterface
+    public void queryElectricityByTimeRequest(String mac, int model,
+                                              int year, int month, int day) {
+        Tlog.v(TAG, " queryElectricityByTimeRequest model:" + model
+                + " year:" + year + " month:" + month + " day:" + day);
+        SpendingElectricityData mSpendingCountdownData = new SpendingElectricityData();
+        mSpendingCountdownData.mac = mac;
+        mSpendingCountdownData.model = model;
+        mSpendingCountdownData.year = year;
+        mSpendingCountdownData.month = month;
+        mSpendingCountdownData.day = day;
+        getHandler().obtainMessage(MSG_QUERY_ELECTRIC_DATA, mSpendingCountdownData).sendToTarget();
+    }
+
     private static final int MSG_QUERY_SPENDING_COUNTDOWN_DATA = 0x2E;
 
     private static final int MSG_SET_SPENDING_COUNTDOWN_DATA = 0x2F;
+
+    private static final int MSG_QUERY_ELECTRIC_DATA = 0x3A;
 
     @Override
     protected void handleMessage(Message msg) {
@@ -102,6 +136,10 @@ public class SpendingCountdown extends AbsHandlerJsInterface {
         } else if (msg.what == MSG_SET_SPENDING_COUNTDOWN_DATA) {
             if (mCallBack != null) {
                 mCallBack.onJSSetSpendingCountdownAlarm((SpendingElectricityData) msg.obj);
+            }
+        } else if (msg.what == MSG_QUERY_ELECTRIC_DATA) {
+            if (mCallBack != null) {
+                mCallBack.onJSQueryTotalElectric((SpendingElectricityData) msg.obj);
             }
         }
     }

@@ -42,6 +42,16 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
 
     public static final class Method {
 
+        private static final String METHOD_TEMPERATURE_SENSOR_STATE_REPORT
+                = "javascript:temperatureSensorReportStateResponse('$mac',$state)";
+
+
+        public static final String callJsTemperatureSensorStateReport(String mac, boolean state) {
+            if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
+            return METHOD_TEMPERATURE_SENSOR_STATE_REPORT.replace("$mac", mac)
+                    .replace("$state", String.valueOf(state));
+        }
+
 
         private static final String METHOD_TEMPERATURE_SENSOR_STATE
                 = "javascript:temperatureSensorStateResponse('$mac',$state)";

@@ -82,12 +82,14 @@ public class LoginFragment extends BaseFragment {
     private void loginTwitter(View inflate) {
 //        twitter:
 
+        String twitterApiKey = "lIMEObknf7gHEsOj9mutp3guq";
+        String twitterSecretKey = "4bPsFNeRm2EoYenuZi1hxoTRtHlOo91eQaK8w5o8weOQPMiYBU";
+
 //        /initialize sdk
         Context context = getContext();
         TwitterConfig authConfig = new TwitterConfig.Builder(context)
                 .logger(new DefaultLogger(Log.DEBUG))
-                .twitterAuthConfig(new TwitterAuthConfig(context.getResources().getString(R.string.twitter_api_key),
-                        context.getResources().getString(R.string.twitter_secret_key)))
+                .twitterAuthConfig(new TwitterAuthConfig(twitterApiKey,twitterSecretKey))
                 .debug(true)
                 .build();
         Twitter.initialize(authConfig);
@@ -147,8 +149,10 @@ public class LoginFragment extends BaseFragment {
     private static final int RC_SIGN_IN = 9001;
 
     private void loginGoogle(View inflate) {
+
+        String serverClientId = "854356002721-8tquk5901sq9uf40vctka3fsk09630jm.apps.googleusercontent.com";
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.server_client_id))
+                .requestIdToken(serverClientId)
                 .requestEmail()
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(getActivity(), gso);

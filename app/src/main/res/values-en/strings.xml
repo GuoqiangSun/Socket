@@ -1,9 +1,7 @@
 <resources>
     <string name="app_name">Socket</string>
 
-    <string name="goBack_again">Please drop out one more time</string>
     <string name="ble_forbid_enable_skip_setting">Bluetooth activation failed. Please jump to setup and manually open.</string>
-    <string name="jump_product_detection_near_step">Please press $step to enter the test</string>
     <string name="wifi_state_allow_permission">You must allow this permission, otherwise you can not get WiFi information.</string>
 
     <string name="skip_product_detection">Entry The Product Detection</string>
@@ -15,7 +13,9 @@
     <string name="generating_verification_success">Generating verification report successful</string>
     <string name="generating_verification_fail">Generating verification report fail</string>
     <string name="out_of_memory_need_clear">The memory is about to overflow, please generate the verification report in time</string>
+    <string name="jump_product_detection_near_step">Please press $step to enter the test</string>
 
+    <string name="goBack_again">Please drop out one more time</string>
     <string name="device_offline">Device offline</string>
     <string name="offline">offline</string>
     <string name="temp_sensor_error_title">Abnormal temperature detection</string>

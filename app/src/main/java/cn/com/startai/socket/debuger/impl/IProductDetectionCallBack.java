@@ -35,4 +35,6 @@ public interface IProductDetectionCallBack {
     void nightLightQueryResult(NightLightTiming obj);
 
     void rgbQueryResult(ColorLampRGB obj);
+
+    void rgbSetResult(ColorLampRGB obj);
 }

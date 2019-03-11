@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import com.alipay.sdk.app.AuthTask;
 import com.blankj.utilcode.util.AppUtils;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.tencent.mm.opensdk.modelbase.BaseResp;
 import com.tencent.mm.opensdk.modelbiz.JumpToBizProfile;
 import com.tencent.mm.opensdk.modelmsg.SendAuth;
@@ -65,6 +66,7 @@ import cn.com.startai.mqttsdk.busi.entity.C_0x8022;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8023;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8024;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8025;
+import cn.com.startai.mqttsdk.busi.entity.C_0x8027;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8033;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8034;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8035;
@@ -370,10 +372,6 @@ public class UserManager implements IService {
                                 }
                             }
 
-                            @Override
-                            public boolean needUISafety() {
-                                return false;
-                            }
                         });
 
                     }
@@ -440,6 +438,62 @@ public class UserManager implements IService {
 //                    String method = Login.Method.callJsThirdLogin(result, data);
 //                    ajLoadJs(method);
 
+                }
+
+                @Override
+                public void onFacebookResult(boolean result, JSONObject object) {
+                    if (!result) {
+                        Tlog.e(TAG, " onFacebookResult fail ");
+                        return;
+                    }
+                    C_0x8027.Req.ContentBean mBean = new C_0x8027.Req.ContentBean();
+                    mBean.fromFacebookJSONObject(object);
+                    StartAI.getInstance().getBaseBusiManager().loginWithThirdAccount(mBean, new IOnCallListener() {
+                        @Override
+                        public void onSuccess(MqttPublishRequest request) {
+                            Tlog.w(TAG, " login facebook msg send success  ");
+                        }
+
+                        @Override
+                        public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
+                            Tlog.e(TAG, " login facebook msg send fail ");
+                        }
+
+                    });
+                }
+
+                @Override
+                public void onGoogleResult(boolean result, GoogleSignInAccount account) {
+                    if (!result || account == null) {
+                        Tlog.e(TAG, " onGoogleResult fail ");
+                        return;
+                    }
+                    C_0x8027.Req.ContentBean mBean = new C_0x8027.Req.ContentBean();
+                    C_0x8027.Req.ContentBean.UserinfoBean userinfo = new C_0x8027.Req.ContentBean.UserinfoBean();
+                    userinfo.setUnionid(account.getId());
+                    userinfo.setOpenid(account.getId());
+                    userinfo.setNickname(account.getDisplayName());
+                    userinfo.setLastName(account.getFamilyName());
+                    userinfo.setFirstName(account.getGivenName());
+                    Uri photoUrl = account.getPhotoUrl();
+                    userinfo.setHeadimgurl(photoUrl != null ? photoUrl.toString() : null);
+                    mBean.setUserinfo(userinfo);
+                    mBean.setType(C_0x8027.THIRD_GOOGLE);
+
+//                    StartAI.getInstance().getBaseBusiManager().bindThirdAccount();
+
+                    StartAI.getInstance().getBaseBusiManager().loginWithThirdAccount(mBean, new IOnCallListener() {
+                        @Override
+                        public void onSuccess(MqttPublishRequest request) {
+                            Tlog.w(TAG, " login google msg send success  ");
+                        }
+
+                        @Override
+                        public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
+                            Tlog.e(TAG, " login google msg send fail ");
+                        }
+
+                    });
                 }
             });
 
@@ -564,10 +618,6 @@ public class UserManager implements IService {
                                         }
                                     }
 
-                                    @Override
-                                    public boolean needUISafety() {
-                                        return false;
-                                    }
                                 });
 
 
@@ -685,10 +735,6 @@ public class UserManager implements IService {
 
         }
 
-        @Override
-        public boolean needUISafety() {
-            return false;
-        }
     };
 
     void getUserInfo() {
@@ -765,10 +811,6 @@ public class UserManager implements IService {
                 }
             }
 
-            @Override
-            public boolean needUISafety() {
-                return false;
-            }
         });
     }
 
@@ -822,45 +864,31 @@ public class UserManager implements IService {
         Tlog.v(TAG, " requestWeather()  ");
         resetRequestLocation();
 
-        String permission = null;
-
-        if (!PermissionHelper.isGranted(app, Manifest.permission.ACCESS_COARSE_LOCATION)
-                || !PermissionHelper.isGranted(app, Manifest.permission.ACCESS_FINE_LOCATION)) {
-            permission = PermissionGroup.LOCATION;
-        }
-
         //获取Location
-        if (permission != null) {
 
-            PermissionHelper.requestPermission(app, new PermissionRequest.OnPermissionResult() {
+        PermissionHelper.requestSinglePermission(app, new PermissionRequest.OnPermissionResult() {
 
-                @Override
-                public void onPermissionRequestResult(String permission, boolean granted) {
+            @Override
+            public boolean onPermissionRequestResult(String permission, boolean granted) {
 
-                    Tlog.v(TAG, " requestWeather() PermissionHelper : " + permission + " granted:" + granted);
+                Tlog.v(TAG, " requestWeather() PermissionHelper : " + permission + " granted:" + granted);
 
-                    if (granted) {
+                if (granted) {
 
-                        if (mWorkHandler != null) {
-                            if (mWorkHandler.hasMessages(MSG_WHAT_LOCATION_ANDROID)) {
-                                mWorkHandler.removeMessages(MSG_WHAT_LOCATION_ANDROID);
-                            }
-                            mWorkHandler.sendEmptyMessage(MSG_WHAT_LOCATION_ANDROID);
+                    if (mWorkHandler != null) {
+                        if (mWorkHandler.hasMessages(MSG_WHAT_LOCATION_ANDROID)) {
+                            mWorkHandler.removeMessages(MSG_WHAT_LOCATION_ANDROID);
                         }
-
+                        mWorkHandler.sendEmptyMessage(MSG_WHAT_LOCATION_ANDROID);
                     }
-                }
-            }, permission);
 
-        } else {
-
-            if (mWorkHandler != null) {
-                if (mWorkHandler.hasMessages(MSG_WHAT_LOCATION_ANDROID)) {
-                    mWorkHandler.removeMessages(MSG_WHAT_LOCATION_ANDROID);
                 }
-                mWorkHandler.sendEmptyMessage(MSG_WHAT_LOCATION_ANDROID);
+
+                return true;
+
             }
-        }
+        }, PermissionGroup.LOCATION);
+
 
     }
 
@@ -908,10 +936,6 @@ public class UserManager implements IService {
                         }
                     }
 
-                    @Override
-                    public boolean needUISafety() {
-                        return false;
-                    }
                 });
 
     }
@@ -936,10 +960,6 @@ public class UserManager implements IService {
                 }
             }
 
-            @Override
-            public boolean needUISafety() {
-                return false;
-            }
         });
     }
 
@@ -964,10 +984,6 @@ public class UserManager implements IService {
                 }
             }
 
-            @Override
-            public boolean needUISafety() {
-                return false;
-            }
         });
 
     }
@@ -1006,28 +1022,27 @@ public class UserManager implements IService {
 
     public void bindWX() {
 
-        if (cn.com.swain.baselib.util.AppUtils.isAppInstalled(app, "com.tencent.mm")) {
+        IWXAPI wxApi = WXLoginHelper.getInstance().getWXApi(app);
 
-            SendAuth.Req req = new SendAuth.Req();
-            req.scope = "snsapi_userinfo";
-            req.state = WX_BIND;
-            //向微信发送请求
+        if (wxApi == null) {
+            if (mResultCallBack != null) {
+                mResultCallBack.onResultMsgSendError(ERROR_CODE_WX_LOGIN_UNKNOWN);
+            }
+        } else {
 
-            IWXAPI wxApi = WXLoginHelper.getInstance().getWXApi(app);
-
-            if (wxApi == null) {
+            if (!wxApi.isWXAppInstalled()) {
                 if (mResultCallBack != null) {
-                    mResultCallBack.onResultMsgSendError(ERROR_CODE_WX_LOGIN_UNKNOWN);
+                    mResultCallBack.onResultMsgSendError(ERROR_CODE_WX_LOGIN_NO_CLIENT);
                 }
             } else {
+                SendAuth.Req req = new SendAuth.Req();
+                req.scope = "snsapi_userinfo";
+                req.state = WX_BIND;
+                //向微信发送请求
                 Tlog.v(TAG, " wxApi  sendReq ");
                 wxApi.sendReq(req);
             }
 
-        } else {
-            if (mResultCallBack != null) {
-                mResultCallBack.onResultMsgSendError(ERROR_CODE_WX_LOGIN_NO_CLIENT);
-            }
         }
 
     }
@@ -1051,10 +1066,6 @@ public class UserManager implements IService {
                 }
             }
 
-            @Override
-            public boolean needUISafety() {
-                return false;
-            }
         });
     }
 
@@ -1076,10 +1087,6 @@ public class UserManager implements IService {
                 }
             }
 
-            @Override
-            public boolean needUISafety() {
-                return false;
-            }
         });
     }
 
@@ -1110,10 +1117,6 @@ public class UserManager implements IService {
                         }
                     }
 
-                    @Override
-                    public boolean needUISafety() {
-                        return false;
-                    }
                 });
 
             } else if (WX_BIND.equalsIgnoreCase(state)) {
@@ -1142,10 +1145,6 @@ public class UserManager implements IService {
                         }
                     }
 
-                    @Override
-                    public boolean needUISafety() {
-                        return false;
-                    }
                 });
 
             }
@@ -1218,10 +1217,6 @@ public class UserManager implements IService {
             }
         }
 
-        @Override
-        public boolean needUISafety() {
-            return false;
-        }
     };
 
     private final IOnCallListener mGetBindCodeLsn = new IOnCallListener() {
@@ -1240,10 +1235,6 @@ public class UserManager implements IService {
             }
         }
 
-        @Override
-        public boolean needUISafety() {
-            return false;
-        }
     };
 
     void getMobileLoginCode(String phone, int type) {
@@ -1279,10 +1270,6 @@ public class UserManager implements IService {
 
         }
 
-        @Override
-        public boolean needUISafety() {
-            return false;
-        }
     };
 
     void loginMobile(MobileLogin mLogin) {
@@ -1331,10 +1318,6 @@ public class UserManager implements IService {
             }
         }
 
-        @Override
-        public boolean needUISafety() {
-            return false;
-        }
     };
 
     public void emailLogin(MobileLogin mLogin) {
@@ -1367,10 +1350,6 @@ public class UserManager implements IService {
             }
         }
 
-        @Override
-        public boolean needUISafety() {
-            return false;
-        }
     };
 
 
@@ -1403,10 +1382,6 @@ public class UserManager implements IService {
             }
         }
 
-        @Override
-        public boolean needUISafety() {
-            return false;
-        }
     };
 
     void updateUserPwd(UserUpdateInfo mPwd) {
@@ -1415,6 +1390,7 @@ public class UserManager implements IService {
     }
 
     public void updateNickName(String nickName) {
+
         C_0x8020.Req.ContentBean contentBean = new C_0x8020.Req.ContentBean();
         contentBean.setNickName(nickName);
         StartAI.getInstance().getBaseBusiManager().updateUserInfo(contentBean, mUpdateNameLsn);
@@ -1432,10 +1408,6 @@ public class UserManager implements IService {
             }
         }
 
-        @Override
-        public boolean needUISafety() {
-            return false;
-        }
     };
 
 
@@ -1476,48 +1448,36 @@ public class UserManager implements IService {
     void takePhoto() {
         Tlog.v(TAG, "takePhoto() ");
 
-        File savePhotoFile = getPhotoFile();
 
-        if (savePhotoFile == null) {
-            if (mResultCallBack != null) {
-                mResultCallBack.onResultMsgSendError(UPDATE_HEAD_PIC_ERROR_NO_LOCAL_PERMISSION);
+        PermissionHelper.requestPermission(app, new PermissionRequest.OnPermissionResult() {
+            @Override
+            public boolean onPermissionRequestResult(String permission, boolean granted) {
+                Tlog.v(TAG, "takePhoto()  " + permission + " granted:" + granted);
+                return granted;
             }
-            return;
-        }
+        }, new PermissionRequest.OnPermissionFinish() {
+            @Override
+            public void onAllPermissionRequestFinish() {
 
-        if (!PermissionHelper.isGranted(app, Manifest.permission.CAMERA)) {
-
-            PermissionHelper.requestPermission(app, new PermissionRequest.OnPermissionResult() {
-                @Override
-                public void onPermissionRequestResult(String permission, boolean granted) {
-                    if (granted) {
-
-                        Tlog.v(TAG, "takePhoto() " + savePhotoFile.getAbsolutePath());
-
-                        Uri imageUri = PhotoUtils.getTakePhotoURI(app, savePhotoFile);
-                        Intent intent = PhotoUtils.requestTakePhoto(imageUri);
-                        takePhotoUri = imageUri;
-
-                        if (mResultCallBack != null) {
-                            mResultCallBack.onResultStartActivityForResult(intent, TAKE_PHOTO_CODE);
-                        }
+                File savePhotoFile = getPhotoFile();
+                if (savePhotoFile == null) {
+                    if (mResultCallBack != null) {
+                        mResultCallBack.onResultMsgSendError(UPDATE_HEAD_PIC_ERROR_NO_LOCAL_PERMISSION);
                     }
+                    return;
                 }
-            }, Manifest.permission.CAMERA);
 
-        } else {
+                Tlog.v(TAG, "takePhoto() " + savePhotoFile.getAbsolutePath());
 
-            Tlog.v(TAG, "takePhoto() " + savePhotoFile.getAbsolutePath());
+                Uri imageUri = PhotoUtils.getTakePhotoURI(app, savePhotoFile);
+                Intent intent = PhotoUtils.requestTakePhoto(imageUri);
+                takePhotoUri = imageUri;
 
-            Uri imageUri = PhotoUtils.getTakePhotoURI(app, savePhotoFile);
-            Intent intent = PhotoUtils.requestTakePhoto(imageUri);
-            takePhotoUri = imageUri;
-
-            if (mResultCallBack != null) {
-                mResultCallBack.onResultStartActivityForResult(intent, TAKE_PHOTO_CODE);
+                if (mResultCallBack != null) {
+                    mResultCallBack.onResultStartActivityForResult(intent, TAKE_PHOTO_CODE);
+                }
             }
-        }
-
+        }, Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
     }
 
@@ -1570,10 +1530,6 @@ public class UserManager implements IService {
             }
         }
 
-        @Override
-        public boolean needUISafety() {
-            return false;
-        }
     };
 
     private final FSUploadCallback mLogoUploadCallBack = new FSUploadCallback() {
@@ -1799,10 +1755,6 @@ public class UserManager implements IService {
             }
         }
 
-        @Override
-        public boolean needUISafety() {
-            return false;
-        }
     };
 
     void checkIsLatestVersion() {
@@ -2008,10 +1960,13 @@ public class UserManager implements IService {
                 case 4:// user + pwd
                     userInfo.setUserName(loginInfo.getuName());
                     break;
-                case 10:
+                case Type.Login.THIRD_WECHAT:
                     userInfo.setUserName(loginInfo.getuName());
                     break;
                 case Type.Login.THIRD_ALIPAY:
+                    userInfo.setUserName(loginInfo.getuName());
+                    break;
+                case Type.Login.THIRD_FACEBOOK:
                     userInfo.setUserName(loginInfo.getuName());
                     break;
 
@@ -2062,6 +2017,17 @@ public class UserManager implements IService {
 
                 if (mResultCallBack != null) {
                     mResultCallBack.onResultAliLogin(resp.getResult() == 1, resp.getContent().getErrcode());
+                }
+
+                break;
+
+            case Type.Login.THIRD_FACEBOOK:
+            case Type.Login.THIRD_GOOGLE:
+            case Type.Login.THIRD_TWITTER:
+
+
+                if (mResultCallBack != null) {
+                    mResultCallBack.onResultThirdLogin(resp.getResult() == 1, String.valueOf(loginInfo.getType()));
                 }
 
                 break;
@@ -2495,10 +2461,6 @@ public class UserManager implements IService {
 
                 }
 
-                @Override
-                public boolean needUISafety() {
-                    return false;
-                }
             });
 
 
@@ -2558,10 +2520,6 @@ public class UserManager implements IService {
 
                 }
 
-                @Override
-                public boolean needUISafety() {
-                    return false;
-                }
             });
 
         } else {
@@ -2631,10 +2589,6 @@ public class UserManager implements IService {
                         }
                     }
 
-                    @Override
-                    public boolean needUISafety() {
-                        return false;
-                    }
                 });
             }
 

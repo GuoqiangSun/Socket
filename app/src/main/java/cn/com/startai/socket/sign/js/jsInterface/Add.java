@@ -181,7 +181,7 @@ public class Add extends AbsHandlerJsInterface {
 
     @JavascriptInterface
     public void closeDeviceScanningRequest() {
-        Tlog.v(TAG, " openDeviceScanningRequest ");
+        Tlog.v(TAG, " closeDeviceScanningRequest ");
 
         getHandler().sendEmptyMessage(MSG_CLOSE_DISCOVERY_LAN_DEVICE);
     }

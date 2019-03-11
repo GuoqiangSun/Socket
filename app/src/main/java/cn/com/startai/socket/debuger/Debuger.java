@@ -8,6 +8,8 @@ import android.content.pm.PackageManager;
 import android.os.StrictMode;
 import android.support.v4.content.ContextCompat;
 
+import com.tencent.bugly.crashreport.CrashReport;
+
 import java.io.File;
 
 import cn.com.startai.socket.BuildConfig;
@@ -93,6 +95,11 @@ public class Debuger implements IApp, IService {
     public static boolean isPrintStackLogDebug = false;
 
     /**
+     * 蓝牙调试模式
+     */
+    public static boolean isBleDebug = false;
+
+    /**
      * H5debug,是否从本地加载H5页面
      */
     public static boolean isH5Debug = false;
@@ -153,6 +160,11 @@ public class Debuger implements IApp, IService {
                 mLocalH5 = getH5();
             }
 
+            File bleFile = new File(appRootPath, "ble.debug");
+            if (bleFile.exists()) {
+                isBleDebug = true;
+            }
+
             File strictFile = new File(appRootPath, "strict.debug");
             if (strictFile.exists()) {
                 enableStrict();
@@ -175,6 +187,16 @@ public class Debuger implements IApp, IService {
 
         if (isLogDebug) {
             Tlog.i(AppUtils.generalSsl(app));
+        }
+
+        if (CustomManager.getInstance().isMUSIK()) {
+            CrashReport.initCrashReport(app, "d45fc6bab2", false);
+        } else if (CustomManager.getInstance().isGrowroomate()) {
+            CrashReport.initCrashReport(app, "ce714ab581", false);
+        } else if (CustomManager.getInstance().isTriggerBle()) {
+            CrashReport.initCrashReport(app, "1fb0d34c93", false);
+        } else if (CustomManager.getInstance().isTriggerWiFi()) {
+            CrashReport.initCrashReport(app, "deab7c0351", false);
         }
 
         Tlog.i(" Debuger init success...");

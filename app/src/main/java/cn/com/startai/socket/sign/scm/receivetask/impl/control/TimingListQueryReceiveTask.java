@@ -1,13 +1,14 @@
 package cn.com.startai.socket.sign.scm.receivetask.impl.control;
 
 import cn.com.startai.socket.debuger.impl.IDebugerProtocolStream;
+import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingListData;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
+import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun
@@ -49,7 +50,11 @@ public class TimingListQueryReceiveTask extends SocketResponseTask {
         if (!result) {
             if (mCallBack != null) {
 
-                mCallBack.onQueryTimingResult(mSocketDataArray.getID(), false, mData);
+                if (CustomManager.getInstance().isTriggerBle()) {
+                    mCallBack.onQueryTimingResult(mSocketDataArray.getID(), true, mData);
+                } else {
+                    mCallBack.onQueryTimingResult(mSocketDataArray.getID(), false, mData);
+                }
 
                 IDebugerProtocolStream iDebugerStream = mCallBack.getIDebugerStream();
                 if (iDebugerStream != null) {
@@ -62,6 +67,7 @@ public class TimingListQueryReceiveTask extends SocketResponseTask {
 
         if (mData.isCommonModel()) {
             final int onePkgLength = 6;
+            Tlog.v(TAG, " listByteLength:" + listByteLength);
             if ((listByteLength >= onePkgLength) && (listByteLength % onePkgLength == 0)) {
                 int number = listByteLength / onePkgLength;
                 byte[] buf = new byte[onePkgLength];
@@ -76,7 +82,7 @@ public class TimingListQueryReceiveTask extends SocketResponseTask {
                     String time = hour + ":" + minute;
                     boolean startup = SocketSecureKey.Util.startup(buf[5]);
                     Tlog.v(TAG, "  common ArrayCopy id:" + id + " startup:" + on + " time:" + time + " week:" + week + " startup:" + startup);
-                    mData.putCommonData(mac,id, on, week, time, startup);
+                    mData.putCommonData(mac, id, on, week, time, startup);
                 }
             }
         } else if (mData.isAdvanceModel()) {

@@ -238,7 +238,9 @@ public interface IControlWiFi {
         void onResultCallPhone(boolean b);
 
         void onResultScanQRCode(boolean b, String scanResult);
-        
+
+        void onResultThirdLogin(boolean b, String errcode);
+
     }
 
 }

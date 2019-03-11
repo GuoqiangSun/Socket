@@ -17,8 +17,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 import cn.com.startai.socket.R;
 import cn.com.startai.socket.db.gen.CountElectricityDao;
@@ -30,11 +32,13 @@ import cn.com.startai.socket.debuger.impl.ProductDetectionManager;
 import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.LooperManager;
 import cn.com.startai.socket.global.Utils.DateUtils;
+import cn.com.startai.socket.mutual.Controller;
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.mutual.js.bean.CountElectricity;
 import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
 import cn.com.startai.socket.mutual.js.bean.TimingSetResult;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
+import cn.com.startai.socket.sign.hardware.manager.AbsHardwareManager;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.AbsSocketScm;
 import cn.com.startai.socket.sign.scm.bean.CostRate;
@@ -61,6 +65,8 @@ import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.startai.socket.sign.scm.receivetask.ProtocolTaskImpl;
 import cn.com.startai.socket.sign.scm.util.MySocketDataCache;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
+import cn.com.startai.socket.sign.scm.util.TimezoneBean;
+import cn.com.startai.socket.sign.scm.util.TimezonePullUtil;
 import cn.com.swain.baselib.app.IApp.IService;
 import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.baselib.util.Bit;
@@ -141,6 +147,8 @@ public class SocketScmManager extends AbsSocketScm
 
     private ScmDeviceUtils mScmDeviceUtils;
 
+    private HashMap<String, TimezoneBean> timezoneBeans;
+
     @Override
     public void onSCreate() {
         Tlog.v(TAG, " SocketScmManager onSCreate()");
@@ -187,6 +195,11 @@ public class SocketScmManager extends AbsSocketScm
         }
 
         mScmDeviceUtils.cleanMap();
+
+        if (timezoneBeans != null) {
+            timezoneBeans.clear();
+            timezoneBeans = null;
+        }
     }
 
     @Override
@@ -310,15 +323,15 @@ public class SocketScmManager extends AbsSocketScm
     @Override
     public int getScmToken(String mac) {
         int token = mScmDeviceUtils.getScmDevice(mac).getToken();
-        if (Debuger.isLogDebug) {
-            Tlog.d(TAG, " getScmToken mac:" + mac + " " + token);
-        }
+//        if (Debuger.isLogDebug) {
+//            Tlog.d(TAG, " getScmToken mac:" + mac + " " + token);
+//        }
         if (token == -1 || token == 0) {
             if (mScmResultCallBack != null) {
                 token = mScmResultCallBack.getTokenFromDB(mac);
-                if (Debuger.isLogDebug) {
-                    Tlog.d(TAG, " getScmToken From DB. mac:" + mac + " " + token);
-                }
+//                if (Debuger.isLogDebug) {
+//                    Tlog.d(TAG, " getScmToken From DB. mac:" + mac + " " + token);
+//                }
             }
         }
 
@@ -440,7 +453,8 @@ public class SocketScmManager extends AbsSocketScm
 
         QueryHistoryUtil.updateHistory(mCount);
 
-        QueryHistoryUtil.deleteOldHistory(mCount.mac);
+        // 无限保存
+//        QueryHistoryUtil.deleteOldHistory(mCount.mac);
 
         ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mCount.mac);
         QueryHistoryCount queryCount = scmDevice.getQueryCount();
@@ -555,7 +569,7 @@ public class SocketScmManager extends AbsSocketScm
 
         int minuteOfDay = DateUtils.getMinuteOfDay(startTimeOriginal, 5);
         int index = (minuteOfDay / 5 - 1);
-        Tlog.e(TAG, " point report insert buf index:" + index);
+        Tlog.e(TAG, " point report insert index:" + index);
 
         if (index < 0) {
 
@@ -597,10 +611,10 @@ public class SocketScmManager extends AbsSocketScm
 
             if (countElectricity.getId() == null) {
                 long insertIndex = countElectricityDao.insert(countElectricity);
-                Tlog.v(TAG, " PointCount insert:" + insertIndex);
+                Tlog.v(TAG, " PointCount insert id:" + insertIndex);
             } else {
                 countElectricityDao.update(countElectricity);
-                Tlog.v(TAG, " update insert:" + countElectricity.getId());
+                Tlog.v(TAG, " update insert id:" + countElectricity.getId());
             }
 
         }
@@ -801,7 +815,7 @@ public class SocketScmManager extends AbsSocketScm
         int info = new Bit().add(0).reserve(1, (bytes != null && bytes.length > 0)).getDevice();
         byte[] pwdBuf = mLanBindInfo.pwd != null ? mLanBindInfo.pwd.getBytes() : null;
         ResponseData mResponseData = MySocketDataCache.getBindDevice(mLanBindInfo.mac, bytes, (byte) info, pwdBuf);
-        mResponseData.getRepeatMsgModel().setMaxRepeatTimes(3);
+//        mResponseData.getRepeatMsgModel().setMaxRepeatTimes(3);
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " bindDevice data: " + String.valueOf(mResponseData));
         }
@@ -1133,6 +1147,61 @@ public class SocketScmManager extends AbsSocketScm
     }
 
     @Override
+    public void onJSQueryTotalElectric(SpendingElectricityData obj) {
+
+        Calendar instance2 = Calendar.getInstance();
+        instance2.set(obj.year, obj.month - 1, obj.day, 0, 0);
+        long startime = instance2.getTimeInMillis();
+
+        CountElectricityDao countElectricityDao =
+                DBManager.getInstance().getDaoSession().getCountElectricityDao();
+
+        List<CountElectricity> list = countElectricityDao.queryBuilder()
+                .where(CountElectricityDao.Properties.Mac.eq(obj.mac),
+                        CountElectricityDao.Properties.Timestamp.ge(startime)).list();
+
+        obj.totalElectric = 0;
+
+        if (list != null && list.size() > 0) {
+
+            for (CountElectricity mCountElectricity : list) {
+                byte[] electricity = mCountElectricity.getElectricity();
+
+
+                for (int j = 0; j < CountElectricity.SIZE_ONE_DAY; j++) {
+
+                    final byte[] countData = new byte[CountElectricity.SIZE_ONE_DAY];
+
+                    try {
+                        System.arraycopy(electricity, j * CountElectricity.ONE_PKG_LENGTH,
+                                countData, 0,
+                                CountElectricity.ONE_PKG_LENGTH);
+
+                    } catch (Exception e) {
+                        Tlog.e(TAG, " e ", e);
+                        break;
+                    }
+
+                    int ee = (countData[0] & 0xFF) << 24 | (countData[1] & 0xFF) << 16
+                            | (countData[2] & 0xFF) << 8 | (countData[3] & 0xFF);
+                    obj.totalElectric += (ee / 1000F);
+
+//                    int ss = (countData[4] & 0xFF) << 24 | (countData[5] & 0xFF) << 16
+//                            | (countData[6] & 0xFF) << 8 | (countData[7] & 0xFF);
+//                    float s = ss / 1000F;
+
+                }
+            }
+
+        }
+
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onResultTotalElectricData(obj);
+        }
+
+    }
+
+    @Override
     public void queryRunningNightLight(String mac) {
         ResponseData mResponseData = MySocketDataCache.getQueryRunningNightLight(mac);
         if (Debuger.isLogDebug) {
@@ -1181,7 +1250,7 @@ public class SocketScmManager extends AbsSocketScm
 
         byte zone = getTimezone();
 
-        Tlog.v(TAG, " setScmTimezone  zoneByte:" + zone + " zoneInt:" + (zone & 0xFF));
+        Tlog.v(TAG, " setScmTimezone  zoneByte:" + zone);
 
         ResponseData mResponseData = MySocketDataCache.getSetTimezone(mac, zone);
         if (Debuger.isLogDebug) {
@@ -1190,22 +1259,71 @@ public class SocketScmManager extends AbsSocketScm
         onOutputDataToServer(mResponseData);
     }
 
+    private byte getTimezone() {
+        byte zone;
 
-    public static byte getTimezone() {
+        try {
 
-        java.util.TimeZone aDefault = java.util.TimeZone.getDefault();
+            java.util.TimeZone aDefault = java.util.TimeZone.getDefault();
 
-        String timezone = aDefault.getDisplayName(false, java.util.TimeZone.SHORT);
+            String timezone = aDefault.getDisplayName(false, java.util.TimeZone.SHORT);
+
+            zone = parseTimezone(timezone);
+
+        } catch (Exception e) {
+            Tlog.w(TAG, " getTimezone ", e);
+
+            zone = getTimezoneFromRaw();
+
+        }
+
+        return zone;
+    }
+
+    private byte getTimezoneFromRaw() {
+        try {
+            if (timezoneBeans == null) {
+                timezoneBeans = TimezonePullUtil.parseXml(app.getResources().openRawResource(R.raw.timezone));
+                TimezonePullUtil.show(timezoneBeans);
+            }
+
+            if (timezoneBeans != null) {
+                java.util.TimeZone aDefault = java.util.TimeZone.getDefault();
+                String id = aDefault.getID();
+                TimezoneBean timezoneBean = timezoneBeans.get(id);
+                if (timezoneBean != null) {
+                    return parseTimezone(timezoneBean.time);
+                }
+
+            }
+        } catch (Exception ee) {
+            Tlog.v(TAG, " getTimezoneFromRaw ", ee);
+
+        }
+        return 0x00;
+    }
+
+    public static byte parseTimezone(String timezone) {
+
+        Tlog.v(TAG, " parse timezone:" + timezone);
 
         int i = timezone.indexOf("+");
 
-        boolean isA = i > 0;
+        boolean isA = i >= 0;
 
         if (!isA) {
             i = timezone.indexOf("-");
         }
 
+        if (i < 0) {
+            throw new IllegalArgumentException(" timezone unInvalid");
+        }
+
         int i1 = timezone.indexOf(":");
+
+        if (i1 < 0) {
+            throw new IllegalArgumentException(" timezone unInvalid");
+        }
 
         String substring = timezone.substring(i + 1, i1);
 
@@ -1678,12 +1796,15 @@ public class SocketScmManager extends AbsSocketScm
         if (mScmResultCallBack != null) {
             mScmResultCallBack.onResultSetCountdown(mac, result, startup);
         }
+
+
     }
 
     @Override
     public void onQueryCountdownResult(String mac, boolean result, CountdownData mCountdownData) {
 
         if (result) {
+
             if (mScmResultCallBack != null) {
                 mScmResultCallBack.onResultQueryCountdown(mac, mCountdownData);
             }
@@ -1693,6 +1814,10 @@ public class SocketScmManager extends AbsSocketScm
             final SensorData mSensorData = scmDevice.getSensorData();
             mSensorData.on = mCountdownData.Switchgear;
             mSensorData.time = mCountdownData.hour * 60 * 60 * 1000 + mCountdownData.minute * 60 * 1000;
+
+            if (mCountdownData.seconds > 0) {
+                mSensorData.time += mCountdownData.seconds * 1000;
+            }
 
             if (scmDevice.isPublish()) {
                 if (mScmResultCallBack != null) {
@@ -2360,6 +2485,10 @@ public class SocketScmManager extends AbsSocketScm
     @Override
     public void onReportTempSensorResult(String mac, boolean status) {
 
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onResultTempSensorReport(mac, status);
+        }
+
         if (!status) {
             notifyDeviceSensorError(mac);
         }
@@ -2419,11 +2548,19 @@ public class SocketScmManager extends AbsSocketScm
         String title = resources.getString(R.string.temp_sensor_error_title);
         String error = resources.getString(R.string.temp_sensor_error);
 
+        AbsHardwareManager hardwareManager = Controller.getInstance().getHardwareManager();
+        String nameByMac = null;
+        if (hardwareManager != null) {
+            nameByMac = hardwareManager.getNameByMac(mac);
+        }
+        if (nameByMac == null) {
+            nameByMac = String.valueOf(mac);
+        }
         /**
          *  设置Builder
          */
         //设置标题
-        mBuilder.setContentTitle(String.valueOf(mac) + title)
+        mBuilder.setContentTitle(nameByMac + title)
                 //设置内容
                 .setContentText(error)
                 //设置大图标
@@ -2493,12 +2630,12 @@ public class SocketScmManager extends AbsSocketScm
 
     @Override
     public void onRemoveCmd(String id, byte paramType, byte paramCmd, int seq) {
-        if (Debuger.isLogDebug) {
-            Tlog.e(TAG, " onRemoveCmd Data mac:" + id
-                    + " what:" + Integer.toHexString(paramType)
-                    + "-" + Integer.toHexString(paramCmd)
-                    + " seq:" + seq);
-        }
+//        if (Debuger.isLogDebug) {
+//            Tlog.e(TAG, " onRemoveCmd Data mac:" + id
+//                    + " what:" + Integer.toHexString(paramType)
+//                    + "-" + Integer.toHexString(paramCmd)
+//                    + " seq:" + seq);
+//        }
         final int what = (paramType & 0xFF) << 8 | ((paramCmd - 1) & 0xFF);
 
         mScmDeviceUtils.getScmDevice(id).receiveOnePkg(what, seq);
@@ -2513,23 +2650,23 @@ public class SocketScmManager extends AbsSocketScm
 
         // 上报数据不参与重发机制
         if (type == SocketSecureKey.Type.TYPE_REPORT || type == SocketSecureKey.Type.TYPE_ERROR) {
-            if (Debuger.isLogDebug) {
-                Tlog.e(TAG, " receive report Data mac:" + mac + " what:" + Integer.toHexString(what) + " seq:" + seq);
-            }
+//            if (Debuger.isLogDebug) {
+//                Tlog.e(TAG, " receive report Data mac:" + mac + " what:" + Integer.toHexString(what) + " seq:" + seq);
+//            }
             return;
         }
 
         // 发现数据是用FF的mac发送的，回来的数据是设备的mac;
         if ((type == SocketSecureKey.Type.TYPE_SYSTEM && cmd == SocketSecureKey.Cmd.CMD_DISCOVERY_DEVICE_RESPONSE)) {
-            if (Debuger.isLogDebug) {
-                Tlog.e(TAG, " receive discovery Data mac:" + mac + " what:" + Integer.toHexString(what) + " seq:" + seq);
-            }
+//            if (Debuger.isLogDebug) {
+//                Tlog.e(TAG, " receive discovery Data mac:" + mac + " what:" + Integer.toHexString(what) + " seq:" + seq);
+//            }
             return;
         }
 
-        if (Debuger.isLogDebug) {
-            Tlog.e(TAG, " receiveData mac:" + mac + " what:" + Integer.toHexString(what) + " seq:" + seq);
-        }
+//        if (Debuger.isLogDebug) {
+//            Tlog.e(TAG, " receiveData mac:" + mac + " what:" + Integer.toHexString(what) + " seq:" + seq);
+//        }
 
         mScmDeviceUtils.getScmDevice(mac).receiveOnePkg(what, seq);
 

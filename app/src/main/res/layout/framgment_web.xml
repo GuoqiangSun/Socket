@@ -5,17 +5,10 @@
     android:layout_alignParentBottom="true"
     android:orientation="vertical">
 
-<!--    <FrameLayout
-        android:id="@+id/weblay"
-        android:layout_width="match_parent"
-        android:layout_alignParentBottom="true"
-        android:layout_height="match_parent"/>-->
-
     <cn.com.startai.socket.app.view.CrossWebView
         android:id="@+id/web_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentBottom="true"
-        />
+        android:layout_alignParentBottom="true" />
 
 </RelativeLayout>

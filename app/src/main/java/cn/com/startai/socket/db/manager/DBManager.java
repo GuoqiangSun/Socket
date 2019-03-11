@@ -1,14 +1,12 @@
 package cn.com.startai.socket.db.manager;
 
 import android.app.Application;
-import android.content.Context;
 
 import org.greenrobot.greendao.database.Database;
 
-import java.lang.ref.WeakReference;
-
 import cn.com.startai.socket.db.gen.DaoMaster;
 import cn.com.startai.socket.db.gen.DaoSession;
+import cn.com.startai.socket.global.LooperManager;
 import cn.com.swain.baselib.app.IApp.IApp;
 import cn.com.swain.baselib.log.Tlog;
 
@@ -31,8 +29,15 @@ public class DBManager implements IApp {
 
     @Override
     public void init(Application app) {
-        initDB(app);
+        LooperManager.getInstance().execute(new Runnable() {
+            @Override
+            public void run() {
+                initDB(app);
+            }
+        });
     }
+
+    private final Object syncObj = new Object();
 
     private void initDB(Application app) {
 
@@ -41,12 +46,28 @@ public class DBManager implements IApp {
         Database writableDb = updateOpenHelper.getWritableDb();
         DaoMaster daoMaster = new DaoMaster(writableDb);
         daoSession = daoMaster.newSession();
+        synchronized (syncObj) {
+            syncObj.notifyAll();
+        }
         Tlog.i(" DBManager init success...");
     }
 
     private DaoSession daoSession;
 
     public DaoSession getDaoSession() {
+        if (daoSession == null) {
+            synchronized (syncObj) {
+                if (daoSession == null) {
+                    Tlog.e("DBManager daoSession == null wait() ");
+                    try {
+                        syncObj.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    Tlog.e("DBManager daoSession == null wait() finish");
+                }
+            }
+        }
         return daoSession;
     }
 

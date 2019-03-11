@@ -3,7 +3,6 @@ package cn.com.startai.socket.app.activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
 import java.io.File;
@@ -23,7 +22,7 @@ import cn.com.swain.baselib.log.Tlog;
  * date : 2018/9/4 0004
  * desc :
  */
-public class WebFragmentActivity extends AppCompatActivity implements WebFragment.IWebFragmentCallBack {
+public class WebFragmentActivity extends XWalkWebActivity implements WebFragment.IWebFragmentCallBack {
 
     protected String TAG = SocketApplication.TAG;
 
@@ -39,15 +38,31 @@ public class WebFragmentActivity extends AppCompatActivity implements WebFragmen
 
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         mFragments.add(ID_GUIDE, new GuideFragment());
-        mFragments.add(ID_WEB, new WebFragment());
         fragmentTransaction.add(R.id.frame_content, mFragments.get(ID_GUIDE), String.valueOf(ID_GUIDE));
-        fragmentTransaction.add(R.id.frame_content, mFragments.get(ID_WEB), String.valueOf(ID_WEB));
+        if (isXWalkReady()) {
+            mFragments.add(ID_WEB, new WebFragment());
+            fragmentTransaction.add(R.id.frame_content, mFragments.get(ID_WEB), String.valueOf(ID_WEB));
+        }
 
-        fragmentTransaction.hide(mFragments.get(ID_WEB));
+        if (mFragments.size() > ID_WEB) {
+            fragmentTransaction.hide(mFragments.get(ID_WEB));
+        }
         fragmentTransaction.show(mFragments.get(ID_GUIDE));
 
         fragmentTransaction.commit();
 
+    }
+
+    @Override
+    protected void onXWalkReady(Bundle savedInstanceState) {
+        super.onXWalkReady(savedInstanceState);
+
+        if (mFragments.size() <= ID_WEB) {
+            FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+            mFragments.add(ID_WEB, new WebFragment());
+            fragmentTransaction.add(R.id.frame_content, mFragments.get(ID_WEB), String.valueOf(ID_WEB));
+            fragmentTransaction.commit();
+        }
     }
 
     @Override

@@ -1,5 +1,6 @@
 package cn.com.startai.socket.sign.scm.receivetask.impl.control;
 
+import cn.com.startai.socket.debuger.impl.IDebugerProtocolStream;
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
@@ -69,6 +70,11 @@ public class RGBSetReceiveTask extends SocketResponseTask {
                     mTaskCallBack.onColorLamResult(mSocketDataArray.getID(), true);
                 }
 
+            }
+
+            IDebugerProtocolStream iDebugerStream = mTaskCallBack.getIDebugerStream();
+            if (iDebugerStream != null) {
+                iDebugerStream.receiveSetRGB(mSocketDataArray.getObj(), result, mRGB);
             }
 
         }

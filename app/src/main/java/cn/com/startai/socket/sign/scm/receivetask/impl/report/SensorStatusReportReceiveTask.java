@@ -32,8 +32,8 @@ public class SensorStatusReportReceiveTask extends SocketResponseTask {
             return;
         }
 
-        byte sensor = protocolParams[1];
-        boolean status = SocketSecureKey.Util.isRunning(protocolParams[2]);
+        byte sensor = protocolParams[0];
+        boolean status = SocketSecureKey.Util.isRunning(protocolParams[1]);
 
         Tlog.e(TAG, " SensorStatusReportReceiveTask  sensor:" + sensor + " status:" + status);
 

@@ -46,13 +46,14 @@ public class WebActivity extends AppCompatActivity {
             StatusBarUtil.fullScreenHideStatusBar(getWindow(), false);
         }
 
-        setContentView(R.layout.activity_web);
 
         String path = getIntent().getStringExtra("path");
         if (path == null) {
             Toast.makeText(getApplicationContext(), "UNKNOWN_URL", Toast.LENGTH_SHORT).show();
             finish();
         }
+
+        setContentView(R.layout.activity_web);
 
         mProgressBar = findViewById(R.id.progressBarLarge);
         mProgressBar.bringToFront();

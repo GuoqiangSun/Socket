@@ -16,10 +16,11 @@ import cn.com.startai.socket.app.SocketApplication;
 import cn.com.startai.socket.app.adapter.DetectionRecyclerAdapter;
 import cn.com.startai.socket.app.adapter.FragmentPagerAdapter;
 import cn.com.startai.socket.app.fragment.CheckThreadFragment;
+import cn.com.startai.socket.app.fragment.ColorLightFragment;
 import cn.com.startai.socket.app.fragment.DBFragment;
 import cn.com.startai.socket.app.fragment.DetectionFragment;
 import cn.com.startai.socket.app.fragment.DetectionReportFragment;
-import cn.com.startai.socket.app.fragment.TmpFunction2Fragment;
+import cn.com.startai.socket.app.fragment.RGBFragment;
 import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.debuger.impl.DetectInfo;
 import cn.com.startai.socket.debuger.impl.IProductDetectionCallBack;
@@ -49,7 +50,9 @@ public class ProductDetectionActivity extends AppCompatActivity implements IProd
     private CheckThreadFragment mTmpFunctionFragment;
     private DBFragment mDbFragment;
 
-    private TmpFunction2Fragment mTmpFunctionFragment2;
+    private RGBFragment mRGBFragment;
+    private ColorLightFragment mColorLightFragment;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -80,8 +83,11 @@ public class ProductDetectionActivity extends AppCompatActivity implements IProd
         mFragments.add(mDbFragment);
 
         if (CustomManager.getInstance().isMUSIK()) {
-            mTmpFunctionFragment2 = new TmpFunction2Fragment();
-            mFragments.add(mTmpFunctionFragment2);
+            mRGBFragment = new RGBFragment();
+            mFragments.add(mRGBFragment);
+
+            mColorLightFragment = new ColorLightFragment();
+            mFragments.add(mColorLightFragment);
         }
 
         FragmentPagerAdapter mAdapter = new FragmentPagerAdapter(getSupportFragmentManager(), mFragments);
@@ -173,8 +179,8 @@ public class ProductDetectionActivity extends AppCompatActivity implements IProd
 
     @Override
     public void flashModel(boolean on) {
-        if (mTmpFunctionFragment2 != null) {
-            mTmpFunctionFragment2.flashModel(on);
+        if (mRGBFragment != null) {
+            mRGBFragment.flashModel(on);
         }
     }
 
@@ -190,22 +196,35 @@ public class ProductDetectionActivity extends AppCompatActivity implements IProd
 
     @Override
     public void nightLightSetResult(NightLightTiming obj) {
-        if (mTmpFunctionFragment2 != null) {
-            mTmpFunctionFragment2.nightLightSetResult(obj);
+        if (mRGBFragment != null) {
+            mRGBFragment.nightLightSetResult(obj);
         }
     }
 
     @Override
     public void nightLightQueryResult(NightLightTiming obj) {
-        if (mTmpFunctionFragment2 != null) {
-            mTmpFunctionFragment2.nightLightQueryResult(obj);
+        if (mRGBFragment != null) {
+            mRGBFragment.nightLightQueryResult(obj);
         }
     }
 
     @Override
     public void rgbQueryResult(ColorLampRGB obj) {
-        if (mTmpFunctionFragment2 != null) {
-            mTmpFunctionFragment2.rgbQueryResult(obj);
+        if (mRGBFragment != null) {
+            mRGBFragment.rgbQueryResult(obj);
+        }
+        if (mColorLightFragment != null) {
+            mColorLightFragment.rgbQueryResult(obj);
+        }
+    }
+
+    @Override
+    public void rgbSetResult(ColorLampRGB obj) {
+        if (mRGBFragment != null) {
+            mRGBFragment.rgbQueryResult(obj);
+        }
+        if (mColorLightFragment != null) {
+            mColorLightFragment.rgbSetResult(obj);
         }
     }
 

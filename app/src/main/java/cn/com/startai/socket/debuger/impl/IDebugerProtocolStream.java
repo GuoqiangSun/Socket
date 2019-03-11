@@ -79,4 +79,6 @@ public interface IDebugerProtocolStream {
     void receiveNightLightQuery(Object obj, NightLightTiming mNightLightTiming);
 
     void receiveQueryRGB(Object obj, boolean result, ColorLampRGB mRGB);
+
+    void receiveSetRGB(Object obj, boolean result, ColorLampRGB mRGB);
 }

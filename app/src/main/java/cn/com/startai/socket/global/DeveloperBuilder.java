@@ -15,20 +15,32 @@ public class DeveloperBuilder {
 
         MqttInitParam mqttInitParam = null;
 
-        if (CustomManager.getInstance().getCustom() == SocketSecureKey.Custom.CUSTOM_WAN) {
+        if (CustomManager.getInstance().getCustom() ==
+                SocketSecureKey.Custom.CUSTOM_WAN) {
 
-            if (CustomManager.getInstance().getProduct() == SocketSecureKey.Custom.PRODUCT_GROWROOMATE) {
+            if (CustomManager.getInstance().getProduct() ==
+                    SocketSecureKey.Custom.PRODUCT_GROWROOMATE) {
                 mqttInitParam = new DeveloperBuilder.SmartSocketDeveloper();
-            } else if (CustomManager.getInstance().getProduct() == SocketSecureKey.Custom.PRODUCT_TRIGGER_WIFI) {
+
+            } else if (CustomManager.getInstance().getProduct() ==
+                    SocketSecureKey.Custom.PRODUCT_TRIGGER_WIFI) {
                 mqttInitParam = new DeveloperBuilder.WiFiSocketDeveloper();
-            } else if (CustomManager.getInstance().getProduct() == SocketSecureKey.Custom.PRODUCT_NB_AIRTEMP) {
+
+            } else if (CustomManager.getInstance().getProduct() ==
+                    SocketSecureKey.Custom.PRODUCT_NB_AIRTEMP) {
+
                 mqttInitParam = new DeveloperBuilder.AirtempNBDeveloper();
             }
 
-        } else if (CustomManager.getInstance().getCustom() == SocketSecureKey.Custom.CUSTOM_STARTAI) {
-            if (CustomManager.getInstance().getProduct() == SocketSecureKey.Custom.PRODUCT_MUSIK) {
+
+        } else if (CustomManager.getInstance().getCustom() ==
+                SocketSecureKey.Custom.CUSTOM_STARTAI) {
+
+            if (CustomManager.getInstance().getProduct() ==
+                    SocketSecureKey.Custom.PRODUCT_MUSIK) {
                 mqttInitParam = new DeveloperBuilder.SuperSocketDeveloper();
             }
+
         }
 //        else {
 //            mqttInitParam = DeveloperBuilder.buildMqttInitParam(new DeveloperBuilder.SuperSocketDeveloper());

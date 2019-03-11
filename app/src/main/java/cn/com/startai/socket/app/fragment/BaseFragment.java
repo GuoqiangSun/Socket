@@ -25,6 +25,10 @@ public abstract class BaseFragment extends Fragment {
 
     private View mRootView;
 
+    protected View getRootView() {
+        return mRootView;
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {

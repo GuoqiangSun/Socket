@@ -1,6 +1,5 @@
 package cn.com.startai.socket.sign.hardware.WiFi.impl;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.Application;
 import android.content.BroadcastReceiver;
@@ -26,6 +25,7 @@ import cn.com.startai.esptouchsender.IEsptouchResult;
 import cn.com.startai.esptouchsender.customer.EsptouchAsyncTask;
 import cn.com.startai.esptouchsender.customer.MyEsptouchListener;
 import cn.com.startai.mqttsdk.StartAI;
+import cn.com.startai.mqttsdk.base.DistributeParam;
 import cn.com.startai.mqttsdk.base.StartaiError;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8001;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8002;
@@ -50,6 +50,7 @@ import cn.com.startai.mqttsdk.busi.entity.C_0x8200;
 import cn.com.startai.mqttsdk.event.AOnStartaiMessageArriveListener;
 import cn.com.startai.mqttsdk.event.ICommonStateListener;
 import cn.com.startai.mqttsdk.event.IConnectionStateListener;
+import cn.com.startai.mqttsdk.event.IOnMessageArriveListener;
 import cn.com.startai.mqttsdk.event.PersistentEventDispatcher;
 import cn.com.startai.mqttsdk.listener.IOnCallListener;
 import cn.com.startai.mqttsdk.listener.IOnSubscribeListener;
@@ -141,13 +142,13 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
                 //获取移动数据连接的信息
                 NetworkInfo dataNetworkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
 
-                if (dataNetworkInfo.isConnected()) {
+                if (dataNetworkInfo!=null && dataNetworkInfo.isConnected()) {
 
                     Tlog.v(TAG, "mobile isConnected ");
                     type = dataNetworkInfo.getTypeName();
                     state = dataNetworkInfo.getState();
 
-                } else if (dataNetworkInfo.isConnectedOrConnecting()) {
+                } else if (dataNetworkInfo!=null && dataNetworkInfo.isConnectedOrConnecting()) {
 
                     Tlog.v(TAG, "mobile isConnecting");
                     type = dataNetworkInfo.getTypeName();
@@ -427,7 +428,6 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
     @Override
     public void configureWiFi(WiFiConfig mConfig) {
 
-
 //        PermissionUtils permission = PermissionUtils.permission(PermissionConstants.LOCATION);
 //        permission.callback(new PermissionUtils.SimpleCallback() {
 //            @Override
@@ -444,29 +444,18 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
 
         // 用上面的会黑屏
 
-        String permission = null;
+        PermissionHelper.requestSinglePermission(app, new PermissionRequest.OnPermissionResult() {
+            @Override
+            public boolean onPermissionRequestResult(String permission, boolean granted) {
 
-        if (!PermissionHelper.isGranted(app, Manifest.permission.ACCESS_COARSE_LOCATION)
-                || !PermissionHelper.isGranted(app, Manifest.permission.ACCESS_FINE_LOCATION)) {
-            permission = PermissionGroup.LOCATION;
-        }
+                Tlog.v(TAG, " configureWiFi() PermissionHelper : " + permission + " granted:" + granted);
 
-        if (permission != null) {
-            PermissionHelper.requestPermission(app, new PermissionRequest.OnPermissionResult() {
-                @Override
-                public void onPermissionRequestResult(String permission, boolean granted) {
-
-                    Tlog.v(TAG, " configureWiFi() PermissionHelper : " + permission + " granted:" + granted);
-
-                    if (granted) {
-                        config(mConfig);
-                    }
+                if (granted) {
+                    config(mConfig);
                 }
-            }, permission);
-
-        } else {
-            config(mConfig);
-        }
+                return true;
+            }
+        }, PermissionGroup.LOCATION);
 
     }
 
@@ -1120,10 +1109,6 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
 
         }
 
-        @Override
-        public boolean needUISafety() {
-            return false;
-        }
     };
 
     @Override
@@ -1182,7 +1167,7 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
 
         if (mDiscoveryDeviceByMac != null) {
 
-            if (Debuger.isDebug) {
+            if (Debuger.isLogDebug) {
                 Tlog.w(TAG, "sendMsgByLan() lan device :" + String.valueOf(mDiscoveryDeviceByMac));
             }
             mResponseData.obj = mDiscoveryDeviceByMac.ip;
@@ -1422,7 +1407,7 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
 
     /**************************/
 
-    private final IConnectionStateListener mConnectionStateListener = new ICommonStateListener() {
+    private IConnectionStateListener mConnectionStateListener = new ICommonStateListener() {
         @Override
         public void onTokenExpire(C_0x8018.Resp.ContentBean resp) {
             if (Debuger.isLogDebug) {
@@ -1465,10 +1450,6 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
                         Tlog.e(TAG, "MQTT subscribe onFailed " + error.getErrorMsg());
                     }
 
-                    @Override
-                    public boolean needUISafety() {
-                        return false;
-                    }
                 });
 
             }
@@ -1484,26 +1465,15 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
             }
         }
 
-        @Override
-        public boolean needUISafety() {
-            return false;
-        }
     };
 
 
-    private final AOnStartaiMessageArriveListener mComMessageListener = new AOnStartaiMessageArriveListener() {
+    private AOnStartaiMessageArriveListener mComMessageListener = new AOnStartaiMessageArriveListener() {
 
 //        private static final int FAIL = 0; //RespErr
 //        private static final int SUCCESS = 1; // C_0x8022.Resp
 //        private static final int STATE = -1; // RespErr
 
-        /**
-         * 所有的回调是否到ui线程
-         */
-        @Override
-        public boolean needUISafety() {
-            return false;
-        }
 
         /**
          * 通用的消息接收方法,除基础业务以外的消息都回回调到此方法

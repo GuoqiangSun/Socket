@@ -43,6 +43,11 @@ public class FileManager extends FileTemplate {
 
     public void recreate(Application app) {
         super.init(app);
+
+        String absolutePath = getProjectPath().getAbsolutePath();
+
+        FileUtil.notifySystemToScan(app, absolutePath);
+
         Tlog.i(" FileManager recreate finish ; success:" + exit);
     }
 

@@ -269,6 +269,8 @@ public interface IVirtualSocketScm {
 
     void queryTemperatureSensor(String mac);
 
+    void onJSQueryTotalElectric(SpendingElectricityData obj);
+
     /**
      * author: Guoqiang_Sun
      * date : 2018/4/10 0010
@@ -388,6 +390,10 @@ public interface IVirtualSocketScm {
         void onResultIndicatorStatus(String mac, boolean result, byte seq, boolean on);
 
         void onResultQueryTempSensor(boolean result, String mac, boolean status);
+
+        void onResultTempSensorReport(String mac, boolean status);
+
+        void onResultTotalElectricData(SpendingElectricityData obj);
     }
 
 

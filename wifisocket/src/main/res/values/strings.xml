@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name_wifi">TriggerHome</string>
+
+    <string name="facebook_app_id">566338630551328</string>
+    <string name="fb_login_protocol_scheme">fb566338630551328</string>
+
 </resources>

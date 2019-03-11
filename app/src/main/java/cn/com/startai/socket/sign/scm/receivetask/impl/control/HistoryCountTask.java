@@ -132,8 +132,8 @@ public class HistoryCountTask extends SocketResponseTask {
 
                 mData = new QueryHistoryCount.Data();
 
-                mData.e = e / 1000F;
-                mData.s = s / 1000F;
+                mData.e = e /1000F;
+                mData.s = s /1000F;
 
                 if (Debuger.isLogDebug) {
                     sbLog.append(" ").append(j).append(". e:").append(e).append(" s:").append(s);

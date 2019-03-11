@@ -44,6 +44,13 @@ public class LooperManager implements IApp {
         return mWorkHandler;
     }
 
+    private Handler mMainHandler;
+
+    public Handler getMainHandler() {
+        initMainHandler();
+        return mMainHandler;
+    }
+
     @Override
     public void init(Application app) {
 //        startProtocolThread();
@@ -58,6 +65,16 @@ public class LooperManager implements IApp {
             synchronized (this) {
                 if (mWorkHandler == null) {
                     mWorkHandler = new Handler(getWorkLooper());
+                }
+            }
+        }
+    }
+
+    private void initMainHandler() {
+        if (mMainHandler == null) {
+            synchronized (this) {
+                if (mMainHandler == null) {
+                    mMainHandler = new Handler(Looper.getMainLooper());
                 }
             }
         }

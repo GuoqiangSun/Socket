@@ -23,6 +23,7 @@ public class CountdownData {
                 "mac='" + mac + '\'' +
                 ", hour=" + hour +
                 ", minute=" + minute +
+                ", seconds=" + seconds +
                 ", allTime=" + allTime +
                 ", Switchgear=" + Switchgear +
                 ", countdownSwitch=" + countdownSwitch +
@@ -45,6 +46,8 @@ public class CountdownData {
     public int hour;
     public int minute;
 
+    public int seconds = -1;
+
     public int allTime = -1;
 
     /**
@@ -64,6 +67,7 @@ public class CountdownData {
             JSONObject jo = new JSONObject();
             jo.put("hour", hour);
             jo.put("minute", minute);
+            jo.put("seconds", seconds);
             jo.put("allTime", allTime);
             jo.put("Switchgear", Switchgear);
             jo.put("countdownSwitch", countdownSwitch);

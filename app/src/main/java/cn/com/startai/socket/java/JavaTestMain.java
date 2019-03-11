@@ -7,10 +7,13 @@ import org.json.JSONObject;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Scanner;
 import java.util.TimeZone;
 
+import cn.com.startai.socket.global.Utils.DateUtils;
 import cn.com.swain.baselib.util.HexUtils;
 
 /**
@@ -21,6 +24,9 @@ import cn.com.swain.baselib.util.HexUtils;
 public class JavaTestMain {
 
     public static void main(String[] args) {
+
+//        a();
+
 //        c();
 //        e();
 
@@ -29,9 +35,56 @@ public class JavaTestMain {
 
 //        g();
 
-        splitUrl();
+//        splitUrl();
+
+//        scan();
+
+        time();
 
     }
+
+    private static void time() {
+        int year = 2019;
+        int month = 2;
+        int day = 26;
+        Date d = new Date(year, month, day);
+        System.out.println(d.getTime());
+
+        Date dd = new Date(System.currentTimeMillis());
+        System.out.println(dd.getTime());
+
+        Calendar instance = Calendar.getInstance();
+//        instance.set((dd.getYear() + 1900 - 2000),dd.getMonth()+1,dd.getDate());
+//        instance.set(dd.getYear(),dd.getMonth(),dd.getDate());
+        instance.setTimeInMillis(System.currentTimeMillis());
+        System.out.println(instance.getTimeInMillis());
+
+        Calendar instance2 = Calendar.getInstance();
+        instance2.set(2019, 1, 26);
+        long timeInMillis = instance2.getTimeInMillis();
+        System.out.println(timeInMillis);
+
+        long startime = DateUtils.fastFormatTsToDayTs(timeInMillis);
+        System.out.println(startime);
+
+        Calendar instance3 = Calendar.getInstance();
+        instance3.setTimeInMillis(startime);
+        long timeInMillis1 = instance.getTimeInMillis();
+        System.out.println(timeInMillis1);
+
+        Date time = instance.getTime();
+        System.out.println(time.getYear());
+        System.out.println(time.getMonth());
+        System.out.println(time.getDate());
+    }
+
+
+    private static void scan() {
+        Scanner s = new Scanner(System.in);
+        int i = s.nextInt();
+        System.out.println(i);
+    }
+
 
     private static void splitUrl() {
         String url = "http://thirdwx.qlogo.cn/mmopen/vi_32/7rmnEumJia3WnaNAqxhKkU5HqeibPGJ1jIQ3coWTib59cysdy0mqbu7libZqUPjUVgPwcEUYicnbZNsejKugkkGvIwQ/132";
@@ -39,8 +92,8 @@ public class JavaTestMain {
         String substring = url.substring(i + 1);
 
         int i1 = substring.indexOf(".");
-        if(i1<0){
-            substring+=".jpg";
+        if (i1 < 0) {
+            substring += ".jpg";
         }
 
         System.out.println(substring);
@@ -204,29 +257,32 @@ public class JavaTestMain {
 
         String displayName = aDefault.getDisplayName(false, TimeZone.SHORT);
 
-        System.out.println(" " + displayName);
+        System.out.println(" getDisplayName(false, TimeZone.SHORT): " + displayName);
 
         String displayName1 = aDefault.getDisplayName();
-        System.out.println(" " + displayName1);
+        System.out.println(" getDisplayName: " + displayName1);
 
         String displayName2 = aDefault.getDisplayName(Locale.getDefault());
-        System.out.println(" " + displayName2);
+        System.out.println(" getDisplayName(Locale.getDefault()): " + displayName2);
 
         String s = aDefault.getID();
-        System.out.println(" " + s);
+        System.out.println(" getID: " + s);
 
-        String timezone = "GMT+08:00";
+        int dstSavings = aDefault.getDSTSavings();
+        System.out.println(" dstSavings: " + dstSavings);
+
+        String timezone = "-08:00";
 //        timezone.substring()
 
 
         int i = timezone.indexOf("+");
-        System.out.println(" " + i);
+        System.out.println(" indexOf+ " + i);
 
-        boolean isA = i > 0;
+        boolean isA = i >= 0;
 
         if (!isA) {
             i = timezone.indexOf("-");
-            System.out.println(" " + i);
+            System.out.println(" indexOf- " + i);
         }
 
         int i1 = timezone.indexOf(":");
@@ -239,7 +295,7 @@ public class JavaTestMain {
         System.out.println(" " + i2);
 
         int timezoneInt = isA ? i2 : -i2;
-        System.out.println(" " + timezoneInt);
+        System.out.println(" timezoneInt: " + timezoneInt);
 
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());

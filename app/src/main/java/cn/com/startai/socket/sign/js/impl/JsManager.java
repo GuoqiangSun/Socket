@@ -753,6 +753,13 @@ public class JsManager extends AbsJsManager implements IService {
     }
 
     @Override
+    public void onJSQueryTotalElectric(SpendingElectricityData obj) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSQueryTotalElectric(obj);
+        }
+    }
+
+    @Override
     public void onJSError(String msg) {
 
         if (mJSManagerCallBack != null) {

@@ -65,7 +65,8 @@ public class SocketApplication extends MultiDexApplication implements Thread.Unc
     public static void uncaughtH5Exception(String msg) {
         Tlog.e(TAG, " SocketApplication uncaughtH5Exception :\n" + msg);
         FileManager.getInstance().saveH5Exception(msg);
-        android.os.Process.killProcess(android.os.Process.myPid());
-        System.exit(1);
+        throw new RuntimeException(msg);
+//        android.os.Process.killProcess(android.os.Process.myPid());
+//        System.exit(1);
     }
 }

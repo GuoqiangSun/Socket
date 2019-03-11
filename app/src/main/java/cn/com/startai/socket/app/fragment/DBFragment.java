@@ -127,8 +127,8 @@ public class DBFragment extends BaseFragment {
     private void showDialog(CountElectricity mCountElectricity) {
         AlertDialog.Builder builder = new AlertDialog.Builder(Objects.requireNonNull(getContext()));
         builder.setIcon(R.mipmap.ic_launcher);
-        builder.setTitle("电量历史数据");
 
+        float total = 0f;
         //    指定下拉列表的显示数据
         String[] cities;
 
@@ -160,14 +160,13 @@ public class DBFragment extends BaseFragment {
                         0,
                         CountElectricity.ONE_PKG_LENGTH);
 
-                int ee = (countData[0] & 0xFF) << 24 | (countData[1] & 0xFF) << 16
+                int e = (countData[0] & 0xFF) << 24 | (countData[1] & 0xFF) << 16
                         | (countData[2] & 0xFF) << 8 | (countData[3] & 0xFF);
 
-                int ss = (countData[4] & 0xFF) << 24 | (countData[5] & 0xFF) << 16
+                int s = (countData[4] & 0xFF) << 24 | (countData[5] & 0xFF) << 16
                         | (countData[6] & 0xFF) << 8 | (countData[7] & 0xFF);
 
-                float e = ee / 1000F;
-                float s = ss / 1000F;
+                total += e;
 
                 cities[i] =
                         dff.format(i) + ".  " +
@@ -183,6 +182,8 @@ public class DBFragment extends BaseFragment {
         } else {
             cities = new String[]{" null "};
         }
+
+        builder.setTitle("电量:" + String.valueOf(total));
 
         //    设置一个下拉的列表选择项
         builder.setItems(cities, new DialogInterface.OnClickListener() {

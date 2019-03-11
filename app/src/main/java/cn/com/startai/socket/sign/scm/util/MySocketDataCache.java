@@ -694,14 +694,16 @@ public class MySocketDataCache implements IService {
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
         mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_SPENDING_ELECTRICITY_DATA);
 
-        byte[] params = new byte[7];
+        byte[] params = new byte[9];
         params[0] = SocketSecureKey.Util.startup(startup);
         params[1] = model;
         params[2] = y;
         params[3] = m;
         params[4] = d;
-        params[5] = (byte) ((value >> 8) & 0xFF);
-        params[6] = (byte) (value & 0xFF);
+        params[5] = (byte) ((value >> 24) & 0xFF);
+        params[6] = (byte) ((value >> 16) & 0xFF);
+        params[7] = (byte) ((value >> 8) & 0xFF);
+        params[8] = (byte) (value & 0xFF);
         mSecureDataPack.setParams(params);
         return newResponseDataRecord(mac, mSecureDataPack);
     }

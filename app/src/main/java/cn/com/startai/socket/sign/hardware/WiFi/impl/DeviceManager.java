@@ -292,11 +292,6 @@ public class DeviceManager implements IService {
                 mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
             }
         }
-
-        @Override
-        public boolean needUISafety() {
-            return false;
-        }
     };
 
     private boolean hasQuery = false;
@@ -545,10 +540,6 @@ public class DeviceManager implements IService {
 
         }
 
-        @Override
-        public boolean needUISafety() {
-            return false;
-        }
     };
 
     void onDeviceConfigWifiSuccess(String bssid) {
@@ -556,6 +547,10 @@ public class DeviceManager implements IService {
             mDisplayHandler.obtainMessage(MAG_WHAT_WIFI_CONFIG_SUCCESS, bssid).sendToTarget();
         }
     }
+
+    private volatile String lastBindMac;
+    private volatile long lastBindTs;
+
 
     /**
      * 局域内设备被绑定
@@ -650,9 +645,22 @@ public class DeviceManager implements IService {
 
         }
 
-        if (displayDeviceByMac == null) {
+        if (displayDeviceByMac == null) {// 防止已经显示了，还提示绑定成功。
             if (mResultCallBack != null) {
-                mResultCallBack.onResultBindDevice(true, mLanBindingDevice.getOmac());
+
+                String omac = mLanBindingDevice.getOmac();
+
+                    // 防止重复绑定，多次提示。
+                if (lastBindMac != null && lastBindMac.equalsIgnoreCase(omac)
+                        && Math.abs(System.currentTimeMillis() - lastBindTs) < 1000 * 3) {
+                    Tlog.w(TAG, " this mac bind just now");
+                } else {
+                    lastBindMac = omac;
+                    lastBindTs = System.currentTimeMillis();
+
+                    mResultCallBack.onResultBindDevice(true, omac);
+
+                }
             }
         }
 
@@ -680,10 +688,6 @@ public class DeviceManager implements IService {
             }
         }
 
-        @Override
-        public boolean needUISafety() {
-            return false;
-        }
     };
 
 
@@ -704,6 +708,10 @@ public class DeviceManager implements IService {
             return;
         }
         tmpUnbindMac = mac;
+
+        if (lastBindMac != null && lastBindMac.equalsIgnoreCase(mac)) {
+            lastBindMac = null;
+        }
 
         LanDeviceInfo sameDisplayDeviceByMac = mDisplayDeviceLst.getDisplayDeviceByMac(mac);
         if (sameDisplayDeviceByMac != null) {
@@ -1526,10 +1534,6 @@ public class DeviceManager implements IService {
             Tlog.e(TAG, " mRenameDeviceLsn msg send fail " + startaiError.getErrorMsg());
         }
 
-        @Override
-        public boolean needUISafety() {
-            return false;
-        }
     };
 
     synchronized void onDeviceRename(String mac, String name) {

@@ -10,11 +10,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Looper;
 
-import com.blankj.utilcode.util.PermissionUtils;
-
 import java.util.List;
 
-import cn.com.startai.socket.BuildConfig;
 import cn.com.startai.socket.db.gen.DisplayBleDeviceDao;
 import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.debuger.Debuger;
@@ -215,7 +212,11 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
             absBleSend = null;
         }
 
-        app.unregisterReceiver(mReceiver);
+        try {
+            app.unregisterReceiver(mReceiver);
+        } catch (Exception e) {
+
+        }
 
     }
 
@@ -348,10 +349,12 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
                 return;
             }
 
-            if (CustomManager.getInstance().isTriggerBle()
-                    && !BuildConfig.DEBUG
-                    && !mBle.address.startsWith("90:00")
-                    && !mBle.address.startsWith("00:00")) {
+            if (
+                    !Debuger.isDebug &&
+                            !Debuger.isBleDebug
+                            && CustomManager.getInstance().isTriggerBle()
+                            && !mBle.address.startsWith("90:00")
+                    ) {
 
                 if (Debuger.isLogDebug) {
                     Tlog.w(TAG, " ScanBle isTriggerBle " + mBle.address + " not startsWith 90:00");
@@ -420,31 +423,32 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
     public void scanningBle() {
         Tlog.v(TAG, " scanningBle() ");
 
-        com.blankj.utilcode.util.PermissionUtils permission =
-                com.blankj.utilcode.util.PermissionUtils.permission(com.blankj.utilcode.constant.PermissionConstants.LOCATION);
-        permission.callback(new PermissionUtils.SimpleCallback() {
-            @Override
-            public void onGranted() {
-                scanBle();
-            }
+//        com.blankj.utilcode.util.PermissionUtils permission =
+//                com.blankj.utilcode.util.PermissionUtils.permission(com.blankj.utilcode.constant.PermissionConstants.LOCATION);
+//        permission.callback(new PermissionUtils.SimpleCallback() {
+//            @Override
+//            public void onGranted() {
+//                scanBle();
+//            }
+//
+//            @Override
+//            public void onDenied() {
+//
+//            }
+//        });
+//        permission.request();
+
+        PermissionHelper.requestSinglePermission(app, new PermissionRequest.OnPermissionResult() {
 
             @Override
-            public void onDenied() {
-
-            }
-        });
-        permission.request();
-
-        PermissionHelper.requestPermission(app, new PermissionRequest.OnPermissionResult() {
-
-            @Override
-            public void onPermissionRequestResult(String permission, boolean granted) {
+            public boolean onPermissionRequestResult(String permission, boolean granted) {
 
                 Tlog.v(TAG, " scanningBle() PermissionHelper : " + permission + " granted:" + granted);
 
                 if (granted) {
                     scanBle();
                 }
+                return true;
             }
         }, Manifest.permission.ACCESS_COARSE_LOCATION);
 
