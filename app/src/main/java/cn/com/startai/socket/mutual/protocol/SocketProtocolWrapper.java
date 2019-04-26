@@ -4,11 +4,12 @@ import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.debuger.impl.IDebugerProtocolStream;
 import cn.com.startai.socket.debuger.impl.IRegDebugerProtocolStream;
 import cn.com.startai.socket.debuger.impl.ProductDetectionManager;
+import cn.com.swain.baselib.app.IApp.IService;
+import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.support.protocolEngine.IO.ProtocolWrapper;
 import cn.com.swain.support.protocolEngine.pack.ReceivesData;
 import cn.com.swain.support.protocolEngine.pack.ResponseData;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun
@@ -16,7 +17,7 @@ import cn.com.swain.baselib.log.Tlog;
  * desc :
  */
 
-public class SocketProtocolWrapper extends ProtocolWrapper implements IRegDebugerProtocolStream {
+public class SocketProtocolWrapper extends ProtocolWrapper implements IRegDebugerProtocolStream, IService {
 
     public static final String TAG = "SocketProtocolWrapper";
 
@@ -25,13 +26,13 @@ public class SocketProtocolWrapper extends ProtocolWrapper implements IRegDebuge
     }
 
     @Override
-    public void onInputServerData(ReceivesData mReceiverData) {
+    public void onInputProtocolData(ReceivesData mReceiverData) {
 
         if (Debuger.isLogDebug) {
             Tlog.w(SocketResponseTask.TAG, "SocketProtocolWrapper onInputServerData() :" + mReceiverData.toString());
         }
 
-        super.onInputServerData(mReceiverData);
+        super.onInputProtocolData(mReceiverData);
 
         if (Debuger.isProductDetection) {
             if (productDetectionManager != null) {
@@ -41,8 +42,8 @@ public class SocketProtocolWrapper extends ProtocolWrapper implements IRegDebuge
     }
 
     @Override
-    public void onOutputDataToServer(ResponseData mResponseData) {
-        super.onOutputDataToServer(mResponseData);
+    public void onOutputProtocolData(ResponseData mResponseData) {
+        super.onOutputProtocolData(mResponseData);
 
         if (Debuger.isProductDetection) {
             if (productDetectionManager != null) {
@@ -51,13 +52,13 @@ public class SocketProtocolWrapper extends ProtocolWrapper implements IRegDebuge
         }
 
         if (Debuger.isLogDebug) {
-            Tlog.d(SocketResponseTask.TAG, "SocketProtocolWrapper onOutputDataToServer() :" + mResponseData.toString());
+            Tlog.d(SocketResponseTask.TAG, "SocketProtocolWrapper onOutputProtocolData() :" + mResponseData.toString());
         }
     }
 
     @Override
-    public void onBroadcastDataToServer(ResponseData mResponseData) {
-        super.onOutputDataToServer(mResponseData);
+    public void onBroadcastProtocolData(ResponseData mResponseData) {
+        super.onBroadcastProtocolData(mResponseData);
 
         if (Debuger.isProductDetection) {
             if (productDetectionManager != null) {
@@ -87,4 +88,29 @@ public class SocketProtocolWrapper extends ProtocolWrapper implements IRegDebuge
     }
 
 
+    @Override
+    public void onSCreate() {
+
+    }
+
+    @Override
+    public void onSResume() {
+
+    }
+
+    @Override
+    public void onSPause() {
+
+    }
+
+    @Override
+    public void onSFinish() {
+
+    }
+
+    @Override
+    public void onSDestroy() {
+        releaseInputBase();
+        releaseOutputBase();
+    }
 }

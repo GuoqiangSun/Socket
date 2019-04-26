@@ -104,9 +104,9 @@ import cn.com.startai.socket.sign.hardware.WiFi.util.NetworkData;
 import cn.com.startai.socket.sign.js.jsInterface.Login;
 import cn.com.swain.baselib.app.IApp.IService;
 import cn.com.swain.baselib.log.Tlog;
-import cn.com.swain.baselib.util.PermissionGroup;
-import cn.com.swain.baselib.util.PermissionHelper;
-import cn.com.swain.baselib.util.PermissionRequest;
+import cn.com.swain.baselib.permission.PermissionGroup;
+import cn.com.swain.baselib.permission.PermissionHelper;
+import cn.com.swain.baselib.permission.PermissionRequest;
 import cn.com.swain.baselib.util.PhotoUtils;
 
 /**
@@ -794,6 +794,24 @@ public class UserManager implements IService {
 
         }
 
+    }
+
+    void resendEmail(String email) {
+        StartAI.getInstance().getBaseBusiManager().sendEmail(email, 1, new IOnCallListener() {
+            @Override
+            public void onSuccess(MqttPublishRequest request) {
+                Tlog.v(TAG, " resendEmail msg send success ");
+            }
+
+            @Override
+            public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
+                Tlog.e(TAG, " resendEmail msg send fail " + startaiError.getErrorCode());
+                if (mResultCallBack != null) {
+                    mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                }
+            }
+
+        });
     }
 
     void emailForgot(String email) {
@@ -2327,6 +2345,10 @@ public class UserManager implements IService {
             if (resp.getContent().getType() == 2) {
                 if (mResultCallBack != null) {
                     mResultCallBack.onResultEmailForgot(true);
+                }
+            } else if (resp.getContent().getType() == 1) {
+                if (mResultCallBack != null) {
+                    mResultCallBack.onResultResendEmail(true);
                 }
             }
         } else {

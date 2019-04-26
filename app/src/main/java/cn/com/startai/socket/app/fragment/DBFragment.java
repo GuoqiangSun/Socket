@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -98,28 +99,24 @@ public class DBFragment extends BaseFragment {
             }
         });
 
-        Button mQueryFromDeviceBtn = inflate.findViewById(R.id.query_btn_d);
-        mQueryFromDeviceBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                long currentTimeMillis = System.currentTimeMillis();
-                Date mStartDate = new Date(currentTimeMillis);
-                Date mEndDate = new Date(currentTimeMillis + DateUtils.ONE_DAY);
-
-                ResponseData mResponseData = MySocketDataCache.getQueryHistoryCount(Debuger.getInstance().getProductDevice(),
-                        mStartDate, mEndDate);
-
-                SocketScmManager scmManager = Controller.getInstance().getScmManager();
-
-                if (scmManager != null) {
-                    scmManager.onOutputDataToServer(mResponseData);
-                } else {
-                    Toast.makeText(getContext(), " scmManager is null", Toast.LENGTH_SHORT).show();
-                }
-
-            }
-        });
         return inflate;
+
+    }
+
+    private void queryFromServer(long currentTimeMillis) {
+        Date mStartDate = new Date(currentTimeMillis);
+        Date mEndDate = new Date(currentTimeMillis + DateUtils.ONE_DAY);
+
+        ResponseData mResponseData = MySocketDataCache.getQueryHistoryCount(Debuger.getInstance().getProductDevice(),
+                mStartDate, mEndDate);
+
+        SocketScmManager scmManager = Controller.getInstance().getScmManager();
+
+        if (scmManager != null) {
+            scmManager.onOutputProtocolData(mResponseData);
+        } else {
+            Toast.makeText(getContext(), " scmManager is null", Toast.LENGTH_SHORT).show();
+        }
 
     }
 
@@ -129,8 +126,9 @@ public class DBFragment extends BaseFragment {
         builder.setIcon(R.mipmap.ic_launcher);
 
         float total = 0f;
+        SimpleDateFormat mFormat = new SimpleDateFormat("MM/dd HH:mm:ss", Locale.getDefault());
         //    指定下拉列表的显示数据
-        String[] cities;
+        ArrayList<String> data = new ArrayList<>();
 
         byte[] electricity = null;
 
@@ -138,57 +136,76 @@ public class DBFragment extends BaseFragment {
             electricity = mCountElectricity.getElectricity();
         }
 
-        if (electricity != null && electricity.length >= 8) {
+        int onHourSum = 0;
+        long timestamp;
 
-            SimpleDateFormat mFormat = new SimpleDateFormat("MM/dd HH:mm:ss", Locale.getDefault());
-            DecimalFormat df = new DecimalFormat("0.000");
-            DecimalFormat dff = new DecimalFormat("000");
-            long timestamp = mCountElectricity.getTimestamp();
-            int count = electricity.length / 8;
+        if (electricity != null) {
 
-            cities = new String[count];
+            timestamp = mCountElectricity.getTimestamp();
+            data.add("From Device: " + mFormat.format(timestamp));
 
-            byte[] countData = new byte[CountElectricity.ONE_PKG_LENGTH];
+            if (electricity.length >= 8) {
 
-            for (int i = 0; i < count; i++) {
+                DecimalFormat df = new DecimalFormat("0.000");
+                DecimalFormat dff = new DecimalFormat("000");
+                int count = electricity.length / 8;
 
-                long curMillis = timestamp + (i + 1) * 1000 * 60 * 5;
 
-                System.arraycopy(electricity,
-                        i * CountElectricity.ONE_PKG_LENGTH,
-                        countData,
-                        0,
-                        CountElectricity.ONE_PKG_LENGTH);
+                byte[] countData = new byte[CountElectricity.ONE_PKG_LENGTH];
 
-                int e = (countData[0] & 0xFF) << 24 | (countData[1] & 0xFF) << 16
-                        | (countData[2] & 0xFF) << 8 | (countData[3] & 0xFF);
+                for (int i = 0; i < count; i++) {
 
-                int s = (countData[4] & 0xFF) << 24 | (countData[5] & 0xFF) << 16
-                        | (countData[6] & 0xFF) << 8 | (countData[7] & 0xFF);
+                    long curMillis = timestamp + (i + 1) * 1000 * 60 * 5;
 
-                total += e;
+                    System.arraycopy(electricity,
+                            i * CountElectricity.ONE_PKG_LENGTH,
+                            countData,
+                            0,
+                            CountElectricity.ONE_PKG_LENGTH);
 
-                cities[i] =
-                        dff.format(i) + ".  " +
-                                mFormat.format(new Date(curMillis)) +
-                                " -e:" + df.format(e)
+                    int e = (countData[0] & 0xFF) << 24 | (countData[1] & 0xFF) << 16
+                            | (countData[2] & 0xFF) << 8 | (countData[3] & 0xFF);
+
+                    int s = (countData[4] & 0xFF) << 24 | (countData[5] & 0xFF) << 16
+                            | (countData[6] & 0xFF) << 8 | (countData[7] & 0xFF);
+
+
+                    onHourSum += e;
+                    total += e;
+
+                    data.add(
+                            dff.format(i) + ".  " +
+                                    mFormat.format(new Date(curMillis)) +
+                                    " -e:" + df.format(e)
 //                                +
 //                                " -s:" + df.format(s)
-                ;
-
+                    )
+                    ;
+                    if ((i + 1) % CountElectricity.SIZE_ONE_HOUR == 0) {
+                        data.add("Hour Of Sum " + ((i + 1) / CountElectricity.SIZE_ONE_HOUR) + " h -e:" + onHourSum);
+                        onHourSum = 0;
+                    }
+                }
+            }else {
+                data.add(" null ");
             }
 
-
         } else {
-            cities = new String[]{" null "};
+            timestamp = System.currentTimeMillis();
+            data.add("query from device: " + mFormat.format(timestamp));
+            data.add(" null ");
         }
 
+        String[] cities = data.toArray(new String[0]);
         builder.setTitle("电量:" + String.valueOf(total));
 
         //    设置一个下拉的列表选择项
         builder.setItems(cities, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                if (which == 0) {
+                    queryFromServer(timestamp);
+                }
             }
         });
         builder.show();

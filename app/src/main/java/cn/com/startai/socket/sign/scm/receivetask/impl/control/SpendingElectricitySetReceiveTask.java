@@ -50,10 +50,10 @@ public class SpendingElectricitySetReceiveTask extends SocketResponseTask {
             mSpendingElectricityData.currentValue = ((protocolParams[8] << 8) & 0xFF) | (protocolParams[9] & 0xFF);
 
         } else if (protocolParams.length <= 14) {
-            mSpendingElectricityData.alarmValue = (((protocolParams[6] << 24) & 0xFF) | ((protocolParams[7] << 16) & 0xFF)
-                    | ((protocolParams[8] << 8) & 0xFF) | (protocolParams[9] & 0xFF));
-            mSpendingElectricityData.currentValue = (((protocolParams[10] << 24) & 0xFF) | ((protocolParams[11] << 16) & 0xFF)
-                    | ((protocolParams[12] << 8) & 0xFF) | (protocolParams[13] & 0xFF));
+            mSpendingElectricityData.alarmValue = (((protocolParams[6] & 0xFF)<< 24)  | ((protocolParams[7]& 0xFF) << 16)
+                    | ((protocolParams[8] & 0xFF)<< 8)  | (protocolParams[9] & 0xFF));
+            mSpendingElectricityData.currentValue = (((protocolParams[10] & 0xFF)<< 24)  | ((protocolParams[11]& 0xFF) << 16)
+                    | ((protocolParams[12]  & 0xFF)<< 8) | (protocolParams[13] & 0xFF));
         }
 
 

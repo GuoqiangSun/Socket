@@ -148,6 +148,8 @@ public interface IControlWiFi {
 
     void scanQRCode(Activity act);
 
+    void resendEmail(String email);
+
 
     interface IWiFiResultCallBack {
 
@@ -241,6 +243,7 @@ public interface IControlWiFi {
 
         void onResultThirdLogin(boolean b, String errcode);
 
+        void onResultResendEmail(boolean b);
     }
 
 }

@@ -14,12 +14,10 @@ import cn.com.startai.socket.global.Utils.DateUtils;
 import cn.com.startai.socket.mutual.js.bean.CountAverageElectricity;
 import cn.com.startai.socket.mutual.js.bean.CountElectricity;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
-import cn.com.startai.socket.sign.scm.bean.SpendingElectricityData;
 import cn.com.startai.socket.sign.scm.util.MySocketDataCache;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
-import cn.com.swain.support.protocolEngine.IO.IDataProtocolOutput;
-import cn.com.swain.support.protocolEngine.pack.ResponseData;
 import cn.com.swain.baselib.log.Tlog;
+import cn.com.swain.support.protocolEngine.pack.ResponseData;
 
 /**
  * author: Guoqiang_Sun
@@ -205,7 +203,7 @@ public class QueryHistoryUtil {
         int lastMonth = DateUtils.getMonth(startTimestamp);
         int lastYear = DateUtils.getYear(startTimestamp);
 
-        while (startTimestamp < endTimestamp) {
+        while (startTimestamp < endTimestamp) { // 一天
 
             if (Debuger.isLogDebug) {
                 Tlog.v(TAG, " queryHistoryCount startTime: "
@@ -222,6 +220,9 @@ public class QueryHistoryUtil {
             mDay.startTime = startTimestamp;
             mCount.mDayArray.add(mDay);
 
+            long diff = curMillis - startTimestamp;
+            boolean inOneWeek = diff <= DateUtils.ONE_DAY * 7 && diff >= 0;
+
             if (listElectricitys != null && listElectricitys.size() > 0) {
                 CountElectricity countElectricity = listElectricitys.get(0);
                 mDay.countData = countElectricity.getElectricity();
@@ -229,8 +230,11 @@ public class QueryHistoryUtil {
                 if (Debuger.isLogDebug) {
                     Tlog.v(TAG, " queryHistoryCount from DB ");
                 }
+                boolean complete = countElectricity.getComplete() == 1;
 
-                if (startTimestamp == curMillis && mQueryCount.needQueryFromServer) {
+                if (startTimestamp == curMillis && mQueryCount.needQueryFromServer
+                        || (!complete && inOneWeek)
+                ) {
 
                     Date mStartDate = new Date(startTimestamp);
                     Date mEndDate = new Date(startTimestamp + DateUtils.ONE_DAY);
@@ -250,36 +254,24 @@ public class QueryHistoryUtil {
                 mDay.countData = new byte[CountElectricity.ONE_DAY_BYTES];
 
                 if (Debuger.isLogDebug) {
-                    Tlog.w(TAG, " queryHistoryCount from DB is null ; new null byte[]");
+                    Tlog.w(TAG, " queryHistoryCount from DB is null ; new null byte[] ");
                 }
 
-                long diff = curMillis - startTimestamp;
+                if (inOneWeek && mQueryCount.needQueryFromServer) {
 
-                if (diff < DateUtils.ONE_DAY * 7 && diff >= 0) {
+                    Date mStartDate = new Date(startTimestamp);
+                    Date mEndDate = new Date(startTimestamp + DateUtils.ONE_DAY);
+                    ResponseData mResponseData = MySocketDataCache.getQueryHistoryCount(mQueryCount.mac,
+                            mStartDate, mEndDate);
+                    hasQueryFromServer = true;
+                    queryHistoryCount.msgSeq = mResponseData.getRepeatMsgModel().getMsgSeq();
 
-                    if (mQueryCount.needQueryFromServer) {
-                        Date mStartDate = new Date(startTimestamp);
-                        Date mEndDate = new Date(startTimestamp + DateUtils.ONE_DAY);
-                        ResponseData mResponseData = MySocketDataCache.getQueryHistoryCount(mQueryCount.mac,
-                                mStartDate, mEndDate);
-                        hasQueryFromServer = true;
-                        queryHistoryCount.msgSeq = mResponseData.getRepeatMsgModel().getMsgSeq();
-
-                        if (Debuger.isLogDebug) {
-                            Tlog.v(TAG, " queryHistoryCount from server [DB data is null]:" + mResponseData.toString());
-                        }
-                        scmDevice.onOutputDataToServer(mResponseData);
-
-                    } else {
-                        if (Debuger.isLogDebug) {
-                            Tlog.w(TAG, " queryHistoryCount from server buf break:");
-                        }
-                    }
-
-                } else {
                     if (Debuger.isLogDebug) {
-                        Tlog.w(TAG, " queryHistoryCount from server but out of 7 days ");
+                        Tlog.v(TAG, " queryHistoryCount from server [DB data is null]:" + mResponseData.toString());
                     }
+                    scmDevice.onOutputDataToServer(mResponseData);
+
+
                 }
 
             }
@@ -302,8 +294,8 @@ public class QueryHistoryUtil {
                 int ss = (countData[4] & 0xFF) << 24 | (countData[5] & 0xFF) << 16
                         | (countData[6] & 0xFF) << 8 | (countData[7] & 0xFF);
 
-                float e = ee/1000F;
-                float s = ss/1000F;
+                float e = ee / 1000F;
+                float s = ss / 1000F;
 
 
 //                if (Debuger.isTest && e == 0) {
@@ -428,8 +420,9 @@ public class QueryHistoryUtil {
                         mCount.mDataArray.add(mData);
                         mCount.day++;
 
+                        boolean lastWeek = startTimestamp < (endTimestamp - DateUtils.ONE_DAY * 8);
 
-                        if (!theEndWeek) {
+                        if (!theEndWeek && lastWeek) {
                             List<CountAverageElectricity> list = countAverageElectricityDao.queryBuilder()
                                     .where(CountAverageElectricityDao.Properties.Mac.eq(mQueryCount.mac),
                                             CountAverageElectricityDao.Properties.Timestamp.eq(startTimestamp),
@@ -522,7 +515,7 @@ public class QueryHistoryUtil {
                     mTmpData.e += e;
                     mTmpData.s += s;
 
-                    if (j != 0 && j % countNumber == 0) {
+                    if (j != 0 && (j + 1) % countNumber == 0) {
                         // 一小时一次的平均数据
 
                         mData = new QueryHistoryCount.Data();
@@ -632,18 +625,6 @@ public class QueryHistoryUtil {
         CountElectricityDao countElectricityDao =
                 DBManager.getInstance().getDaoSession().getCountElectricityDao();
 
-        List<CountElectricity> list0 = countElectricityDao.queryBuilder()
-                .where(CountElectricityDao.Properties.Mac.eq(mCount.mac),
-                        CountElectricityDao.Properties.Timestamp.eq(
-                                mCount.startTimeMillis - DateUtils.ONE_DAY)).list();
-
-        long sequence = 0L;
-        if (list0.size() > 0) {
-            CountElectricity countElectricity = list0.get(0);
-            sequence = countElectricity.getSequence();
-        }
-
-
         long curMillis = DateUtils.fastFormatTsToDayTs(System.currentTimeMillis());
 
         long startTimestampFromStr = mCount.getStartTimestampFromStr();
@@ -672,17 +653,27 @@ public class QueryHistoryUtil {
             }
 
             if (countElectricity == null) {
-                CountElectricity mCountElectricity = new CountElectricity();
-                mCountElectricity.setMac(mCount.mac);
-                mCountElectricity.setElectricity(mData.countData);
-                mCountElectricity.setTimestamp(mData.startTime);
-                mCountElectricity.setSequence(++sequence);
-                long insert = countElectricityDao.insert(mCountElectricity);
+                countElectricity = new CountElectricity();
+                countElectricity.setMac(mCount.mac);
+                countElectricity.setComplete(mCount.complete ? 1 : 0);
+                countElectricity.setElectricity(mData.countData);
+                countElectricity.setTimestamp(mData.startTime);
+                long insert = countElectricityDao.insert(countElectricity);
                 Tlog.v(TAG, " HistoryCount insert:" + insert);
             } else {
 
+                countElectricity.setComplete(mCount.complete ? 1 : 0);
 
                 if (curMillis == startTimestampFromStr) {
+
+                    byte[] countData = mData.countData;
+
+                    int length1 = countData.length;
+
+                    if (length1 > CountElectricity.ONE_DAY_BYTES) {
+                        length1 = CountElectricity.ONE_DAY_BYTES;
+                    }
+
 
                     byte[] electricity = countElectricity.getElectricity();
                     int length = electricity.length;
@@ -693,14 +684,6 @@ public class QueryHistoryUtil {
 
                         System.arraycopy(electricity, 0, cache, 0, length);
 
-                        byte[] countData = mData.countData;
-
-                        int length1 = countData.length;
-
-                        if (length1 > CountElectricity.ONE_DAY_BYTES) {
-                            length1 = CountElectricity.ONE_DAY_BYTES;
-                        }
-
                         System.arraycopy(countData, 0, cache, 0, length1);
 
                         countElectricity.setElectricity(cache);
@@ -708,14 +691,6 @@ public class QueryHistoryUtil {
                         Tlog.v(TAG, " HistoryCount update oldLength:" + length + " newLength:" + length1);
 
                     } else {
-
-                        byte[] countData = mData.countData;
-
-                        int length1 = countData.length;
-
-                        if (length1 > CountElectricity.ONE_DAY_BYTES) {
-                            length1 = CountElectricity.ONE_DAY_BYTES;
-                        }
 
                         System.arraycopy(countData, 0, electricity, 0, length1);
 

@@ -731,6 +731,13 @@ public class JsManager extends AbsJsManager implements IService {
     }
 
     @Override
+    public void onJSResendEmail(String email) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSResendEmail(email);
+        }
+    }
+
+    @Override
     public void onJSRename(RenameBean mDisplayDevice) {
         if (mJSManagerCallBack != null) {
             mJSManagerCallBack.onJSRename(mDisplayDevice);

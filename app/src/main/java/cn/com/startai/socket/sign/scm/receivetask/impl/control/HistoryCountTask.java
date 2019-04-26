@@ -8,12 +8,13 @@ import java.util.Locale;
 
 import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.global.Utils.DateUtils;
+import cn.com.startai.socket.mutual.js.bean.CountElectricity;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
+import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun
@@ -57,14 +58,14 @@ public class HistoryCountTask extends SocketResponseTask {
         long startTimeMillis;
 
         try {
-            startTimeMillis= dateFormat.parse(startTime).getTime();
+            startTimeMillis = dateFormat.parse(startTime).getTime();
         } catch (ParseException e) {
             e.printStackTrace();
-            startTimeMillis = DateUtils.fastFormatTsToDayOfOffset(day-1);
+            startTimeMillis = DateUtils.fastFormatTsToDayOfOffset(day - 1);
         }
 
 
-        int oneLength = 8; // 一组数据大小
+        int oneLength = CountElectricity.ONE_PKG_LENGTH; // 一组数据大小
         int dataLength = (protocolParams.length - 1 - 5);//数据大小长度
         final byte[] countData = new byte[oneLength];
 
@@ -84,8 +85,11 @@ public class HistoryCountTask extends SocketResponseTask {
         QueryHistoryCount.Data mData;
         QueryHistoryCount.Day mDay;
 
-        int oneDaySize = 60 / 5 * 24; //一天数据个数
-        int oneDayBytes = oneDaySize * oneLength; // 一天数据长度
+
+        int oneDaySize = CountElectricity.SIZE_ONE_DAY; //一天数据个数
+        int oneDayBytes = CountElectricity.ONE_DAY_BYTES; // 一天数据长度
+
+        mCount.complete = dataLength >= oneDayBytes;
 
         int oneDayRemainBytes = dataLength % oneDayBytes;// 剩下多少数据
         if (Debuger.isLogDebug) {
@@ -132,8 +136,8 @@ public class HistoryCountTask extends SocketResponseTask {
 
                 mData = new QueryHistoryCount.Data();
 
-                mData.e = e /1000F;
-                mData.s = s /1000F;
+                mData.e = e / 1000F;
+                mData.s = s / 1000F;
 
                 if (Debuger.isLogDebug) {
                     sbLog.append(" ").append(j).append(". e:").append(e).append(" s:").append(s);

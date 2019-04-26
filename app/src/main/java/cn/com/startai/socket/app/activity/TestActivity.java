@@ -30,11 +30,12 @@ import cn.com.swain.support.ble.connect.IBleConCallBack;
 import cn.com.swain.support.ble.scan.BleScanAuto;
 import cn.com.swain.support.ble.scan.IBleScanObserver;
 import cn.com.swain.support.ble.scan.ScanBle;
-import cn.com.swain.support.protocolEngine.ProtocolProcessor;
+import cn.com.swain.support.protocolEngine.ProtocolProcessorFactory;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.datagram.dataproducer.SocketDataQueueProducer;
 import cn.com.swain.support.protocolEngine.pack.ReceivesData;
 import cn.com.swain.baselib.log.Tlog;
+import cn.com.swain.support.protocolEngine.resolve.AbsProtocolProcessor;
 
 /**
  * author: Guoqiang_Sun
@@ -251,16 +252,13 @@ public class TestActivity extends AppCompatActivity {
 
     }
 
-    private ProtocolProcessor pm;
+    private AbsProtocolProcessor pm;
 
     private void testProtocolManager() {
 
-//        ProtocolProcessorFactory.newSingleThreadAnalysisMutilTask(LooperManager.getInstance().getProtocolLooper(), new ProtocolTaskImpl(null, null),2);
-
-        pm = new ProtocolProcessor(LooperManager.getInstance().getProtocolLooper(),
-                new ProtocolTaskImpl(null, null,getApplication()),
-                new SocketDataQueueProducer(0),
-                3);
+        pm = ProtocolProcessorFactory.newSingleChannelSingleTask(LooperManager.getInstance().getProtocolLooper(),
+                new ProtocolTaskImpl(null, null, getApplication()),
+                2, true);
 
         new Thread() {
             @Override
@@ -284,7 +282,7 @@ public class TestActivity extends AppCompatActivity {
                     ReceivesData mData0 = new ReceivesData();
                     byte[] buf0 = new byte[]{(byte) 0xff, 0x00, 0x05, 0x00, 0x00, 0x01, 0x01, 0x01, 0x31, (byte) 0xee};
                     mData0.data = buf0;
-                    pm.onInReceiveData(mData0);
+                    pm.onInputProtocolData(mData0);
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {

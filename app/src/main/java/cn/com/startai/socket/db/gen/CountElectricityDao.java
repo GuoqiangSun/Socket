@@ -27,7 +27,7 @@ public class CountElectricityDao extends AbstractDao<CountElectricity, Long> {
         public final static Property Id = new Property(0, Long.class, "id", true, "_id");
         public final static Property Mac = new Property(1, String.class, "mac", false, "MAC");
         public final static Property Timestamp = new Property(2, long.class, "timestamp", false, "TIMESTAMP");
-        public final static Property Sequence = new Property(3, long.class, "sequence", false, "SEQUENCE");
+        public final static Property Complete = new Property(3, int.class, "complete", false, "COMPLETE");
         public final static Property Electricity = new Property(4, byte[].class, "electricity", false, "ELECTRICITY");
     }
 
@@ -47,7 +47,7 @@ public class CountElectricityDao extends AbstractDao<CountElectricity, Long> {
                 "\"_id\" INTEGER PRIMARY KEY AUTOINCREMENT ," + // 0: id
                 "\"MAC\" TEXT," + // 1: mac
                 "\"TIMESTAMP\" INTEGER NOT NULL ," + // 2: timestamp
-                "\"SEQUENCE\" INTEGER NOT NULL ," + // 3: sequence
+                "\"COMPLETE\" INTEGER NOT NULL ," + // 3: complete
                 "\"ELECTRICITY\" BLOB);"); // 4: electricity
     }
 
@@ -71,7 +71,7 @@ public class CountElectricityDao extends AbstractDao<CountElectricity, Long> {
             stmt.bindString(2, mac);
         }
         stmt.bindLong(3, entity.getTimestamp());
-        stmt.bindLong(4, entity.getSequence());
+        stmt.bindLong(4, entity.getComplete());
  
         byte[] electricity = entity.getElectricity();
         if (electricity != null) {
@@ -93,7 +93,7 @@ public class CountElectricityDao extends AbstractDao<CountElectricity, Long> {
             stmt.bindString(2, mac);
         }
         stmt.bindLong(3, entity.getTimestamp());
-        stmt.bindLong(4, entity.getSequence());
+        stmt.bindLong(4, entity.getComplete());
  
         byte[] electricity = entity.getElectricity();
         if (electricity != null) {
@@ -112,7 +112,7 @@ public class CountElectricityDao extends AbstractDao<CountElectricity, Long> {
             cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0), // id
             cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // mac
             cursor.getLong(offset + 2), // timestamp
-            cursor.getLong(offset + 3), // sequence
+            cursor.getInt(offset + 3), // complete
             cursor.isNull(offset + 4) ? null : cursor.getBlob(offset + 4) // electricity
         );
         return entity;
@@ -123,7 +123,7 @@ public class CountElectricityDao extends AbstractDao<CountElectricity, Long> {
         entity.setId(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
         entity.setMac(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
         entity.setTimestamp(cursor.getLong(offset + 2));
-        entity.setSequence(cursor.getLong(offset + 3));
+        entity.setComplete(cursor.getInt(offset + 3));
         entity.setElectricity(cursor.isNull(offset + 4) ? null : cursor.getBlob(offset + 4));
      }
     

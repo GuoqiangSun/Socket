@@ -111,7 +111,7 @@ android {
     greendao {
 
         //数据库版本
-        schemaVersion 37
+        schemaVersion 39
         //设置DaoMaster、DaoSession、Dao包名
         daoPackage "cn.com.startai.socket.db.gen"
         //设置DaoMaster、DaoSession、Dao目录
@@ -188,15 +188,15 @@ dependencies {
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0'
     implementation files('libs/startai-esptouch-sender-1.0.jar')
 
-    implementation 'cn.com.startai:mqsdk:3.1.46'
+    implementation 'cn.com.startai:mqsdk:3.1.73'
     implementation 'com.blankj:utilcode:1.22.1'
     implementation 'org.xutils:xutils:3.5.0'
     implementation 'cn.com.startai:fastdfssdk:1.0.2'
     api 'com.android.support:multidex:1.0.3'
 
-    api 'cn.com.swain169:baselib:3.2.11'
+    api 'cn.com.swain169:baselib:3.2.16'
     implementation 'cn.com.swain169:fastble:3.2.01'
-    implementation 'cn.com.swain169:protocolEngine:3.2.09'
+    implementation 'cn.com.swain169:protocolEngine:3.2.11'
     implementation 'cn.com.swain169:fastudp:3.2.01'
     // 调试
     api 'com.facebook.stetho:stetho:1.5.0'

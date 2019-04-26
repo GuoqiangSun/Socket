@@ -311,6 +311,12 @@ public class SocketSecureKey {
         public static final byte CMD_QUERY_ANYNET_FLASH = 0x3D;
         public static final byte CMD_QUERY_ANYNET_FLASH_RESPONSE = 0x3E;
 
+        /**
+         * 查询状态机状态
+         */
+        public static final byte CMD_QUERY_STATE_MACHINE = 0x3F;
+        public static final byte CMD_QUERY_STATE_MACHINE_RESPONSE = 0x40;
+
 
         /**********report0x03**************/
 
@@ -358,6 +364,11 @@ public class SocketSecureKey {
         public static final byte CMD_TEMP_SENSOR_REPORT = 0x11;
         public static final byte CMD_TEMP_SENSOR_RESPONSE = 0x12;
 
+        /**
+         * 状态上报
+         */
+        public static final byte CMD_STATE_MACHINE_REPORT = 0x13;
+        public static final byte CMD_STATE_MACHINE_RESPONSE = 0x14;
 
         /**********Setting0x04**************/
 

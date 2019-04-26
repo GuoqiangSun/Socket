@@ -304,6 +304,8 @@ public abstract class AbsJsManager implements Device.IJSDeviceCallBack,//
         void onJSScanQRCode();
 
         void onJSQueryTotalElectric(SpendingElectricityData obj);
+
+        void onJSResendEmail(String email);
     }
 
 }

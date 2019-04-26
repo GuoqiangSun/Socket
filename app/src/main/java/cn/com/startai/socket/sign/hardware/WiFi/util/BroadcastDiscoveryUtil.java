@@ -30,7 +30,7 @@ public class BroadcastDiscoveryUtil {
     public void discoveryDevice(String userID) {
         byte[] bytes = userID != null ? userID.getBytes() : null;
         ResponseData mResponseData = MySocketDataCache.getDiscoveryDevice("255.255.255.255", bytes);
-        mControlWiFi.onBroadcastDataToServer(mResponseData);
+        mControlWiFi.onBroadcastProtocolData(mResponseData);
     }
 
     private boolean start = false;

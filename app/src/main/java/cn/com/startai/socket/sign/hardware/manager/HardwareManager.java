@@ -137,22 +137,22 @@ public class HardwareManager extends AbsHardwareManager {
     }
 
     @Override
-    public void onOutputDataToServer(ResponseData mResponseData) {
+    public void onOutputProtocolData(ResponseData mResponseData) {
         if (mBleManager != null) {
-            mBleManager.onOutputDataToServer(mResponseData);
+            mBleManager.onOutputProtocolData(mResponseData);
         }
         if (mNetworkManager != null) {
-            mNetworkManager.onOutputDataToServer(mResponseData);
+            mNetworkManager.onOutputProtocolData(mResponseData);
         }
     }
 
     @Override
-    public void onBroadcastDataToServer(ResponseData mResponseData) {
+    public void onBroadcastProtocolData(ResponseData mResponseData) {
         if (mBleManager != null) {
-            mBleManager.onBroadcastDataToServer(mResponseData);
+            mBleManager.onBroadcastProtocolData(mResponseData);
         }
         if (mNetworkManager != null) {
-            mNetworkManager.onBroadcastDataToServer(mResponseData);
+            mNetworkManager.onBroadcastProtocolData(mResponseData);
         }
     }
 
@@ -655,6 +655,13 @@ public class HardwareManager extends AbsHardwareManager {
     public void scanQRCode(Activity act) {
         if (mNetworkManager != null) {
             mNetworkManager.scanQRCode(act);
+        }
+    }
+
+    @Override
+    public void resendEmail(String email) {
+        if (mNetworkManager != null) {
+            mNetworkManager.resendEmail(email);
         }
     }
 

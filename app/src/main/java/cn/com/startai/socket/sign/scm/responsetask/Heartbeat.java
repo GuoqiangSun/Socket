@@ -99,7 +99,7 @@ public class Heartbeat {
                 ResponseData responseData = MySocketDataCache.getHeartbeat(
                         mResponseData.toID, token, mSeq.getSelfAddSeq());
                 responseData.getSendModel().setModelOnlyLan();
-                mProtocolDataOutput.onOutputDataToServer(responseData);
+                mProtocolDataOutput.onOutputProtocolData(responseData);
             } else {
                 Tlog.w(TAG, " heartbeat handle msg ; can not send heartbeat");
             }

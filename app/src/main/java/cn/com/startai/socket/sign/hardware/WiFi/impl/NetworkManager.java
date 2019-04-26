@@ -80,9 +80,9 @@ import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.baselib.util.IpUtil;
 import cn.com.swain.baselib.util.MacUtil;
-import cn.com.swain.baselib.util.PermissionGroup;
-import cn.com.swain.baselib.util.PermissionHelper;
-import cn.com.swain.baselib.util.PermissionRequest;
+import cn.com.swain.baselib.permission.PermissionGroup;
+import cn.com.swain.baselib.permission.PermissionHelper;
+import cn.com.swain.baselib.permission.PermissionRequest;
 import cn.com.swain.baselib.util.StrUtil;
 import cn.com.swain.baselib.util.WiFiUtil;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolInput;
@@ -649,6 +649,11 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
     }
 
     @Override
+    public void resendEmail(String email) {
+        mUserManager.resendEmail(email);
+    }
+
+    @Override
     public void emailForgot(String email) {
         mUserManager.emailForgot(email);
     }
@@ -1111,8 +1116,9 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
 
     };
 
+
     @Override
-    public void onOutputDataToServer(ResponseData mResponseData) {
+    public void onOutputProtocolData(ResponseData mResponseData) {
         SecondModel sendModel = mResponseData.getSendModel();
         if (sendModel.isOnlyLanModel()) {
 
@@ -1304,7 +1310,7 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
 
 
     @Override
-    public void onBroadcastDataToServer(ResponseData mResponseData) {
+    public void onBroadcastProtocolData(ResponseData mResponseData) {
 
         if (getLoginUserID() == null) {
             Tlog.e(TAG, " onBroadcastDataToServer loginUserId is null ");
@@ -1352,7 +1358,7 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
             mReceiveData.getReceiveModel().setModelIsLan();
             mReceiveData.obj = ip;
             mReceiveData.arg = port;
-            mReceives.onInputServerData(mReceiveData);
+            mReceives.onInputProtocolData(mReceiveData);
 
             if (Debuger.isLogDebug) {
                 Tlog.d(TAG, "onUDPSocketReceiveData() :" + String.valueOf(mReceiveData));
@@ -1394,7 +1400,7 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
             ReceivesData mReceiveData = new ReceivesData(mac, data);
             mReceiveData.getReceiveModel().setModelIsWan();
             mReceiveData.obj = fromId;
-            mReceives.onInputServerData(mReceiveData);
+            mReceives.onInputProtocolData(mReceiveData);
 
             if (Debuger.isLogDebug) {
                 Tlog.d(TAG, "onWanSocketReceiveData() :" + String.valueOf(mReceiveData));

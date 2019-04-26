@@ -20,7 +20,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
 
 import cn.com.startai.socket.R;
 import cn.com.startai.socket.db.gen.CountElectricityDao;
@@ -51,6 +50,7 @@ import cn.com.startai.socket.sign.scm.bean.PowerCountdown;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
 import cn.com.startai.socket.sign.scm.bean.RenameBean;
 import cn.com.startai.socket.sign.scm.bean.SpendingElectricityData;
+import cn.com.startai.socket.sign.scm.bean.StateMachine;
 import cn.com.startai.socket.sign.scm.bean.TempHumidityAlarmData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingCommonData;
@@ -119,25 +119,25 @@ public class SocketScmManager extends AbsSocketScm
     }
 
     @Override
-    public void onOutputDataToServer(ResponseData mResponseData) {
+    public void onOutputProtocolData(ResponseData mResponseData) {
 
         if (mResponseData.getRepeatMsgModel().isNeedRepeatSend()) {
             mScmDeviceUtils.getScmDevice(mResponseData.toID).recordSendMsg(mResponseData, 1000 * 3L);
         }
 
         if (Debuger.isLogDebug) {
-            Tlog.w(TAG, " onOutputDataToServer :" + String.valueOf(mResponseData));
+            Tlog.w(TAG, " onOutputProtocolData :" + String.valueOf(mResponseData));
         }
 
         if (mResponse != null) {
-            mResponse.onOutputDataToServer(mResponseData);
+            mResponse.onOutputProtocolData(mResponseData);
         }
     }
 
     @Override
-    public void onBroadcastDataToServer(ResponseData mResponseData) {
+    public void onBroadcastProtocolData(ResponseData mResponseData) {
         if (mResponse != null) {
-            mResponse.onBroadcastDataToServer(mResponseData);
+            mResponse.onBroadcastProtocolData(mResponseData);
         }
     }
 
@@ -209,14 +209,14 @@ public class SocketScmManager extends AbsSocketScm
     }
 
     @Override
-    public void onInputServerData(ReceivesData mReceivesData) {
+    public void onInputProtocolData(ReceivesData mReceivesData) {
 
         if (Debuger.isLogDebug) {
             Tlog.d(TAG, " SocketScmManager onInputServerData() " + String.valueOf(mReceivesData));
         }
 
         if (pm != null) {
-            pm.onInputServerData(mReceivesData);
+            pm.onInputProtocolData(mReceivesData);
         } else {
             Tlog.e(TAG, " SocketScmManager onInputServerData() pm=null ");
         }
@@ -270,7 +270,10 @@ public class SocketScmManager extends AbsSocketScm
             mScmDeviceUtils.showConnectDevice();
         }
 
-        queryScmTime(address);
+        if (CustomManager.getInstance().isTriggerBle()) {
+            queryScmTime(address);
+        }
+
         setScmTimezone(address);
 
         if (productDetectionManager != null) {
@@ -307,7 +310,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryUSBState " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -317,7 +320,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setUSBState " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -354,7 +357,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setTemperatureTimingAlarm data: " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
 
     }
 
@@ -365,7 +368,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryTemperatureTimingAlarm data: " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
 
     }
 
@@ -375,7 +378,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryYellowLightRGB : " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -384,7 +387,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryColourLampRGB : " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -394,7 +397,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " quickControlRelay status : " + on + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
 
     }
 
@@ -405,7 +408,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " quickQueryRelay " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
 
     }
 
@@ -431,7 +434,7 @@ public class SocketScmManager extends AbsSocketScm
         } else if (what == 1) {
             queryHistoryCount((QueryHistoryCount) obj);
         } else if (what == 2) {
-            onOutputDataToServer((ResponseData) obj);
+            onOutputProtocolData((ResponseData) obj);
         }
 
     }
@@ -460,7 +463,7 @@ public class SocketScmManager extends AbsSocketScm
         QueryHistoryCount queryCount = scmDevice.getQueryCount();
         if (queryCount != null && queryCount.msgSeq == mCount.msgSeq
 //                &&SocketSecureKey.Util.isIntervalMinute((byte) queryCount.interval)
-                ) {
+        ) {
 
             Tlog.e(TAG, " queryHistoryCount again:");
             queryCount.needQueryFromServer = false;
@@ -628,7 +631,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryCostRate " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -637,7 +640,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryCumuParam " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -646,7 +649,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryVersion " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -655,7 +658,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " querySSID " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -664,7 +667,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " update " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -673,7 +676,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setColorLamp " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -683,7 +686,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setLightRGB " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
 
     }
 
@@ -731,7 +734,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " SwitchRelay " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
 
     }
 
@@ -742,7 +745,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " switchFlash " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
 
     }
 
@@ -752,7 +755,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " QueryRelayState " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -762,7 +765,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryFlashState " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -773,7 +776,7 @@ public class SocketScmManager extends AbsSocketScm
             Tlog.v(TAG, " setPowerCountdown data:" + String.valueOf(mResponseData));
         }
 
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
 
     }
 
@@ -786,7 +789,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, "setCommonTiming data: " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
 
     }
 
@@ -803,7 +806,7 @@ public class SocketScmManager extends AbsSocketScm
             Tlog.v(TAG, "setAdvanceTiming:" + String.valueOf(mTimingAdvanceData));
             Tlog.v(TAG, " setAdvanceTiming data: " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -819,7 +822,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " bindDevice data: " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -833,7 +836,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " unbindDevice data: " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -849,7 +852,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " requestToken data: " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
 
     }
 
@@ -867,7 +870,7 @@ public class SocketScmManager extends AbsSocketScm
             Tlog.v(TAG, " controlDevice data: " + String.valueOf(mResponseData));
         }
 
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -881,7 +884,7 @@ public class SocketScmManager extends AbsSocketScm
                 Tlog.v(TAG, " appSleep data: " + String.valueOf(mResponseData));
             }
 
-            onOutputDataToServer(mResponseData);
+            onOutputProtocolData(mResponseData);
         } else {
             Tlog.e(TAG, " appSleep userID=null ");
         }
@@ -895,7 +898,7 @@ public class SocketScmManager extends AbsSocketScm
             if (Debuger.isLogDebug) {
                 Tlog.v(TAG, " disconnectDevice data: " + String.valueOf(mResponseData));
             }
-            onOutputDataToServer(mResponseData);
+            onOutputProtocolData(mResponseData);
         } else {
             Tlog.e(TAG, " disconnectDevice userID=null ");
         }
@@ -946,7 +949,7 @@ public class SocketScmManager extends AbsSocketScm
 
             Tlog.v(TAG, " setTempHumidityAlarm  data: " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -955,7 +958,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryTempDataUp: " + String.valueOf(mResponseTempDataUp));
         }
-        onOutputDataToServer(mResponseTempDataUp);
+        onOutputProtocolData(mResponseTempDataUp);
 
         try {
             Thread.sleep(300);
@@ -968,7 +971,7 @@ public class SocketScmManager extends AbsSocketScm
             Tlog.v(TAG, " queryTempDataDown: " + String.valueOf(mResponseTempDataDown));
         }
 
-        onOutputDataToServer(mResponseTempDataDown);
+        onOutputProtocolData(mResponseTempDataDown);
 
         try {
             Thread.sleep(300);
@@ -980,7 +983,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryHumiDataUp: " + String.valueOf(mResponseHumiDataUp));
         }
-        onOutputDataToServer(mResponseHumiDataUp);
+        onOutputProtocolData(mResponseHumiDataUp);
 
         try {
             Thread.sleep(300);
@@ -992,7 +995,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryHumiDataDown: " + String.valueOf(mResponseHumiDataDown));
         }
-        onOutputDataToServer(mResponseHumiDataDown);
+        onOutputProtocolData(mResponseHumiDataDown);
     }
 
     @Override
@@ -1001,7 +1004,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryCountdownData  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1024,7 +1027,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryCommonTimingData  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1034,7 +1037,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryAdvanceTimingData  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1048,7 +1051,7 @@ public class SocketScmManager extends AbsSocketScm
             if (Debuger.isLogDebug) {
                 Tlog.v(TAG, " setNightLightTiming  data:" + String.valueOf(mResponseData));
             }
-            onOutputDataToServer(mResponseData);
+            onOutputProtocolData(mResponseData);
         }
     }
 
@@ -1062,7 +1065,7 @@ public class SocketScmManager extends AbsSocketScm
             if (Debuger.isLogDebug) {
                 Tlog.v(TAG, " setNightLightWisdom  data:" + String.valueOf(mResponseData));
             }
-            onOutputDataToServer(mResponseData);
+            onOutputProtocolData(mResponseData);
         }
     }
 
@@ -1072,7 +1075,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " openWisdomNightLight  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1081,7 +1084,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " closeWisdomNightLight  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1093,7 +1096,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryNightLight  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1104,7 +1107,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " switchNightLight  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
 
@@ -1115,7 +1118,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setNightLightColor  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1125,7 +1128,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryIndicatorState  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1134,7 +1137,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " controlIndicatorState  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1143,7 +1146,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryTemperatureSensor  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1207,7 +1210,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryRunningNightLight  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
 
 //        queryTimingNightLight(mac);
 //        try {
@@ -1224,7 +1227,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryTimingNightLight  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1233,7 +1236,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryWisdomNightLight  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1242,7 +1245,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryScmTimezone  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1256,7 +1259,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setScmTimezone  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     private byte getTimezone() {
@@ -1342,7 +1345,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryScmTime  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1361,7 +1364,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setScmTime data[" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
 
     }
 
@@ -1372,7 +1375,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setSetVoltageAlarmValue  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1381,7 +1384,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setSetCurrentAlarmValue  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1390,7 +1393,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setSetPowerAlarmValue  data:" + mResponseData.toString());
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1407,7 +1410,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setSetTemperatureUnit  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1416,7 +1419,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setSetMonetaryUnit  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1425,7 +1428,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setSetElectricityPrice  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1434,7 +1437,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryVoltageAlarmValue  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1443,7 +1446,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryCurrentAlarmValue  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1452,7 +1455,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryPowerAlarmValue  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1466,7 +1469,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryTemperatureUnit  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1475,7 +1478,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryMonetaryUnit  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1484,7 +1487,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryElectricityPrice  data:" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     public void testProtocolAnalysis(String mac, String content, int model) {
@@ -1502,7 +1505,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " testProtocolAnalysis  " + String.valueOf(mReceiveData));
         }
-        onInputServerData(mReceiveData);
+        onInputProtocolData(mReceiveData);
     }
 
     @Override
@@ -1514,7 +1517,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " rename  " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1523,7 +1526,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryDeviceName " + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1532,7 +1535,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setSetRecoveryScm :" + String.valueOf(mResponseData));
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
     @Override
@@ -1542,7 +1545,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " querySpendingElectricityE :" + String.valueOf(mResponseSpendingData));
         }
-        onOutputDataToServer(mResponseSpendingData);
+        onOutputProtocolData(mResponseSpendingData);
         try {
             Thread.sleep(300);
         } catch (InterruptedException e) {
@@ -1553,7 +1556,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " querySpendingElectricityS :" + String.valueOf(mResponseCountdownData));
         }
-        onOutputDataToServer(mResponseCountdownData);
+        onOutputProtocolData(mResponseCountdownData);
     }
 
     @Override
@@ -1564,7 +1567,7 @@ public class SocketScmManager extends AbsSocketScm
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setSpendingCountdown :" + String.valueOf(responseData));
         }
-        onOutputDataToServer(responseData);
+        onOutputProtocolData(responseData);
     }
 
     /************/
@@ -1775,7 +1778,7 @@ public class SocketScmManager extends AbsSocketScm
                 if (scmData != null &&
                         (!scmData.isUpdateScmTime()
                                 || diff >= HOUR)
-                        ) {
+                ) {
                     scmData.setIsUpdateTime(true);
                     setScmTime(mac);
                 }
@@ -2491,6 +2494,13 @@ public class SocketScmManager extends AbsSocketScm
 
         if (!status) {
             notifyDeviceSensorError(mac);
+        }
+    }
+
+    @Override
+    public void onStateMachineResult(StateMachine mStateMachine) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onResultStateMachine(mStateMachine);
         }
     }
 

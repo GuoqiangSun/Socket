@@ -16,6 +16,7 @@ import cn.com.startai.socket.sign.scm.bean.PowerCountdown;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
 import cn.com.startai.socket.sign.scm.bean.RenameBean;
 import cn.com.startai.socket.sign.scm.bean.SpendingElectricityData;
+import cn.com.startai.socket.sign.scm.bean.StateMachine;
 import cn.com.startai.socket.sign.scm.bean.TempHumidityAlarmData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingCommonData;
@@ -394,6 +395,8 @@ public interface IVirtualSocketScm {
         void onResultTempSensorReport(String mac, boolean status);
 
         void onResultTotalElectricData(SpendingElectricityData obj);
+
+        void onResultStateMachine(StateMachine mStateMachine);
     }
 
 

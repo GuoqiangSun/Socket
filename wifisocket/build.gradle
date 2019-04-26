@@ -5,7 +5,7 @@ android {
         wifisocket {
             keyAlias 'wifisocket'
             keyPassword 'startai'
-            storeFile file('D:/AS_project/key/startai-key-nb')
+            storeFile file('D:/AS_project/key/startai-key')
             storePassword 'startai'
         }
     }
@@ -18,8 +18,8 @@ android {
         applicationId "cn.com.startai.wifisocket"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 16260
-        versionName "1.6.260"
+        versionCode 16295
+        versionName "1.6.295"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
         signingConfig signingConfigs.wifisocket

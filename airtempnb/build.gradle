@@ -5,7 +5,7 @@ android {
         config {
             keyAlias 'airtemp-nb'
             keyPassword 'startai'
-            storeFile file('D:/AS_project/key/startai-key-nb')
+            storeFile file('D:/AS_project/key/startai-key')
             storePassword 'startai'
         }
     }
@@ -24,8 +24,8 @@ android {
         applicationId "cn.com.startai.aritempnb"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 16107
-        versionName "1.6.107"
+        versionCode 16109
+        versionName "1.6.109"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }

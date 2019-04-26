@@ -76,7 +76,7 @@ public class DBDataAdapter extends BaseAdapter {
 
         mViewHolder.mIdTxt.setText(String.valueOf(countElectricity.getId()));
         mViewHolder.mMacTxt.setText(String.valueOf(countElectricity.getMac()));
-        mViewHolder.mSeqTxt.setText(String.valueOf(countElectricity.getSequence()));
+        mViewHolder.mSeqTxt.setText(String.valueOf(countElectricity.getComplete()));
         long timestamp = countElectricity.getTimestamp();
         String format = mFormat.format(new Date(timestamp));
         mViewHolder.mTsTxt.setText(format);

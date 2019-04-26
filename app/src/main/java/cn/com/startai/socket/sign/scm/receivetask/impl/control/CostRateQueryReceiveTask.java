@@ -36,10 +36,10 @@ public class CostRateQueryReceiveTask extends SocketResponseTask {
         mCostRate.mac = mSocketDataArray.getID();
         mCostRate.hour1 = protocolParams[1];
         mCostRate.minute1 = protocolParams[2];
-        mCostRate.price1 = (((protocolParams[3] << 8) & 0xFF) | (protocolParams[4] & 0xFF)) / 1000F;
+        mCostRate.price1 = (((protocolParams[3] & 0xFF) << 8) | (protocolParams[4] & 0xFF)) / 1000F;
         mCostRate.hour2 = protocolParams[5];
         mCostRate.minute2 = protocolParams[6];
-        mCostRate.price2 = (((protocolParams[7] << 8) & 0xFF) | (protocolParams[8] & 0xFF)) / 1000F;
+        mCostRate.price2 = (((protocolParams[7] & 0xFF)<< 8)  | (protocolParams[8] & 0xFF)) / 1000F;
 
         Tlog.e(TAG, " CostRateQueryReceiveTask result:" + result + String.valueOf(mCostRate));
 

@@ -69,6 +69,15 @@ public class State extends AbsHandlerJsInterface {
                     .replace("$time", String.valueOf(time))
                     .replace("$data", String.valueOf(data));
         }
+
+        private static final String STATE_MACHINE
+                = "javascript:selectSevenStatusResponse('$mac','$data')";
+
+        public static String callJsStateMachine(String mac, String data) {
+            return STATE_MACHINE.replace("$mac", String.valueOf(mac))
+                    .replace("$data", String.valueOf(data));
+        }
+
     }
 
     private final IJSStateCallBack mCallBack;

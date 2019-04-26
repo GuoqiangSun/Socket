@@ -25,8 +25,8 @@ import cn.com.startai.socket.sign.hardware.ble.util.DeviceEnablePost;
 import cn.com.startai.socket.sign.hardware.ble.util.InsertDisplayDeviceDaoUtil;
 import cn.com.startai.socket.sign.hardware.ble.xml.ConBleSp;
 import cn.com.swain.baselib.log.Tlog;
-import cn.com.swain.baselib.util.PermissionHelper;
-import cn.com.swain.baselib.util.PermissionRequest;
+import cn.com.swain.baselib.permission.PermissionHelper;
+import cn.com.swain.baselib.permission.PermissionRequest;
 import cn.com.swain.baselib.util.StrUtil;
 import cn.com.swain.support.ble.connect.AbsBleConnect;
 import cn.com.swain.support.ble.connect.BleConnectEngine;
@@ -948,7 +948,7 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
             ReceivesData mReceiverData = new ReceivesData(mac, data);
             mReceiverData.getReceiveModel().setModelIsBle();
             mReceiverData.obj = uuidStr;
-            mProtocolInput.onInputServerData(mReceiverData);
+            mProtocolInput.onInputProtocolData(mReceiverData);
         } else {
             Tlog.e(TAG, " onPeripheralNotify mProtocolInput=null ");
         }
@@ -957,7 +957,7 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
 
 
     @Override
-    public void onOutputDataToServer(ResponseData mResponseData) {
+    public void onOutputProtocolData(ResponseData mResponseData) {
 
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " BleSend: " + mResponseData.toString());
@@ -987,11 +987,11 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
     }
 
     @Override
-    public void onBroadcastDataToServer(ResponseData mResponseData) {
+    public void onBroadcastProtocolData(ResponseData mResponseData) {
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " BleBroad: " + mResponseData.toString());
         }
-        onOutputDataToServer(mResponseData);
+        onOutputProtocolData(mResponseData);
     }
 
 

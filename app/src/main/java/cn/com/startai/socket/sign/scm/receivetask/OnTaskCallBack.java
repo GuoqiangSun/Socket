@@ -14,6 +14,7 @@ import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
 import cn.com.startai.socket.sign.scm.bean.PointReport;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
 import cn.com.startai.socket.sign.scm.bean.SpendingElectricityData;
+import cn.com.startai.socket.sign.scm.bean.StateMachine;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingCommonData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingListData;
@@ -230,4 +231,6 @@ public interface OnTaskCallBack {
     void onQueryTempSensorResult(boolean result, String mac,boolean status);
 
     void onReportTempSensorResult( String mac,boolean status);
+
+    void onStateMachineResult(StateMachine mStateMachine);
 }

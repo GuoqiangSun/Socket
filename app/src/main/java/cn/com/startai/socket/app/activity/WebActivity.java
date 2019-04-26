@@ -22,8 +22,8 @@ import cn.com.startai.socket.R;
 import cn.com.startai.socket.app.view.CrossWebView;
 import cn.com.startai.socket.app.view.DialogUtils;
 import cn.com.startai.socket.debuger.Debuger;
+import cn.com.swain.baselib.app.utils.StatusBarUtil;
 import cn.com.swain.baselib.log.Tlog;
-import cn.com.swain.baselib.util.StatusBarUtil;
 
 /**
  * author: Guoqiang_Sun

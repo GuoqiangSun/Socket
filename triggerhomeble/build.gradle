@@ -5,7 +5,7 @@ android {
         blesocket {
             keyAlias 'bluetoothsocket'
             keyPassword 'startai'
-            storeFile file('D:/AS_project/key/startai-key-super-startai')
+            storeFile file('D:/AS_project/key/startai-key')
             storePassword 'startai'
         }
     }

@@ -41,6 +41,7 @@ public class Login extends AbsHandlerJsInterface {
 
         void onJSAliLogin();
 
+        void onJSResendEmail(String email);
     }
 
     public static final class Method {
@@ -112,6 +113,12 @@ public class Login extends AbsHandlerJsInterface {
 
         public static String callJsEmailForgot(boolean result) {
             return GET_IS_EMAIL_FORGOT_RESPONSE.replace("$result", String.valueOf(result));
+        }
+
+        private static final String GET_IS_EMAIL_SEND_RESPONSE = "javascript:reSendemailResponse($result)";
+
+        public static String callJsResendEmail(boolean result) {
+            return GET_IS_EMAIL_SEND_RESPONSE.replace("$result", String.valueOf(result));
         }
     }
 
@@ -220,6 +227,12 @@ public class Login extends AbsHandlerJsInterface {
         getHandler().sendEmptyMessage(MSG_ALI_LOGIN);
     }
 
+    @JavascriptInterface
+    public void reSendemailRequest(String emali) {
+        Tlog.v(TAG, " reSendemailRequest " + emali);
+        getHandler().obtainMessage(MSG_GET_RE_SEND_EMAIL, emali).sendToTarget();
+    }
+
     private static final int MSG_THIRD_LOGIN = 0x2A;
     private static final int MSG_MOBILE_LOGIN = 0x2B;
     private static final int MSG_GET_MOBILE_LOGIN_CODE = 0x2C;
@@ -238,6 +251,8 @@ public class Login extends AbsHandlerJsInterface {
     private static final int MSG_ALI_LOGIN = 0x33;
 
     private static final int MSG_GET_MOBILE_BIND_CODE = 0x34;
+
+    private static final int MSG_GET_RE_SEND_EMAIL = 0x35;
 
 
     @Override
@@ -309,6 +324,11 @@ public class Login extends AbsHandlerJsInterface {
                 }
                 break;
 
+            case MSG_GET_RE_SEND_EMAIL:
+                if (mCallBack != null) {
+                    mCallBack.onJSResendEmail((String) msg.obj);
+                }
+                break;
 
             default:
                 Tlog.e(TAG, NAME_JSI + " handleMessage unknown what:" + msg.what);

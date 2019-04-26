@@ -5,7 +5,7 @@ android {
         superplug {
             keyAlias 'qxiot-001'
             keyPassword 'startai'
-            storeFile file('D:/AS_project/key/startai-key-super-startai')
+            storeFile file('D:/AS_project/key/startai-key')
             storePassword 'startai'
         }
     }

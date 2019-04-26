@@ -26,8 +26,11 @@ public class QueryHistoryCount {
         mQueryHistoryCount.endTime = endTime;
         mQueryHistoryCount.interval = interval;
         mQueryHistoryCount.day = day;
+        mQueryHistoryCount.complete = complete;
         return mQueryHistoryCount;
     }
+
+    public boolean complete;
 
     public int msgSeq;
 

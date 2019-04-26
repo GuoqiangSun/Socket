@@ -74,6 +74,7 @@ import cn.com.startai.socket.sign.scm.bean.PowerCountdown;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
 import cn.com.startai.socket.sign.scm.bean.RenameBean;
 import cn.com.startai.socket.sign.scm.bean.SpendingElectricityData;
+import cn.com.startai.socket.sign.scm.bean.StateMachine;
 import cn.com.startai.socket.sign.scm.bean.TempHumidityAlarmData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingCommonData;
@@ -85,7 +86,7 @@ import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.TempHumidityData;
 import cn.com.swain.baselib.app.IApp.IService;
 import cn.com.swain.baselib.file.FileUtil;
 import cn.com.swain.baselib.log.Tlog;
-import cn.com.swain.baselib.util.PermissionHelper;
+import cn.com.swain.baselib.permission.PermissionHelper;
 
 /**
  * author: Guoqiang_Sun
@@ -1246,9 +1247,22 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
+    public void onJSResendEmail(String email) {
+        if (mHardwareManager != null) {
+            mHardwareManager.resendEmail(email);
+        }
+    }
+
+    @Override
     public void onResultTotalElectricData(SpendingElectricityData obj) {
         String method = SpendingCountdown.Method.callJsElectricityDataByTime(obj.mac, obj.model,
                 obj.totalElectric, obj.year, obj.month, obj.day);
+        loadJs(method);
+    }
+
+    @Override
+    public void onResultStateMachine(StateMachine mStateMachine) {
+        String method = State.Method.callJsStateMachine(mStateMachine.mac, mStateMachine.toJsonStr());
         loadJs(method);
     }
 
@@ -1826,6 +1840,12 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onResultThirdLogin(boolean result, String type) {
         String method = Login.Method.callJsThirdLogin(result, type);
+        loadJs(method);
+    }
+
+    @Override
+    public void onResultResendEmail(boolean b) {
+        String method = Login.Method.callJsResendEmail(b);
         loadJs(method);
     }
 

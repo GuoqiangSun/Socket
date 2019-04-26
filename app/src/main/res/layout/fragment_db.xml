@@ -16,13 +16,6 @@
             android:text="queryDataFromDB"
             android:textSize="12sp" />
 
-        <Button
-            android:id="@+id/query_btn_d"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:text="queryDataFromDevice"
-            android:textSize="12sp" />
 
     </LinearLayout>
 

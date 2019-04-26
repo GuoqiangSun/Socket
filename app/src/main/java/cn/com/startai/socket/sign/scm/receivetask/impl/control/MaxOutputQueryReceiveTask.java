@@ -31,8 +31,8 @@ public class MaxOutputQueryReceiveTask extends SocketResponseTask {
         }
 
         boolean result = SocketSecureKey.Util.resultIsOk(protocolParams[0]);
-        float maxCurrent = (((protocolParams[1] << 8) & 0xFF) | (protocolParams[2] & 0xFF)) / 1000F;
-        float maxPower = (((protocolParams[3] << 8) & 0xFF) | (protocolParams[4] & 0xFF)) / 1000F;
+        float maxCurrent = (((protocolParams[1] & 0xFF)<< 8)  | (protocolParams[2] & 0xFF)) / 1000F;
+        float maxPower = (((protocolParams[3]  & 0xFF)<< 8) | (protocolParams[4] & 0xFF)) / 1000F;
 
         Tlog.e(TAG, " MaxOutputQueryReceiveTask result:" + result
                 + " maxCurrent:" + maxCurrent + " maxPower:" + maxPower);
