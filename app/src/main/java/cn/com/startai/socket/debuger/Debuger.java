@@ -189,16 +189,17 @@ public class Debuger implements IApp, IService {
             Tlog.i(AppUtils.generalSsl(app));
         }
 
-        if (CustomManager.getInstance().isMUSIK()) {
-            CrashReport.initCrashReport(app, "d45fc6bab2", false);
-        } else if (CustomManager.getInstance().isGrowroomate()) {
-            CrashReport.initCrashReport(app, "ce714ab581", false);
-        } else if (CustomManager.getInstance().isTriggerBle()) {
-            CrashReport.initCrashReport(app, "1fb0d34c93", false);
-        } else if (CustomManager.getInstance().isTriggerWiFi()) {
-            CrashReport.initCrashReport(app, "deab7c0351", false);
+        if (!Debuger.isDebug) {
+            if (CustomManager.getInstance().isMUSIK()) {
+                CrashReport.initCrashReport(app, "d45fc6bab2", false);
+            } else if (CustomManager.getInstance().isGrowroomate()) {
+                CrashReport.initCrashReport(app, "ce714ab581", false);
+            } else if (CustomManager.getInstance().isTriggerBle()) {
+                CrashReport.initCrashReport(app, "1fb0d34c93", false);
+            } else if (CustomManager.getInstance().isTriggerWiFi()) {
+                CrashReport.initCrashReport(app, "deab7c0351", false);
+            }
         }
-
         Tlog.i(" Debuger init success...");
     }
 

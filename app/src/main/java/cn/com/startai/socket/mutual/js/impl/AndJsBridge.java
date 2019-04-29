@@ -1254,6 +1254,13 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
+    public void onJSBindThird(String type) {
+        if (mHardwareManager != null) {
+            mHardwareManager.bindThird(type, getActivity());
+        }
+    }
+
+    @Override
     public void onResultTotalElectricData(SpendingElectricityData obj) {
         String method = SpendingCountdown.Method.callJsElectricityDataByTime(obj.mac, obj.model,
                 obj.totalElectric, obj.year, obj.month, obj.day);

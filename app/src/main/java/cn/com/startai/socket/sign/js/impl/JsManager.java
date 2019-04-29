@@ -1028,6 +1028,13 @@ public class JsManager extends AbsJsManager implements IService {
         }
     }
 
+    @Override
+    public void onJSBindThird(String type) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSBindThird(type);
+        }
+    }
+
     private static class JmHandler extends Handler {
         private final WeakReference<JsManager> wr;
 

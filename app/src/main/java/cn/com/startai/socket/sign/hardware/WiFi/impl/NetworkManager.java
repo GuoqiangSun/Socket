@@ -25,7 +25,6 @@ import cn.com.startai.esptouchsender.IEsptouchResult;
 import cn.com.startai.esptouchsender.customer.EsptouchAsyncTask;
 import cn.com.startai.esptouchsender.customer.MyEsptouchListener;
 import cn.com.startai.mqttsdk.StartAI;
-import cn.com.startai.mqttsdk.base.DistributeParam;
 import cn.com.startai.mqttsdk.base.StartaiError;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8001;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8002;
@@ -50,7 +49,6 @@ import cn.com.startai.mqttsdk.busi.entity.C_0x8200;
 import cn.com.startai.mqttsdk.event.AOnStartaiMessageArriveListener;
 import cn.com.startai.mqttsdk.event.ICommonStateListener;
 import cn.com.startai.mqttsdk.event.IConnectionStateListener;
-import cn.com.startai.mqttsdk.event.IOnMessageArriveListener;
 import cn.com.startai.mqttsdk.event.PersistentEventDispatcher;
 import cn.com.startai.mqttsdk.listener.IOnCallListener;
 import cn.com.startai.mqttsdk.listener.IOnSubscribeListener;
@@ -78,11 +76,11 @@ import cn.com.startai.socket.sign.scm.bean.LanBindInfo;
 import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
 import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.swain.baselib.log.Tlog;
-import cn.com.swain.baselib.util.IpUtil;
-import cn.com.swain.baselib.util.MacUtil;
 import cn.com.swain.baselib.permission.PermissionGroup;
 import cn.com.swain.baselib.permission.PermissionHelper;
 import cn.com.swain.baselib.permission.PermissionRequest;
+import cn.com.swain.baselib.util.IpUtil;
+import cn.com.swain.baselib.util.MacUtil;
 import cn.com.swain.baselib.util.StrUtil;
 import cn.com.swain.baselib.util.WiFiUtil;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolInput;
@@ -142,13 +140,13 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
                 //获取移动数据连接的信息
                 NetworkInfo dataNetworkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
 
-                if (dataNetworkInfo!=null && dataNetworkInfo.isConnected()) {
+                if (dataNetworkInfo != null && dataNetworkInfo.isConnected()) {
 
                     Tlog.v(TAG, "mobile isConnected ");
                     type = dataNetworkInfo.getTypeName();
                     state = dataNetworkInfo.getState();
 
-                } else if (dataNetworkInfo!=null && dataNetworkInfo.isConnectedOrConnecting()) {
+                } else if (dataNetworkInfo != null && dataNetworkInfo.isConnectedOrConnecting()) {
 
                     Tlog.v(TAG, "mobile isConnecting");
                     type = dataNetworkInfo.getTypeName();
@@ -711,6 +709,12 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
     public void thirdLogin(Activity act, String type) {
         mUserManager.thirdLogin(act, type);
     }
+
+    @Override
+    public void bindThird(String type, Activity activity) {
+        mUserManager.thirdBind(type, activity);
+    }
+
 
     @Override
     public void scanQRCode(Activity act) {

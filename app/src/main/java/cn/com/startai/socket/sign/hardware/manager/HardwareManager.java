@@ -665,4 +665,11 @@ public class HardwareManager extends AbsHardwareManager {
         }
     }
 
+    @Override
+    public void bindThird(String type, Activity activity) {
+        if (mNetworkManager != null) {
+            mNetworkManager.bindThird(type,activity);
+        }
+    }
+
 }

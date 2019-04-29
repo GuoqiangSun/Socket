@@ -16,13 +16,13 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.Socket;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Scanner;
 import java.util.TimeZone;
@@ -55,58 +55,113 @@ public class JavaTestMain {
 
 //        time();
 
-        upload();
+//        upload();
 
 //        uploadFile();
 
 //        uploadTcp();
 
-        System.out.println("end");
+//        ll();
+
+//        hs();
+
+//        testHash();
+
+        cth();
+
+        System.err.println("end");
     }
 
-    private static void uploadTcp() {
-        //1.创建客户端Socket对象，并指定ip跟端口
-        Socket s = null;
-        try {
-            s = new Socket("58.253.238.132", 8080);
+    private static void cth() {
+        byte[] bytes = "SA".getBytes();
+        for (byte b : bytes) {
+            System.out.println(Integer.toHexString(b));
+        }
 
-            //2.将Socket中封装好的字节输出流包装成缓冲字节输出流
-            BufferedOutputStream bos = new BufferedOutputStream(s.getOutputStream());
 
-            //3.从指定的路径中读取要上传的文件上传到服务端
-            BufferedInputStream bis = new BufferedInputStream(new FileInputStream("E:\\abc.txt"));
-            //IO流经典4行代码
-            byte[] b = new byte[1024];
-            int len;
-            while ((len = bis.read(b)) != -1) {
-                bos.write(b, 0, len);
-            }
-            //将文件内容从缓存器刷新到服务端
-            bos.flush();
-            //告诉服务端，客户端已经上传完毕
-            s.shutdownOutput();
 
-            //4.获取服务端的返回结果
-            //将Socket中封装好的字节输入流包装成字节缓冲输入流
-            BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()));
-            //读取
-            String string = br.readLine();
-            System.out.println(string);
+    }
 
-            //关闭资源
-            bis.close();//自己创建的字节缓冲输出流
-            s.close();//关闭Socket，其自己封装好的输入输出流也将关闭
+    private static void testHash() {
 
-        } catch (IOException e) {
-            e.printStackTrace();
+
+        HashMap map = new HashMap();
+        int len = 3;
+        char[] chars = new char[len];
+        tryBit(chars, len, map);
+        System.out.println((int) Math.pow(offset, len) + ":" + dup);
+    }
+
+    private static char startChar = 'A';
+
+    private static char endChar = 'z';
+
+    private static int offset = endChar - startChar + 1;
+
+    private static int dup = 0;
+
+
+    private static void tryBit(char[] chars, int i, HashMap map) {
+        for (char j = startChar; j <= endChar; j++) {
+            chars[i - 1] = j;
+            if (i > 1)
+                tryBit(chars, i - 1, map);
+            else
+                test(chars, map);
         }
     }
 
+    private static void test(char[] chars, HashMap map) {
+
+        String str = new String(chars).replaceAll("[^a-zA-Z_]", "").toLowerCase();// 195112:0
+//        String str = new String(chars).toLowerCase();//195112:6612
+//        String str = new String(chars).replaceAll("[^a-zA-Z_]","");//195112:122500
+        //String str = new String(chars);//195112:138510
+        int hash = str.hashCode();
+        if (map.containsKey(hash)) {
+            String s = (String) map.get(hash);
+            if (!s.equals(str)) {
+                dup++;
+                System.out.println(s + ":" + str);
+            }
+        } else {
+            map.put(hash, str);
+            // System.out.println(str);
+        }
+    }
+
+    private static void hs() {
+        String s = "1";
+        System.out.println(s.hashCode());
+
+        String ss = new String("1");
+        System.out.println(ss.hashCode());
+
+
+    }
+
+    private static void ll() {
+
+        long l = 12345678901234L;
+        System.out.println(l);
+        System.out.println(Long.toBinaryString(l));
+        int i = (int) l;
+        System.out.println(Integer.toBinaryString(i));
+        System.out.println(i);
+//        10110011101001110011110011100010111111110010
+//        00000000000001110011110011100010111111110010
+    }
+
+
     private static void upload() {
+        String fileName = "E:\\abc.txt";
+        File f = new File(fileName);
+        // 换行符
+        final String newLine = "\r\n";
+        final String boundaryPrefix = "--";
+        long length = f.length();
 
-        File f = new File("E:\\abc.txt");
-
-        System.out.println("flength:" + f.length());
+        System.out.println("flength:" + length);
 
         String http = "http://58.253.238.132:8080/upload";
 //        String http = "http://58.253.238.132:8080/group1/default/M00/00/00/abc.txt";
@@ -115,27 +170,66 @@ public class JavaTestMain {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
             conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Length", String.valueOf(f.length()));
+            conn.setRequestProperty("Content-Length", String.valueOf(length));
             conn.setConnectTimeout(10 * 1000);
             String BOUNDARY = "mk5X9g84K7B6lwW0fXX9iIHM-sXth1sEK";
-//            conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + BOUNDARY);
-            conn.setRequestProperty("Content-Type", "text/plain");
+            conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + BOUNDARY);
+//            conn.setRequestProperty("Content-Type", "text/plain");
             conn.setRequestProperty("connection", "Keep-Alive");
             conn.setRequestProperty("Charsert", "UTF-8");
+            conn.setRequestProperty("Content-Range", "bytes 1-12/" + String.valueOf(length));
             conn.setDoOutput(true);
 
+
+            // 上传文件
+            StringBuilder sb = new StringBuilder();
+            sb.append(boundaryPrefix);
+            sb.append(BOUNDARY);
+            sb.append(newLine);
+            // 文件参数,photo参数名可以随意修改
+            sb.append("Content-Disposition: form-data;name=\"file\";filename=\"" + "abc.txt"
+                    + "\"" + newLine);
+//            sb.append("Content-Type:application/octet-stream");
+            // 参数头设置完以后需要两个换行，然后才是参数内容
+            sb.append(newLine);
+            sb.append(newLine);
+
             BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
-            byte[] buf = new byte[1024];
+            bis.skip(1);
+
+            int rl = 11;
+            byte[] buf = new byte[rl];
             int read = -1;
             OutputStream bufferOutStream = null;
 
             bufferOutStream = new BufferedOutputStream(conn.getOutputStream());
 
-            while ((read = bis.read(buf, 0, 1024)) != -1) {
+            // 将参数头的数据写入到输出流中
+            bufferOutStream.write(sb.toString().getBytes());
+
+            int total = 0;
+
+            while ((read = bis.read(buf, 0, rl)) != -1) {
                 System.out.println("read:" + read);
                 bufferOutStream.write(buf, 0, read);
+                total += read;
+                System.out.println("total:" + total);
+                if (total >= rl) {
+                    System.out.println("total:" + total + " >= rl:" + rl);
+                    break;
+                }
             }
 //            bufferOutStream.write(msg.getBytes());
+
+
+            // 定义最后数据分隔线，即--加上BOUNDARY再加上--。
+            byte[] end_data = (newLine + boundaryPrefix + BOUNDARY + boundaryPrefix + newLine)
+                    .getBytes();
+            // 写上结尾标识
+            bufferOutStream.write(end_data);
+            bufferOutStream.flush();
+            bufferOutStream.close();
+
             int responseCode = conn.getResponseCode();
             System.out.println("responseCode:" + responseCode);
 

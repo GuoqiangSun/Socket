@@ -150,6 +150,8 @@ public interface IControlWiFi {
 
     void resendEmail(String email);
 
+    void bindThird(String type, Activity activity);
+
 
     interface IWiFiResultCallBack {
 

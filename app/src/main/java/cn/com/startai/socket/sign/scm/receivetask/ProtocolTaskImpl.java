@@ -131,7 +131,7 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                     float humi = 0F;
 
                     if (failTaskResult.data.length >= 16) {
-                        int humi_int = failTaskResult.data[14];
+                        int humi_int = failTaskResult.data[15];
                         int humi_deci = failTaskResult.data[16] & 0xFF;
                         float humiF = Float.valueOf(humi_int + "." + humi_deci);
                         humi = (float) (Math.round(humiF * 100)) / 100;

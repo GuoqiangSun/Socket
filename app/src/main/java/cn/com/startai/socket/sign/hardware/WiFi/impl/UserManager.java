@@ -74,6 +74,7 @@ import cn.com.startai.mqttsdk.busi.entity.C_0x8036;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8037;
 import cn.com.startai.mqttsdk.busi.entity.type.Type;
 import cn.com.startai.mqttsdk.listener.IOnCallListener;
+import cn.com.startai.mqttsdk.localbusi.SUserManager;
 import cn.com.startai.mqttsdk.mqtt.request.MqttPublishRequest;
 import cn.com.startai.scansdk.ChargerScanActivity;
 import cn.com.startai.socket.db.gen.JsUserInfoDao;
@@ -404,12 +405,14 @@ public class UserManager implements IService {
         intent.setData(data);
         mResultCallBack.onResultStartActivityForResult(intent, -1);
 
+
         mResultCallBack.onResultCallPhone(true);
     }
 
+
     private LoginHelp mLoginHelp;
 
-    public void thirdLogin(Activity act, String type) {
+    private synchronized LoginHelp getLoginHelp() {
 
         if (mLoginHelp == null) {
             mLoginHelp = LoginHelp.getInstance();
@@ -457,9 +460,37 @@ public class UserManager implements IService {
                         @Override
                         public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
                             Tlog.e(TAG, " login facebook msg send fail ");
+                            if (mResultCallBack != null) {
+                                mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                            }
                         }
 
                     });
+                }
+
+                @Override
+                public void onFacebookBindResult(boolean result, JSONObject object) {
+                    if (!result) {
+                        Tlog.e(TAG, " onFacebookBindResult fail ");
+                        return;
+                    }
+                    C_0x8037.Req.ContentBean contentBean = new C_0x8037.Req.ContentBean();
+                    contentBean.fromFacebookJSONObject(object);
+                    StartAI.getInstance().getBaseBusiManager().bindThirdAccount(contentBean, new IOnCallListener() {
+                        @Override
+                        public void onSuccess(MqttPublishRequest request) {
+                            Tlog.w(TAG, " bind facebook msg send success  ");
+                        }
+
+                        @Override
+                        public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
+                            Tlog.e(TAG, " login facebook msg send fail ");
+                            if (mResultCallBack != null) {
+                                mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                            }
+                        }
+                    });
+
                 }
 
                 @Override
@@ -491,30 +522,103 @@ public class UserManager implements IService {
                         @Override
                         public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
                             Tlog.e(TAG, " login google msg send fail ");
+                            if (mResultCallBack != null) {
+                                mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                            }
                         }
 
                     });
                 }
+
+                @Override
+                public void onGoogleBindResult(boolean result, GoogleSignInAccount account) {
+                    if (!result || account == null) {
+                        Tlog.e(TAG, " onGoogleBindResult fail ");
+                        return;
+                    }
+                    C_0x8037.Req.ContentBean mBean = new C_0x8037.Req.ContentBean();
+                    C_0x8037.Req.ContentBean.UserinfoBean userinfo = new C_0x8037.Req.ContentBean.UserinfoBean();
+                    userinfo.setUnionid(account.getId());
+                    userinfo.setOpenid(account.getId());
+                    userinfo.setNickname(account.getDisplayName());
+                    userinfo.setLastName(account.getFamilyName());
+                    userinfo.setFirstName(account.getGivenName());
+                    Uri photoUrl = account.getPhotoUrl();
+                    userinfo.setHeadimgurl(photoUrl != null ? photoUrl.toString() : null);
+                    mBean.setUserinfo(userinfo);
+                    mBean.setType(C_0x8027.THIRD_GOOGLE);
+
+                    StartAI.getInstance().getBaseBusiManager().bindThirdAccount(mBean, new IOnCallListener() {
+                        @Override
+                        public void onSuccess(MqttPublishRequest request) {
+                            Tlog.w(TAG, " bind google msg send success  ");
+                        }
+
+                        @Override
+                        public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
+                            Tlog.e(TAG, " bind google msg send fail ");
+                            if (mResultCallBack != null) {
+                                mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                            }
+                        }
+                    });
+
+                }
             });
 
         }
+        return mLoginHelp;
+    }
+
+
+    public void thirdBind(String type, Activity act) {
 
         if (act == null) {
             Tlog.e(TAG, " login act == null ");
             return;
         }
 
+        LoginHelp loginHelp = getLoginHelp();
+
         if (type.equalsIgnoreCase(Login.TYPE_LOGIN_FACEBOOK)) {
 
-            mLoginHelp.loginFacebook(act);
+            loginHelp.bindFacebook(act);
 
         } else if (type.equalsIgnoreCase(Login.TYPE_LOGIN_GOOGLE)) {
 
-            mLoginHelp.loginGoogle(act);
+            loginHelp.bindGoogle(act);
 
         } else if (type.equalsIgnoreCase(Login.TYPE_LOGIN_TWITTER)) {
 
-            mLoginHelp.loginTwitter(act);
+            loginHelp.loginTwitter(act);
+
+        } else {
+            Tlog.e(TAG, " login unknown type ");
+        }
+
+    }
+
+
+    public void thirdLogin(Activity act, String type) {
+
+        if (act == null) {
+            Tlog.e(TAG, " login act == null ");
+            return;
+        }
+
+        LoginHelp loginHelp = getLoginHelp();
+
+        if (type.equalsIgnoreCase(Login.TYPE_LOGIN_FACEBOOK)) {
+
+            loginHelp.loginFacebook(act);
+
+        } else if (type.equalsIgnoreCase(Login.TYPE_LOGIN_GOOGLE)) {
+
+            loginHelp.loginGoogle(act);
+
+        } else if (type.equalsIgnoreCase(Login.TYPE_LOGIN_TWITTER)) {
+
+            loginHelp.loginTwitter(act);
 
         } else {
             Tlog.e(TAG, " login unknown type ");
@@ -679,6 +783,10 @@ public class UserManager implements IService {
     }
 
     private synchronized String getLastLoginUserID() {
+        return SUserManager.getInstance().getUserId();
+    }
+
+    private synchronized String getLastLoginUserID1() {
         String lastLoginUser = NetworkData.getLocalData(app).getLastLoginUser("");
 
         boolean loginExpire = false; // 登录失效

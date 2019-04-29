@@ -1,10 +1,10 @@
 package cn.com.startai.socket.sign.scm.receivetask.impl.report;
 
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
+import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.support.protocolEngine.IO.IDataProtocolOutput;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun
@@ -48,12 +48,12 @@ public class NewElectricReportReceiveTask extends SocketResponseTask {
         float maxCurrent = ((protocolParams[12] & 0xFF) << 8 | (protocolParams[13] & 0xFF)) / 1000F;
         float powerFactory = ((protocolParams[14] & 0xFF) << 8 | (protocolParams[15] & 0xFF)) / 1000F;
 
-        Tlog.v(TAG, "relpower: " + relpower + " avepower: " + avepower
+        Tlog.v(TAG, "relpower: " + relpower + " avepower: " + avepower + " freq: " + freq
                 + " maxpower: " + maxpower + " voltage: " + voltage
                 + " current: " + current + " maxCurrent:" + maxCurrent + " powerFactory:" + powerFactory);
 
         if (mCallBack != null) {
-            mCallBack.onNewElectricResult(mSocketDataArray.getID(), relpower, avepower, maxpower,freq, voltage, current, maxCurrent, powerFactory);
+            mCallBack.onNewElectricResult(mSocketDataArray.getID(), relpower, avepower, maxpower, freq, voltage, current, maxCurrent, powerFactory);
         }
 //        ResponseData mResponseData = ProtocolDataCache.getElectricValueReport(mSocketDataArray.getID(), true, seq);
 //        response(mResponseData);
