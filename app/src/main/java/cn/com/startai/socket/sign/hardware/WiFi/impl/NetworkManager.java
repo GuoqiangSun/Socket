@@ -419,7 +419,7 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
         }
     };
 
-    private final long AIR_KISS_TIME_OUT = 1000 * 100;
+    private final long AIR_KISS_TIME_OUT = 1000 * 110;
     //    private final String ARI_KISS_ASE_KEY = "";
     private EsptouchAsyncTask mTask;
 

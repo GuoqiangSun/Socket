@@ -233,7 +233,7 @@ public class QueryHistoryUtil {
                 boolean complete = countElectricity.getComplete() == 1;
 
                 if (startTimestamp == curMillis && mQueryCount.needQueryFromServer
-                        || (!complete && inOneWeek)
+                        || (!complete && inOneWeek && mQueryCount.needQueryFromServer)
                 ) {
 
                     Date mStartDate = new Date(startTimestamp);

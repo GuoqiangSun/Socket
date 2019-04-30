@@ -2025,8 +2025,10 @@ public class UserManager implements IService {
             Tlog.d(TAG, "onLogoutResult  result:" + result + " errorCode:" + errorCode + " errorMsg:" + errorMsg);
         }
 
-        setLoginUserID(null);
-        NetworkData.getLocalData(app).setLastLoginUser("");
+        if (result == 1) {
+            setLoginUserID(null);
+            NetworkData.getLocalData(app).setLastLoginUser("");
+        }
 
         if (mResultCallBack != null) {
             mResultCallBack.onResultLogout(result == 1);
@@ -2044,13 +2046,14 @@ public class UserManager implements IService {
 
         if (resp.getResult() != 1) {
 
-            setLoginUserID(null);
-
         } else {
 
             String userID = loginInfo.getUserid();
             Tlog.e(TAG, " login success : " + userID);
-            setLoginUserID(userID);
+            if (!CustomManager.getInstance().isAirtempNBProjectTest()) {
+                // 测试模式下，固定userid
+                setLoginUserID(userID);
+            }
             NetworkData.getLocalData(app).setLastLoginUser(userID);
 
             UserInfoDao userInfoDao = DBManager.getInstance().getDaoSession().getUserInfoDao();
@@ -2168,8 +2171,6 @@ public class UserManager implements IService {
             Tlog.d(TAG, "onUnActivateResult  " + String.valueOf(resp));
         }
         if (resp.getResult() == 1) {
-            setLoginUserID(null);
-            NetworkData.getLocalData(app).setLastLoginUser("");
         }
     }
 
