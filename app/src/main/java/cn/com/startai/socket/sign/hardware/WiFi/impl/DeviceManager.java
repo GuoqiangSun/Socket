@@ -6,10 +6,13 @@ import android.util.SparseArray;
 
 import org.greenrobot.greendao.query.QueryBuilder;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import cn.com.startai.mqttsdk.PersistentConnectState;
@@ -20,14 +23,17 @@ import cn.com.startai.mqttsdk.busi.entity.C_0x8004;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8005;
 import cn.com.startai.mqttsdk.listener.IOnCallListener;
 import cn.com.startai.mqttsdk.mqtt.request.MqttPublishRequest;
+import cn.com.startai.socket.db.gen.CountElectricityDao;
 import cn.com.startai.socket.db.gen.LanDeviceInfoDao;
 import cn.com.startai.socket.db.gen.WanBindingDeviceDao;
 import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.LooperManager;
+import cn.com.startai.socket.global.Utils.DateUtils;
 import cn.com.startai.socket.mutual.Controller;
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
+import cn.com.startai.socket.mutual.js.bean.CountElectricity;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.DisplayDeviceList;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
 import cn.com.startai.socket.sign.hardware.IControlWiFi;
@@ -38,8 +44,10 @@ import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
 import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.startai.socket.sign.scm.impl.SocketScmManager;
+import cn.com.startai.socket.sign.scm.util.MySocketDataCache;
 import cn.com.swain.baselib.app.IApp.IService;
 import cn.com.swain.baselib.log.Tlog;
+import cn.com.swain.support.protocolEngine.pack.ResponseData;
 
 /**
  * author: Guoqiang_Sun
@@ -64,6 +72,8 @@ public class DeviceManager implements IService {
     private static final int MAG_WHAT_SHAKE = 0x05;
 
     private static final int MAG_WHAT_FLUSH_ONE_DEVICE = 0x06;
+
+    private static final int MAG_WHAT_QUERY_HISTORY = 0x07;
 
     private Handler mDisplayHandler;
 
@@ -135,10 +145,27 @@ public class DeviceManager implements IService {
                 } else if (msg.what == MAG_WHAT_FLUSH_ONE_DEVICE) {
                     String mac = (String) msg.obj;
                     flushDevice(null, mac);
+                } else if (msg.what == MAG_WHAT_QUERY_HISTORY) {
+                    boolean mHasQueryHistory = hasQueryHistory;
+                    hasQueryHistory = true;
+                    String mobj = (String) msg.obj;
+                    LooperManager.getInstance().execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            queryHistory(mobj);
+                        }
+                    });
+                    if (++queryHistoryTimes < MaxQueryHistoryTimes) {
+                        Message messageH = mDisplayHandler.obtainMessage(MAG_WHAT_QUERY_HISTORY, mobj);
+                        mDisplayHandler.sendMessageDelayed(messageH, DELAY_QUERY_HISTORY);
+                    }
                 }
             }
         };
     }
+
+    private int queryHistoryTimes = 0;
+    private int MaxQueryHistoryTimes = 6;
 
     @Override
     public void onSResume() {
@@ -433,7 +460,7 @@ public class DeviceManager implements IService {
                     || (mLastSsid != null && !mLastSsid.equalsIgnoreCase(mDevice.getSsid()))
                     || mLastRSSI != mDevice.rssi
                     || mLastState != mDevice.state
-                    ) {
+            ) {
 
                 updateDaoLanDeviceInfo(displayLanDevice);
 
@@ -471,7 +498,7 @@ public class DeviceManager implements IService {
                         || (mDevice.mainVersion != mLanDevice.mainVersion)
                         || (mDevice.subVersion != mLanDevice.subVersion)
                 )
-                        ) {
+                ) {
 
                     mLanDevice.setBindNeedPwd(mDevice.bindNeedPwd);
                     mLanDevice.setHasActivate(mDevice.hasActivate);
@@ -650,7 +677,7 @@ public class DeviceManager implements IService {
 
                 String omac = mLanBindingDevice.getOmac();
 
-                    // 防止重复绑定，多次提示。
+                // 防止重复绑定，多次提示。
                 if (lastBindMac != null && lastBindMac.equalsIgnoreCase(omac)
                         && Math.abs(System.currentTimeMillis() - lastBindTs) < 1000 * 3) {
                     Tlog.w(TAG, " this mac bind just now");
@@ -1273,6 +1300,146 @@ public class DeviceManager implements IService {
 
     }
 
+    private void queryHistoryFromServer(SocketScmManager scmManager, long currentTimeMillis, String mac) {
+
+        Tlog.w(TAG, "queryHistoryFromServer mac:" + mac);
+
+        Date mStartDate = new Date(currentTimeMillis);
+        Date mEndDate = new Date(currentTimeMillis + DateUtils.ONE_DAY);
+
+        ResponseData mResponseData = MySocketDataCache.getQueryHistoryCount(mac,
+                mStartDate, mEndDate);
+
+        if (scmManager != null) {
+            scmManager.onOutputProtocolData(mResponseData);
+        }
+
+    }
+
+    private static final long DELAY_QUERY_HISTORY = 1000 *  30; // 延迟三分钟
+
+    private void queryHistory(String mid) {
+
+//        if (mid == null || !mid.equals(mDisplayDeviceLst.getUserID())) {
+//
+//            Tlog.e(TAG, "queryHistory() mid not equals cache id:" + mDisplayDeviceLst.getUserID());
+//            return;
+//        }
+
+        NetworkManager networkManager = Controller.getInstance().getNetworkManager();
+        String loginUserID = null;
+        if (networkManager != null) {
+            loginUserID = networkManager.getLoginUserID();
+        }
+        Tlog.d(TAG, " queryHistory " + mid + " loginUserID:" + loginUserID);
+        Map<String, LanDeviceInfo> displayMacArray = mDisplayDeviceLst.getDisplayMacArray();
+
+        SocketScmManager scmManager = Controller.getInstance().getScmManager();
+
+        CountElectricityDao countElectricityDao =
+                DBManager.getInstance().getDaoSession().getCountElectricityDao();
+        if (displayMacArray == null) {
+            Tlog.e(TAG, " displayMacArray == null ");
+            return;
+        }
+
+        if (scmManager == null) {
+            Tlog.e(TAG, " scmManager == null ");
+            return;
+        }
+        for (Map.Entry<String, LanDeviceInfo> entries : displayMacArray.entrySet()) {
+
+            PersistentConnectState connectState = StartAI.getInstance().getConnectState();
+
+            String key = entries.getKey();
+
+            LanDeviceInfo value = entries.getValue();
+
+            if (value == null) {
+                Tlog.e(TAG, " value == null ");
+                continue;
+            }
+
+            String mac = value.getMac();
+            long l = System.currentTimeMillis();
+
+            long l1;
+            try {
+                l1 = DateUtils.formatTsToDayTs(l);
+            } catch (Exception e) {
+                l1 = DateUtils.fastFormatTsToDayTs(l);
+            }
+            long curTime = l1;
+
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
+            String format = dateFormat.format(curTime);
+
+            for (int i = 1; i < 7; i++) {
+
+                long startTime = curTime - DateUtils.ONE_DAY * i;
+
+                List<CountElectricity> list = countElectricityDao.queryBuilder()
+                        .where(CountElectricityDao.Properties.Mac.eq(mac),
+                                CountElectricityDao.Properties.Timestamp.eq(startTime)).list();
+
+                boolean complete = false;
+                if (list != null && list.size() > 0) {
+                    CountElectricity mCountElectricity = list.get(0);
+                    if (mCountElectricity != null) {
+                        complete = mCountElectricity.getComplete() == 1;
+                    }
+                } else {
+                    Tlog.e(TAG, " key:" + key + " startTime: " + dateFormat.format(startTime)
+                            + startTime + " sie is null ");
+                }
+
+
+                Tlog.e(TAG, " key:" + key + " startTime: " + dateFormat.format(startTime)
+                        + " curTime:" + format + " complete:" + complete);
+
+                if (complete || startTime >= curTime) {
+                    continue;
+                }
+
+                try {
+                    Thread.sleep(1500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                if (!value.isWanBind) {
+                    // 没有广域网绑定,拦截,否则再发消息，会提示没有广域网绑定。
+
+                    LanDeviceInfo lanDeviceByMac = mDiscoveryDeviceLst.getLanDeviceByMac(key);
+
+                    if (lanDeviceByMac != null) {
+
+                        queryHistoryFromServer(scmManager, startTime, key);
+                    }
+
+                    continue;
+                }
+
+                if (connectState == PersistentConnectState.CONNECTED) {
+
+                    queryHistoryFromServer(scmManager, startTime, key);
+
+
+                } else {
+                    Tlog.w(TAG, " queryHistoryFromServer device info " + key + " mqtt not con:" + String.valueOf(connectState));
+                }
+
+                try {
+                    Thread.sleep(1500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+
+        }
+    }
 
     private void flushDevice(String mid, String mac) {
         Tlog.v(TAG, "flushDevice()  mid:" + mid + " mac:" + mac);
@@ -1493,9 +1660,18 @@ public class DeviceManager implements IService {
 
             Message message = mDisplayHandler.obtainMessage(MAG_WHAT_FLUSH_DISPLAY_DEVICE, mid);
             mDisplayHandler.sendMessageDelayed(message, 1000 * 3);
+
+
+            if (!hasQueryHistory && !mDisplayHandler.hasMessages(MAG_WHAT_QUERY_HISTORY)) {
+                Message messageH = mDisplayHandler.obtainMessage(MAG_WHAT_QUERY_HISTORY, mid);
+                mDisplayHandler.sendMessageDelayed(messageH, DELAY_QUERY_HISTORY);
+            }
+
         }
 
     }
+
+    private boolean hasQueryHistory = false;
 
     void onLogoutResult(int result) {
         Tlog.d(TAG, " onLogoutResult " + result);

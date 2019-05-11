@@ -81,4 +81,6 @@ public interface IDebugerProtocolStream {
     void receiveQueryRGB(Object obj, boolean result, ColorLampRGB mRGB);
 
     void receiveSetRGB(Object obj, boolean result, ColorLampRGB mRGB);
+
+    void receiveHistory(Object obj, boolean result);
 }

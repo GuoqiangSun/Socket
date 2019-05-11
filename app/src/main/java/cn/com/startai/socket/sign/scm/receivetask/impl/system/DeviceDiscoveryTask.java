@@ -5,14 +5,15 @@ import android.app.Application;
 import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
+import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
+import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.baselib.util.MacUtil;
 import cn.com.swain.baselib.util.StrUtil;
 import cn.com.swain.baselib.util.WiFiUtil;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun
@@ -115,6 +116,10 @@ public class DeviceDiscoveryTask extends SocketResponseTask {
                     + " my custom:" + CustomManager.getInstance().getCustom()
                     + " device custom:" + mSocketDataArray.getProtocolCustom());
 
+        }
+
+        if (H5Config.DEFAULT_MAC.equalsIgnoreCase(mWiFiDevice.mac)) {
+            return;
         }
 
         if (CustomManager.getInstance().getCustom() == mSocketDataArray.getProtocolCustom() &&

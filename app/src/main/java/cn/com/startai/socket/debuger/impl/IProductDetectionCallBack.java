@@ -37,4 +37,6 @@ public interface IProductDetectionCallBack {
     void rgbQueryResult(ColorLampRGB obj);
 
     void rgbSetResult(ColorLampRGB obj);
+
+    void historyQueryResultResult(boolean result);
 }

@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import cn.com.startai.socket.debuger.Debuger;
+import cn.com.startai.socket.debuger.impl.IDebugerProtocolStream;
 import cn.com.startai.socket.global.Utils.DateUtils;
 import cn.com.startai.socket.mutual.js.bean.CountElectricity;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
@@ -157,6 +158,12 @@ public class HistoryCountTask extends SocketResponseTask {
 
         if (mTaskCallBack != null) {
             mTaskCallBack.onQueryHistoryCountResult(result, mCount);
+
+            IDebugerProtocolStream iDebugerStream = mTaskCallBack.getIDebugerStream();
+
+            if (iDebugerStream != null) {
+                iDebugerStream.receiveHistory(mSocketDataArray.getObj(), result);
+            }
         }
 
     }

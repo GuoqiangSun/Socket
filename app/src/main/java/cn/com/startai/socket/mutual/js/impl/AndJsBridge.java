@@ -1261,6 +1261,13 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
+    public void onJSQueryMachineState(String mac) {
+        if(mScmVirtual!=null){
+            mScmVirtual.queryMachineState(mac);
+        }
+    }
+
+    @Override
     public void onResultTotalElectricData(SpendingElectricityData obj) {
         String method = SpendingCountdown.Method.callJsElectricityDataByTime(obj.mac, obj.model,
                 obj.totalElectric, obj.year, obj.month, obj.day);

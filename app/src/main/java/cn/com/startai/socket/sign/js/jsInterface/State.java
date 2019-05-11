@@ -25,6 +25,8 @@ public class State extends AbsHandlerJsInterface {
         void onJSQueryCostRate(String mac);
 
         void onJSQueryCumuParam(String mac);
+
+        void onJSQueryMachineState(String mac);
     }
 
     public static final class Method {
@@ -139,9 +141,15 @@ public class State extends AbsHandlerJsInterface {
         getHandler().obtainMessage(MSG_COST_RATE_PARAM, mac).sendToTarget();
     }
 
+    @JavascriptInterface
+    public void selectSevenStatusRequest(String mac) {
+        getHandler().obtainMessage(MSG_QUERY_MACHINE_STATE, mac).sendToTarget();
+    }
+
     private static final int MSG_HISTORY = 0x2D;
     private static final int MSG_CUMU_PARAM = 0x2E;
     private static final int MSG_COST_RATE_PARAM = 0x2F;
+    private static final int MSG_QUERY_MACHINE_STATE = 0x30;
 
     @Override
     protected void handleMessage(Message msg) {
@@ -159,6 +167,12 @@ public class State extends AbsHandlerJsInterface {
             if (mCallBack != null) {
                 mCallBack.onJSQueryCostRate((String) msg.obj);
             }
+        } else if (msg.what == MSG_QUERY_MACHINE_STATE) {
+
+            if (mCallBack != null) {
+                mCallBack.onJSQueryMachineState((String) msg.obj);
+            }
+
         } else {
             Tlog.e(TAG, NAME_JSI + " handleMessage unknown what:" + msg.what);
         }

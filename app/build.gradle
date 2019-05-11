@@ -188,7 +188,7 @@ dependencies {
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0'
     implementation files('libs/startai-esptouch-sender-1.0.jar')
 
-    implementation 'cn.com.startai:mqsdk:3.1.73'
+    implementation 'cn.com.startai:mqsdk:3.1.75'
     implementation 'com.blankj:utilcode:1.22.1'
     implementation 'org.xutils:xutils:3.5.0'
     implementation 'cn.com.startai:fastdfssdk:1.0.2'

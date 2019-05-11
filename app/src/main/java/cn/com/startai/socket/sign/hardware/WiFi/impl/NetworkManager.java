@@ -119,6 +119,7 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
             String type;
             NetworkInfo.State state;
 
+
             //获取WIFI连接的信息
             NetworkInfo wifiNetworkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 

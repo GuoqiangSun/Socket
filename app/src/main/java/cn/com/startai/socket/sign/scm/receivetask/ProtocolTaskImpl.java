@@ -326,7 +326,7 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                     case SocketSecureKey.Cmd.CMD_CONTROL_ANYNET_FLASH_RESPONSE:
                         new IndicatorStatusControlReceiveTask(mTaskCallBack).execute(mParam);
                         break;
-                    case SocketSecureKey.Cmd.CMD_QUERY_STATE_MACHINE:
+                    case SocketSecureKey.Cmd.CMD_QUERY_STATE_MACHINE_RESPONSE:
                         new StateMachineQueryReceiveTask(mTaskCallBack).execute(mParam);
                         break;
                     default:

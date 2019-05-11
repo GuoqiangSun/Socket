@@ -875,6 +875,13 @@ public class JsManager extends AbsJsManager implements IService {
     }
 
     @Override
+    public void onJSQueryMachineState(String mac) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSQueryMachineState(mac);
+        }
+    }
+
+    @Override
     public void onJSSetStatusBar(StatusBarBean mStatusBar) {
         if (mJSManagerCallBack != null) {
             mJSManagerCallBack.onJSSetStatusBar(mStatusBar);

@@ -308,6 +308,8 @@ public abstract class AbsJsManager implements Device.IJSDeviceCallBack,//
         void onJSResendEmail(String email);
 
         void onJSBindThird(String type);
+
+        void onJSQueryMachineState(String mac);
     }
 
 }

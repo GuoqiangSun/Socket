@@ -272,6 +272,8 @@ public interface IVirtualSocketScm {
 
     void onJSQueryTotalElectric(SpendingElectricityData obj);
 
+    void queryMachineState(String mac);
+
     /**
      * author: Guoqiang_Sun
      * date : 2018/4/10 0010

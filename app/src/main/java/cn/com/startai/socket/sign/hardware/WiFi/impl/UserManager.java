@@ -20,7 +20,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
 import android.text.TextUtils;
-import android.widget.Toast;
 
 import com.alipay.sdk.app.AuthTask;
 import com.blankj.utilcode.util.AppUtils;
@@ -421,25 +420,15 @@ public class UserManager implements IService {
                 public void onResult(boolean result, ThirdLoginUser mUser) {
 
                     if (result) {
-                        LooperManager.getInstance().getWorkHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(app, " not impl ", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        if (mResultCallBack != null) {
+                            mResultCallBack.onResultThirdLogin(true, "");
+                        }
+                    } else {
+                        if (mResultCallBack != null) {
+                            mResultCallBack.onResultThirdLogin(false, "");
+                        }
                     }
 
-//                    String data;
-//
-//                    if (mUser != null) {
-//                        Tlog.v(H5Config.TAG, " loginResult :" + mUser.toString());
-//                        data = mUser.toJsonStr();
-//                    } else {
-//                        data = "{}";
-//                    }
-//
-//                    String method = Login.Method.callJsThirdLogin(result, data);
-//                    ajLoadJs(method);
 
                 }
 
@@ -447,6 +436,9 @@ public class UserManager implements IService {
                 public void onFacebookResult(boolean result, JSONObject object) {
                     if (!result) {
                         Tlog.e(TAG, " onFacebookResult fail ");
+                        if (mResultCallBack != null) {
+                            mResultCallBack.onResultThirdLogin(false, "");
+                        }
                         return;
                     }
                     C_0x8027.Req.ContentBean mBean = new C_0x8027.Req.ContentBean();
@@ -472,6 +464,9 @@ public class UserManager implements IService {
                 public void onFacebookBindResult(boolean result, JSONObject object) {
                     if (!result) {
                         Tlog.e(TAG, " onFacebookBindResult fail ");
+                        if (mResultCallBack != null) {
+                            mResultCallBack.onResultThirdLogin(false, "");
+                        }
                         return;
                     }
                     C_0x8037.Req.ContentBean contentBean = new C_0x8037.Req.ContentBean();
@@ -497,6 +492,9 @@ public class UserManager implements IService {
                 public void onGoogleResult(boolean result, GoogleSignInAccount account) {
                     if (!result || account == null) {
                         Tlog.e(TAG, " onGoogleResult fail ");
+                        if (mResultCallBack != null) {
+                            mResultCallBack.onResultThirdLogin(false, "");
+                        }
                         return;
                     }
                     C_0x8027.Req.ContentBean mBean = new C_0x8027.Req.ContentBean();
@@ -534,6 +532,9 @@ public class UserManager implements IService {
                 public void onGoogleBindResult(boolean result, GoogleSignInAccount account) {
                     if (!result || account == null) {
                         Tlog.e(TAG, " onGoogleBindResult fail ");
+                        if (mResultCallBack != null) {
+                            mResultCallBack.onResultThirdLogin(false, "");
+                        }
                         return;
                     }
                     C_0x8037.Req.ContentBean mBean = new C_0x8037.Req.ContentBean();

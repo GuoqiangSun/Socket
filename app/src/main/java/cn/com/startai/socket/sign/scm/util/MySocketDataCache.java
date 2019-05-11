@@ -521,6 +521,13 @@ public class MySocketDataCache implements IService {
         return newResponseDataRecord(mac, mSecureDataPack);
     }
 
+    public static ResponseData getQueryMachineState(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_STATE_MACHINE);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
     public static ResponseData getTrunAllIndicatorState(String mac,boolean state) {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);

@@ -485,7 +485,7 @@ public class QueryHistoryUtil {
                     if (j == CountElectricity.SIZE_ONE_DAY - 1) {
 
                         int countNumber = CountElectricity.SIZE_ONE_DAY;//一个数据一天
-                        // 一天一次的平均数据
+                        // 一天一次的数据
                         mData = new QueryHistoryCount.Data();
                         mData.e = mTmpData.e;
 //                                / countNumber;

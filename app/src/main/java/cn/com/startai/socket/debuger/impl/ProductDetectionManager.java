@@ -25,12 +25,12 @@ import cn.com.startai.socket.sign.js.impl.JsManager;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.impl.SocketScmManager;
 import cn.com.swain.baselib.app.IApp.IService;
+import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.baselib.util.IpUtil;
 import cn.com.swain.baselib.util.StrUtil;
 import cn.com.swain.support.protocolEngine.pack.ReceivesData;
 import cn.com.swain.support.protocolEngine.pack.ResponseData;
 import cn.com.swain.support.protocolEngine.task.FailTaskResult;
-import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun
@@ -500,6 +500,11 @@ public class ProductDetectionManager implements DetectionRecyclerAdapter.OnClick
         mUIHandler.obtainMessage(REFRESH_NIGHT_RGB_SET, mRGB).sendToTarget();
     }
 
+    @Override
+    public void receiveHistory(Object obj, boolean result) {
+        mUIHandler.obtainMessage(REFRESH_HISTORY, result).sendToTarget();
+    }
+
     private void recOnePkg(int type) {
         if (mDatas.size() > 0) {
             for (DetectInfo mDetect : mDatas) {
@@ -533,6 +538,7 @@ public class ProductDetectionManager implements DetectionRecyclerAdapter.OnClick
     private static final int REFRESH_NIGHT_LIGHT_QUERY = 0x07;
     private static final int REFRESH_NIGHT_RGB_QUERY = 0x08;
     private static final int REFRESH_NIGHT_RGB_SET = 0x09;
+    private static final int REFRESH_HISTORY = 0x0A;
 
     private void uiHandlerMessage(Message msg) {
         switch (msg.what) {
@@ -595,6 +601,9 @@ public class ProductDetectionManager implements DetectionRecyclerAdapter.OnClick
                 break;
             case REFRESH_NIGHT_RGB_SET:
                 mRecyclerAdapter.rgbSetResult((ColorLampRGB) msg.obj);
+                break;
+            case REFRESH_HISTORY:
+                mRecyclerAdapter.historyQueryResultResult((boolean) msg.obj);
                 break;
         }
 

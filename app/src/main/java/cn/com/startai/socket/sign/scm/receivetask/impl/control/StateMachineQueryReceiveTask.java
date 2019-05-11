@@ -1,8 +1,10 @@
 package cn.com.startai.socket.sign.scm.receivetask.impl.control;
 
+import cn.com.startai.socket.sign.scm.bean.StateMachine;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
 import cn.com.swain.baselib.log.Tlog;
+import cn.com.swain.baselib.util.Bit;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
 
@@ -39,8 +41,48 @@ public class StateMachineQueryReceiveTask extends SocketResponseTask {
 
         Tlog.e(TAG, " StateMachineQueryReceiveTask result:" + result);
 
+
+        StateMachine mStateMachine = new StateMachine();
+
+        mStateMachine.mac = mSocketDataArray.getID();
+
+        mStateMachine.power = Bit.isOne(protocolParams[1], 0);
+        mStateMachine.colorLight = Bit.isOne(protocolParams[1], 1);
+        mStateMachine.sleepLight = Bit.isOne(protocolParams[1], 2);
+        mStateMachine.UsbPower = Bit.isOne(protocolParams[1], 3);
+        mStateMachine.pilotLight = Bit.isOne(protocolParams[1], 4);
+
+        mStateMachine.colorLightTimer = Bit.isOne(protocolParams[2], 0);
+        mStateMachine.sleepLightTimer = Bit.isOne(protocolParams[2], 1);
+
+        mStateMachine.timer = Bit.isOne(protocolParams[3], 0);
+        mStateMachine.highTimer = Bit.isOne(protocolParams[3], 1);
+        mStateMachine.countDown = Bit.isOne(protocolParams[3], 2);
+        mStateMachine.UsbTimer = Bit.isOne(protocolParams[3], 3);
+
+        mStateMachine.temperature = Bit.isOne(protocolParams[4], 0);
+        mStateMachine.temperatureSensing = Bit.isOne(protocolParams[4], 1);
+        mStateMachine.humidity = Bit.isOne(protocolParams[4], 2);
+
+        mStateMachine.setMeasure = Bit.isOne(protocolParams[5], 0);
+        mStateMachine.setCost = Bit.isOne(protocolParams[5], 1);
+
+        Tlog.e(TAG, " protocolParams[0]:" + Integer.toBinaryString(protocolParams[0])
+                + " protocolParams[0]:" + Integer.toBinaryString(protocolParams[1])
+                + " protocolParams[0]:" + Integer.toBinaryString(protocolParams[2])
+                + " protocolParams[0]:" + Integer.toBinaryString(protocolParams[3])
+                + " protocolParams[0]:" + Integer.toBinaryString(protocolParams[4])
+                + " protocolParams[0]:" + Integer.toBinaryString(protocolParams[5])
+                + " protocolParams[0]:" + Integer.toBinaryString(protocolParams[6])
+                + " protocolParams[0]:" + Integer.toBinaryString(protocolParams[7]));
+
+
+        Tlog.e(TAG, " StateMachineQueryReceiveTask mStateMachine:" + mStateMachine);
+
         if (mTaskCallBack != null) {
+            mTaskCallBack.onStateMachineResult(mStateMachine);
         }
+
 
     }
 }

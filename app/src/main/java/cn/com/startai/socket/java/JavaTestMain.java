@@ -1,5 +1,7 @@
 package cn.com.startai.socket.java;
 
+import com.google.gson.JsonObject;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -67,9 +69,138 @@ public class JavaTestMain {
 
 //        testHash();
 
-        cth();
+//        cth();
+
+//        escape();
+
+//        FThexStr();
 
         System.err.println("end");
+
+
+    }
+
+    static HashMap<Long, String> map = new HashMap<>();
+
+
+    private static void FThexStr() {
+        long from = 0xFF0C0000123L;  // 280427116560675
+        int FROM_LEN = 0xFF0C; // 65292
+        long FROM_ID = 0x0000123; // 111870243
+//        0000967295
+
+        byte[] buf = new byte[6];
+        buf[0] = (byte) 0xFF;
+        buf[0] = (byte) 0xFF;
+
+
+        System.out.println(" from:" + from);
+        System.out.println(" FROM_LEN:" + FROM_LEN);
+        System.out.println(" FROM_ID:" + FROM_ID);
+
+        String topic = Long.toHexString(from); // topic:ff0c06ab0123
+        System.out.println(" topic:" + topic);
+
+        map.put(from, topic);
+
+//        String s = map.get(from);
+//        if(s==null){
+//            map.put(from,topic);
+//        }
+
+        String topic_dan = Integer.toHexString(FROM_LEN) + Long.toHexString(FROM_ID);
+        System.out.println(" topic_dan:" + topic_dan); //  topic_dan:ff0c06ab0123
+
+        byte a2 = (byte) ((from >> 40) & 0xFF);
+        byte a1 = (byte) ((from >> 32) & 0xFF);
+        byte a = (byte) ((from >> 24) & 0xFF);
+        byte b = (byte) ((from >> 16) & 0xFF);
+        byte c = (byte) ((from >> 8) & 0xFF);
+        byte d = (byte) ((from >> 0) & 0xFF);
+
+        int aa = ((a2 & 0xFF) << 8) | (a1 & 0xFF);
+        System.out.println(" aa:" + aa);
+        int bb = ((a & 0xFF) << 24) | ((b & 0xFF) << 16) | ((c & 0xFF) << 8) | (d & 0xFF);
+        System.out.println(" bb:" + bb);
+
+        String topic_int = aa + "" + bb; //  topic_int:65292111870243
+        System.out.println(" topic_int:" + topic_int);
+
+        String topic_int_dan = FROM_LEN + "" + FROM_ID; //  topic_int_dan:65292111870243
+        System.out.println(" topic_int_dan:" + topic_int_dan);
+
+
+        int appid = 0x0001A3B6;
+        System.out.println(" appid:" + appid); //  appid:107446
+        System.out.println(" appid hex:" + Integer.toHexString(appid)); // appid hex:1a3b6
+    }
+
+
+    private static ByteBuffer buffer = ByteBuffer.allocate(8);
+
+    //byte 数组与 long 的相互转换
+    public static byte[] longToBytes(long x) {
+        buffer.putLong(0, x);
+        return buffer.array();
+    }
+
+    public static long bytesToLong(byte[] bytes) {
+        buffer.put(bytes, 0, bytes.length);
+        buffer.flip();//need flip
+        return buffer.getLong();
+    }
+
+    public static byte[] long2Bytes(long num) {
+        byte[] byteNum = new byte[8];
+        for (int ix = 0; ix < 8; ++ix) {
+            int offset = 64 - (ix + 1) * 8;
+            byteNum[ix] = (byte) ((num >> offset) & 0xff);
+        }
+        return byteNum;
+    }
+
+    public static long bytes2Long(byte[] byteNum) {
+        long num = 0;
+        for (int ix = 0; ix < 8; ++ix) {
+            num <<= 8;
+            num |= (byteNum[ix] & 0xff);
+        }
+        return num;
+    }
+
+
+    private static void escape() {
+        String appid = "6e3788eedb60442c88b647bfaa1d285b";
+        int hashCode = appid.hashCode();
+        System.out.println("hashCode:" + hashCode);
+        System.out.println("hashCode HEX:" + Integer.toHexString(hashCode));
+
+
+        ByteBuffer buffer = ByteBuffer.allocate(8);
+        byte a = (byte) ((hashCode >> 24) & 0xFF);
+        byte b = (byte) ((hashCode >> 16) & 0xFF);
+        byte c = (byte) ((hashCode >> 8) & 0xFF);
+        byte d = (byte) ((hashCode >> 0) & 0xFF);
+        byte[] bytes = {0, 0, 0, 0, a, b, c, d};
+        buffer.put(bytes, 0, bytes.length);
+        buffer.flip();//need flip
+        long hashCode_LL = buffer.getLong();
+        System.out.println(" hashCode_L:" + hashCode_LL);
+        System.out.println(" hashCode_L:" + Long.toHexString(hashCode_LL));
+
+        long num = 0;
+        for (int ix = 0; ix < 8; ++ix) {
+            num <<= 8;
+            num |= (bytes[ix] & 0xff);
+        }
+        System.out.println(" num:" + num);
+        System.out.println(" num:" + Long.toHexString(num));
+
+        long ll = hashCode;
+        ll = (ll << 32) >>> 32;
+        System.out.println(" ll:" + ll);
+        System.out.println(" ll:" + Long.toHexString(ll));
+
     }
 
     private static void cth() {
@@ -77,7 +208,6 @@ public class JavaTestMain {
         for (byte b : bytes) {
             System.out.println(Integer.toHexString(b));
         }
-
 
 
     }
@@ -90,7 +220,32 @@ public class JavaTestMain {
         char[] chars = new char[len];
         tryBit(chars, len, map);
         System.out.println((int) Math.pow(offset, len) + ":" + dup);
+
+        String aa = "Aa";
+        String bb = "BB";
+        System.out.println("aa:" + aa.hashCode());
+        System.out.println("bb:" + bb.hashCode());
+
+
+        hash(aa);
+        hash(bb);
     }
+
+    private static void hash(String s) {
+        char[] chars1 = s.toCharArray();
+        int h = 0;
+        int hash;
+        final int length = s.length();
+        for (int i = 0; i < length; i++) {
+            char c = chars1[i];
+            int i1 = 31 * h;
+            h = +c;
+            System.out.println("h:" + h + " i1:" + i1 + " c:" + (int) c);
+        }
+        hash = h;
+        System.out.println("----------" + s + " .hash:" + hash);
+    }
+
 
     private static char startChar = 'A';
 

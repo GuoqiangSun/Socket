@@ -48,6 +48,8 @@ public class DBFragment extends BaseFragment {
         Tlog.v(TAG, " DBFragment onCreate() ");
     }
 
+    DBDataAdapter mDBDataAdapter;
+
     @Override
     protected View inflateView() {
         Tlog.v(TAG, " DBFragment inflateView() ");
@@ -55,7 +57,7 @@ public class DBFragment extends BaseFragment {
                 null);
 
         ListView mDBDataLsv = inflate.findViewById(R.id.data_lstv);
-        DBDataAdapter mDBDataAdapter = new DBDataAdapter(getContext());
+        mDBDataAdapter = new DBDataAdapter(getContext());
         mDBDataLsv.setAdapter(mDBDataAdapter);
         View mHeadView = View.inflate(getContext(), R.layout.item_db_data, null);
         mDBDataLsv.addHeaderView(mHeadView);
@@ -87,20 +89,24 @@ public class DBFragment extends BaseFragment {
         mQueryBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                CountElectricityDao countElectricityDao =
-                        DBManager.getInstance().getDaoSession().getCountElectricityDao();
-
-                List<CountElectricity> list = countElectricityDao.queryBuilder()
-                        .where(CountElectricityDao.Properties.Mac.eq(
-                                Debuger.getInstance().getProductDevice())).list();
-
-                mDBDataAdapter.clearAdd(list);
-
+                queryFormDB();
             }
         });
 
         return inflate;
 
+    }
+
+    private synchronized void queryFormDB() {
+        CountElectricityDao countElectricityDao =
+                DBManager.getInstance().getDaoSession().getCountElectricityDao();
+
+        List<CountElectricity> list = countElectricityDao.queryBuilder()
+                .where(CountElectricityDao.Properties.Mac.eq(
+                        Debuger.getInstance().getProductDevice())).list();
+        if (mDBDataAdapter != null) {
+            mDBDataAdapter.clearAdd(list);
+        }
     }
 
     private void queryFromServer(long currentTimeMillis) {
@@ -186,7 +192,7 @@ public class DBFragment extends BaseFragment {
                         onHourSum = 0;
                     }
                 }
-            }else {
+            } else {
                 data.add(" null ");
             }
 
@@ -236,5 +242,11 @@ public class DBFragment extends BaseFragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         Tlog.v(TAG, " DBFragment onActivityResult ");
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    public void historyQueryResultResult(boolean result) {
+        if (result) {
+            queryFormDB();
+        }
     }
 }

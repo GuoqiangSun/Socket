@@ -442,15 +442,9 @@ public class SocketScmManager extends AbsSocketScm
     @Override
     public void onQueryHistoryCountResult(boolean result, QueryHistoryCount mCount) {
 
-        if (!result) {
+        if (!result || mCount == null) {
 
             Tlog.e(TAG, " onQueryHistoryCountResult fail..");
-            return;
-        }
-
-        if (mCount == null) {
-
-            Tlog.e(TAG, " onQueryHistoryCountResult QueryHistoryCount=null..");
             return;
         }
 
@@ -460,13 +454,12 @@ public class SocketScmManager extends AbsSocketScm
 //        QueryHistoryUtil.deleteOldHistory(mCount.mac);
 
         ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mCount.mac);
-        QueryHistoryCount queryCount = scmDevice.getQueryCount();
-        if (queryCount != null && queryCount.msgSeq == mCount.msgSeq
-//                &&SocketSecureKey.Util.isIntervalMinute((byte) queryCount.interval)
-        ) {
+        QueryHistoryCount queryCount = scmDevice.getQueryCount(mCount);
 
+        if (queryCount != null && queryCount.msgSeq == mCount.msgSeq) {
             Tlog.e(TAG, " queryHistoryCount again:");
             queryCount.needQueryFromServer = false;
+            scmDevice.removeQueryCount(queryCount.interval);
             scmDevice.removeQueryHistory();
             scmDevice.removeQueryHistoryCountResult();
             scmDevice.sendQueryHistory(1500, queryCount);
@@ -900,6 +893,7 @@ public class SocketScmManager extends AbsSocketScm
             }
             onOutputProtocolData(mResponseData);
         } else {
+
             Tlog.e(TAG, " disconnectDevice userID=null ");
         }
     }
@@ -1167,13 +1161,14 @@ public class SocketScmManager extends AbsSocketScm
 
         if (list != null && list.size() > 0) {
 
+            final byte[] countData = new byte[CountElectricity.SIZE_ONE_DAY];
+
             for (CountElectricity mCountElectricity : list) {
                 byte[] electricity = mCountElectricity.getElectricity();
 
 
                 for (int j = 0; j < CountElectricity.SIZE_ONE_DAY; j++) {
 
-                    final byte[] countData = new byte[CountElectricity.SIZE_ONE_DAY];
 
                     try {
                         System.arraycopy(electricity, j * CountElectricity.ONE_PKG_LENGTH,
@@ -1202,6 +1197,15 @@ public class SocketScmManager extends AbsSocketScm
             mScmResultCallBack.onResultTotalElectricData(obj);
         }
 
+    }
+
+    @Override
+    public void queryMachineState(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getQueryMachineState(mac);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryMachineState  data:" + String.valueOf(mResponseData));
+        }
+        onOutputProtocolData(mResponseData);
     }
 
     @Override

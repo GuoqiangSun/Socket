@@ -3,12 +3,12 @@ package cn.com.startai.socket.sign.scm.impl;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.SparseArray;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import cn.com.startai.socket.global.LooperManager;
-import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
 import cn.com.startai.socket.sign.scm.bean.SpendingElectricityData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingListData;
@@ -172,14 +172,24 @@ class ScmDevice implements Heartbeat.OnHeartbeatCallBack {
         }
     }
 
-    private QueryHistoryCount mQueryCount;
+
+    private final SparseArray<QueryHistoryCount> mSparseArray = new SparseArray<QueryHistoryCount>();
 
     public void putQueryHistoryCount(QueryHistoryCount mQueryCount) {
-        this.mQueryCount = mQueryCount;
+
+        mSparseArray.put(mQueryCount.interval, mQueryCount);
     }
 
-    public QueryHistoryCount getQueryCount() {
-        return mQueryCount;
+    public QueryHistoryCount getQueryCount(QueryHistoryCount mCount) {
+        return mSparseArray.get(mCount.interval);
+    }
+
+    public void removeQueryCount(int interval) {
+        try {
+            mSparseArray.remove(interval);
+        } catch (Exception e) {
+
+        }
     }
 
     private long createTimestamp;

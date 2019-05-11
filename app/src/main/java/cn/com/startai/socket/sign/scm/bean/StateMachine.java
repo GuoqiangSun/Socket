@@ -77,30 +77,36 @@ public class StateMachine {
 //        "setCost":boolean,
 //    }
 
+
+    @Override
+    public String toString() {
+        return toJsonStr();
+    }
+
     public String toJsonStr() {
         JSONObject obj = new JSONObject();
         try {
             obj.put("power", power);
-            obj.put("timer", power);
-            obj.put("countDown", power);
-            obj.put("powerManage", power);
-            obj.put("sleepLight", power);
-            obj.put("colorLight", power);
-            obj.put("UsbPower", power);
+            obj.put("timer", timer);
+            obj.put("countDown", countDown);
+            obj.put("powerManage", powerManage);
+            obj.put("sleepLight", sleepLight);
+            obj.put("colorLight", colorLight);
+            obj.put("UsbPower", UsbPower);
 
-            obj.put("pilotLight", power);
-            obj.put("colorLightTimer", power);
+            obj.put("pilotLight", pilotLight);
+            obj.put("colorLightTimer", colorLightTimer);
 
-            obj.put("sleepLightTimer", power);
-            obj.put("highTimer", power);
-            obj.put("UsbTimer", power);
+            obj.put("sleepLightTimer", sleepLightTimer);
+            obj.put("highTimer", highTimer);
+            obj.put("UsbTimer", UsbTimer);
 
-            obj.put("temperature", power);
-            obj.put("temperatureSensing", power);
-            obj.put("humidity", power);
+            obj.put("temperature", temperature);
+            obj.put("temperatureSensing", temperatureSensing);
+            obj.put("humidity", humidity);
 
-            obj.put("setMeasure", power);
-            obj.put("setCost", power);
+            obj.put("setMeasure", setMeasure);
+            obj.put("setCost", setCost);
 
         } catch (JSONException e) {
             e.printStackTrace();

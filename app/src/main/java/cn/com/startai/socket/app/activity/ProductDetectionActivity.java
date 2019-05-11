@@ -228,6 +228,13 @@ public class ProductDetectionActivity extends AppCompatActivity implements IProd
         }
     }
 
+    @Override
+    public void historyQueryResultResult(boolean result) {
+        if(mDbFragment!=null){
+            mDbFragment.historyQueryResultResult(result);
+        }
+    }
+
 
     public void onFragmentInitFinish(DetectionRecyclerAdapter mRecyclerAdapter) {
         if (productDetectionManager != null) {

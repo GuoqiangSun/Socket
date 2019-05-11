@@ -1,13 +1,14 @@
 package cn.com.startai.socket.sign.scm.receivetask.impl.system;
 
+import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
+import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
+import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.baselib.util.Bit;
 import cn.com.swain.baselib.util.MacUtil;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
-import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun
@@ -68,6 +69,12 @@ public class DeviceBindTask extends SocketResponseTask {
                 + " userID:" + userID + " mac:" + mac
                 + " cpuInfo:" + cpuInfo
                 + " " + Integer.toBinaryString(isBindResult & 0xFF));
+
+        if (H5Config.DEFAULT_MAC.equalsIgnoreCase(mac)) {
+            Tlog.e(TAG, " find 00 mac device ");
+            return;
+        }
+
         if (mOnTaskCallBack != null) {
             if (Bit.isOne(isBindResult, 0)) {
                 mOnTaskCallBack.onLanBindResult(result, mLanBindingDevice);

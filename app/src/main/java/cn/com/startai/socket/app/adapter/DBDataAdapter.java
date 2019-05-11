@@ -8,6 +8,8 @@ import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -35,6 +37,18 @@ public class DBDataAdapter extends BaseAdapter {
     public void clearAdd(List<CountElectricity> tList) {
         mList.clear();
         mList.addAll(tList);
+
+        Collections.sort(mList, new Comparator<CountElectricity>() {
+            @Override
+            public int compare(CountElectricity o1, CountElectricity o2) {
+                if (o1.getTimestamp() > o2.getTimestamp()) {
+                    return 1;
+                } else if (o1.getTimestamp() < o2.getTimestamp()) {
+                    return -1;
+                }
+                return 0;
+            }
+        });
         this.notifyDataSetChanged();
     }
 

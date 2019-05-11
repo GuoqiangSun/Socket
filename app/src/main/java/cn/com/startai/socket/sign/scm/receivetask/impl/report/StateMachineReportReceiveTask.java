@@ -85,6 +85,16 @@ public class StateMachineReportReceiveTask extends SocketResponseTask {
         mStateMachine.setMeasure = Bit.isOne(protocolParams[4], 0);
         mStateMachine.setCost = Bit.isOne(protocolParams[4], 1);
 
+        Tlog.e(TAG, " protocolParams[0]:" + Integer.toBinaryString(protocolParams[0])
+                + " protocolParams[0]:" + Integer.toBinaryString(protocolParams[1])
+                + " protocolParams[0]:" + Integer.toBinaryString(protocolParams[2])
+                + " protocolParams[0]:" + Integer.toBinaryString(protocolParams[3])
+                + " protocolParams[0]:" + Integer.toBinaryString(protocolParams[4])
+                + " protocolParams[0]:" + Integer.toBinaryString(protocolParams[5])
+                + " protocolParams[0]:" + Integer.toBinaryString(protocolParams[6])
+                + " protocolParams[0]:" + Integer.toBinaryString(protocolParams[7]));
+
+
         Tlog.e(TAG, " StateMachineQueryReceiveTask mStateMachine:" + mStateMachine);
 
         if (mTaskCallBack != null) {
