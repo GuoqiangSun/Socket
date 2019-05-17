@@ -494,11 +494,9 @@ public class DeviceManager implements IService {
                         || mDevice.hasActivate != mLanDevice.getHasActivate()
                         || mDevice.hasRemote != mLanDevice.getHasRemote()
                         || (mDevice.ssid != null && !mDevice.ssid.equalsIgnoreCase(mLanDevice.getSsid()))
-                        || (mDevice.rssi != mLanDevice.rssi
+                        || (mDevice.rssi != mLanDevice.rssi )
                         || (mDevice.mainVersion != mLanDevice.mainVersion)
-                        || (mDevice.subVersion != mLanDevice.subVersion)
-                )
-                ) {
+                        || (mDevice.subVersion != mLanDevice.subVersion) ) {
 
                     mLanDevice.setBindNeedPwd(mDevice.bindNeedPwd);
                     mLanDevice.setHasActivate(mDevice.hasActivate);

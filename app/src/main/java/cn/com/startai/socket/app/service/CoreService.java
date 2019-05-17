@@ -82,9 +82,11 @@ public class CoreService extends Service {
             mBuilder.setDefaults(Notification.DEFAULT_LIGHTS);
             Notification build = mBuilder.build();
 
-
-            startForeground(NOTIFICATION_ID, build);
-            startService(new Intent(this, CancelNotificationService.class));
+            try {
+                startForeground(NOTIFICATION_ID, build);
+                startService(new Intent(this, CancelNotificationService.class));
+            } catch (Exception e) {
+            }
         }
     }
 

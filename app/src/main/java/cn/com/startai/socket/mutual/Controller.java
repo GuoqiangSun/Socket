@@ -106,6 +106,9 @@ public class Controller implements IService {
 
     public NetworkManager getNetworkManager() {
         AbsHardwareManager hw = getHardwareManager();
+        if (hw == null) {
+            return null;
+        }
         return ((HardwareManager) hw).getNetworkManager();
     }
 

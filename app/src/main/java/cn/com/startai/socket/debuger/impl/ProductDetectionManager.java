@@ -21,6 +21,7 @@ import cn.com.startai.socket.global.LooperManager;
 import cn.com.startai.socket.mutual.Controller;
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.mutual.js.bean.NightLightTiming;
+import cn.com.startai.socket.mutual.protocol.SocketProtocolWrapper;
 import cn.com.startai.socket.sign.js.impl.JsManager;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.impl.SocketScmManager;
@@ -88,8 +89,14 @@ public class ProductDetectionManager implements DetectionRecyclerAdapter.OnClick
     public void onSCreate() {
 
         mSbUtil.append("");
-        Controller.getInstance().getScmManager().regIDebugerProtocolStream(this);
-        Controller.getInstance().getProtocolWrapper().regIDebugerProtocolStream(this);
+        SocketScmManager scmManager = Controller.getInstance().getScmManager();
+        if (scmManager != null) {
+            scmManager.regIDebugerProtocolStream(this);
+        }
+        SocketProtocolWrapper protocolWrapper = Controller.getInstance().getProtocolWrapper();
+        if (protocolWrapper != null) {
+            protocolWrapper.regIDebugerProtocolStream(this);
+        }
 
 
         String connectedAddress = Debuger.getInstance().getProductDevice();
@@ -219,8 +226,14 @@ public class ProductDetectionManager implements DetectionRecyclerAdapter.OnClick
         mSbUtil = null;
         mDatas.clear();
         mDetectionHandler.removeCallbacksAndMessages(null);
-        Controller.getInstance().getScmManager().unregIDebugerProtocolStream(this);
-        Controller.getInstance().getProtocolWrapper().unregIDebugerProtocolStream(this);
+        SocketScmManager scmManager = Controller.getInstance().getScmManager();
+        if (scmManager != null) {
+            scmManager.unregIDebugerProtocolStream(this);
+        }
+        SocketProtocolWrapper protocolWrapper = Controller.getInstance().getProtocolWrapper();
+        if (protocolWrapper != null) {
+            protocolWrapper.unregIDebugerProtocolStream(this);
+        }
 
     }
 

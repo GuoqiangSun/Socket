@@ -32,9 +32,9 @@ public class FileManager extends FileTemplate {
     public void init(Application app) {
         super.init(app);
 
-        String absolutePath = getProjectPath().getAbsolutePath();
+//        String absolutePath = getProjectPath().getAbsolutePath();
 
-        FileUtil.notifySystemToScan(app, absolutePath);
+//        FileUtil.notifySystemToScan(app, absolutePath);
 
 //        MediaScannerConnection.scanFile(app, new String[]{absolutePath}, null, null);
 
@@ -44,9 +44,9 @@ public class FileManager extends FileTemplate {
     public void recreate(Application app) {
         super.init(app);
 
-        String absolutePath = getProjectPath().getAbsolutePath();
+//        String absolutePath = getProjectPath().getAbsolutePath();
 
-        FileUtil.notifySystemToScan(app, absolutePath);
+//        FileUtil.notifySystemToScan(app, absolutePath);
 
         Tlog.i(" FileManager recreate finish ; success:" + exit);
     }

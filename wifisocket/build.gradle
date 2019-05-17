@@ -18,8 +18,8 @@ android {
         applicationId "cn.com.startai.wifisocket"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 16300
-        versionName "1.6.300"
+        versionCode 16302
+        versionName "1.6.302"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
         signingConfig signingConfigs.wifisocket

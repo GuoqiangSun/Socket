@@ -3,18 +3,34 @@ package cn.com.startai.socket.sign.hardware.WiFi.util;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.os.Build;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
 import java.util.UUID;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import cn.com.startai.socket.global.FileManager;
 import cn.com.startai.socket.sign.hardware.WiFi.impl.UserManager;
+import cn.com.startai.socket.sign.hardware.ble.util.DeviceEnablePost;
 import cn.com.swain.baselib.file.FileUtil;
 import cn.com.swain.baselib.log.Tlog;
 
@@ -105,10 +121,31 @@ public class DownloadTask extends AsyncTask<Void, Void, Void> {
         try {
 
             URL downURL = new URL(url);
+
             HttpURLConnection urlConnection = (HttpURLConnection) downURL.openConnection();
 
-            int responseCode = urlConnection.getResponseCode();
+            if (urlConnection instanceof HttpsURLConnection) {
 
+                SSLContext sc;
+
+                if (Build.VERSION.SDK_INT < 22) {
+                    sc = SSLContext.getInstance("TLSv1.2");
+                    sc.init(null, new TrustManager[]{new TrustAnyTrustManager()},
+                            new java.security.SecureRandom());
+                    ((HttpsURLConnection) urlConnection).setSSLSocketFactory(new DeviceEnablePost.Tls12SocketFactory(sc.getSocketFactory()));
+                } else {
+                    sc = SSLContext.getInstance("SSL");
+
+                    sc.init(null, new TrustManager[]{new TrustAnyTrustManager()},
+                            new java.security.SecureRandom());
+                    ((HttpsURLConnection) urlConnection).setSSLSocketFactory(sc.getSocketFactory());
+
+                }
+                ((HttpsURLConnection) urlConnection).setHostnameVerifier(new TrustAnyHostnameVerifier());
+
+            }
+
+            int responseCode = urlConnection.getResponseCode();
             Tlog.v(TAG, "DownloadTask formBitmap responseCode " + responseCode);
 
             if (responseCode == 200) {
@@ -163,7 +200,29 @@ public class DownloadTask extends AsyncTask<Void, Void, Void> {
         try {
 
             URL downURL = new URL(url);
+
             HttpURLConnection urlConnection = (HttpURLConnection) downURL.openConnection();
+
+            if (urlConnection instanceof HttpsURLConnection) {
+
+                SSLContext sc;
+
+                if (Build.VERSION.SDK_INT < 22) {
+                    sc = SSLContext.getInstance("TLSv1.2");
+                    sc.init(null, new TrustManager[]{new TrustAnyTrustManager()},
+                            new java.security.SecureRandom());
+                    ((HttpsURLConnection) urlConnection).setSSLSocketFactory(new DeviceEnablePost.Tls12SocketFactory(sc.getSocketFactory()));
+                } else {
+                    sc = SSLContext.getInstance("SSL");
+
+                    sc.init(null, new TrustManager[]{new TrustAnyTrustManager()},
+                            new java.security.SecureRandom());
+                    ((HttpsURLConnection) urlConnection).setSSLSocketFactory(sc.getSocketFactory());
+
+                }
+                ((HttpsURLConnection) urlConnection).setHostnameVerifier(new TrustAnyHostnameVerifier());
+
+            }
 
             int responseCode = urlConnection.getResponseCode();
 
@@ -216,7 +275,7 @@ public class DownloadTask extends AsyncTask<Void, Void, Void> {
 
             }
 
-        } catch (java.io.IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             Tlog.e(TAG, " DownloadTask IOException ", e);
         } finally {
@@ -234,5 +293,88 @@ public class DownloadTask extends AsyncTask<Void, Void, Void> {
         }
 
     }
+
+
+
+    private static class TrustAnyTrustManager implements X509TrustManager {
+
+
+        @Override
+        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType)
+                throws java.security.cert.CertificateException {
+
+        }
+
+        @Override
+        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType)
+                throws java.security.cert.CertificateException {
+
+        }
+
+        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+            return new java.security.cert.X509Certificate[]{};
+        }
+    }
+
+    private static class TrustAnyHostnameVerifier implements HostnameVerifier {
+        public boolean verify(String hostname, SSLSession session) {
+            return true;
+        }
+    }
+
+
+    public static class Tls12SocketFactory extends SSLSocketFactory {
+        private static final String[] TLS_V12_ONLY = {"TLSv1.2"};
+
+        final SSLSocketFactory delegate;
+
+        public Tls12SocketFactory(SSLSocketFactory base) {
+            this.delegate = base;
+        }
+
+        @Override
+        public String[] getDefaultCipherSuites() {
+            return delegate.getDefaultCipherSuites();
+        }
+
+        @Override
+        public String[] getSupportedCipherSuites() {
+            return delegate.getSupportedCipherSuites();
+        }
+
+        @Override
+        public Socket createSocket(Socket s, String host, int port, boolean autoClose) throws IOException {
+            return patch(delegate.createSocket(s, host, port, autoClose));
+        }
+
+        @Override
+        public Socket createSocket(String host, int port) throws IOException, UnknownHostException {
+            return patch(delegate.createSocket(host, port));
+        }
+
+        @Override
+        public Socket createSocket(String host, int port, InetAddress localHost, int localPort) throws IOException, UnknownHostException {
+            return patch(delegate.createSocket(host, port, localHost, localPort));
+        }
+
+        @Override
+        public Socket createSocket(InetAddress host, int port) throws IOException {
+            return patch(delegate.createSocket(host, port));
+        }
+
+        @Override
+        public Socket createSocket(InetAddress address, int port, InetAddress localAddress, int localPort) throws IOException {
+            return patch(delegate.createSocket(address, port, localAddress, localPort));
+        }
+
+        private Socket patch(Socket s) {
+            if (s instanceof SSLSocket) {
+                ((SSLSocket) s).setEnabledProtocols(TLS_V12_ONLY);
+            }
+            return s;
+        }
+    }
+
+
 
 }

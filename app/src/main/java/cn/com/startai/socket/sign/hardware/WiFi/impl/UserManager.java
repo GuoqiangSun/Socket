@@ -72,6 +72,8 @@ import cn.com.startai.mqttsdk.busi.entity.C_0x8035;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8036;
 import cn.com.startai.mqttsdk.busi.entity.C_0x8037;
 import cn.com.startai.mqttsdk.busi.entity.type.Type;
+import cn.com.startai.mqttsdk.control.AreaConfig;
+import cn.com.startai.mqttsdk.control.entity.AreaLocation;
 import cn.com.startai.mqttsdk.listener.IOnCallListener;
 import cn.com.startai.mqttsdk.localbusi.SUserManager;
 import cn.com.startai.mqttsdk.mqtt.request.MqttPublishRequest;
@@ -726,6 +728,32 @@ public class UserManager implements IService {
                                 });
 
 
+                            } else {
+                                AreaLocation area = AreaConfig.getArea();
+                                C_0x8035.Req.ContentBean req =
+                                        new C_0x8035.Req.ContentBean(
+                                                String.valueOf(area.getLat()),
+                                                String.valueOf(area.getLon()));
+                                Tlog.i(TAG, " AreaConfig.getArea() city:" + area.getCity()
+                                        + " country:" + area.getCountry()
+                                        + " lat:" + area.getLat()
+                                        + " lng:" + area.getLon());
+                                StartAI.getInstance().getBaseBusiManager().getWeatherInfo(req, new IOnCallListener() {
+                                    @Override
+                                    public void onSuccess(MqttPublishRequest request) {
+                                        Tlog.e(TAG, " getWeatherInfo msg send success ");
+                                    }
+
+                                    @Override
+                                    public void onFailed(MqttPublishRequest request, StartaiError startaiError) {
+                                        Tlog.e(TAG, " getWeatherInfo msg send fail " + startaiError.getErrorCode());
+                                        if (mResultCallBack != null) {
+                                            mResultCallBack.onResultMsgSendError(String.valueOf(startaiError.getErrorCode()));
+                                            mResultCallBack = null;
+                                        }
+                                    }
+
+                                });
                             }
 
                         } catch (JSONException e) {
