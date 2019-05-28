@@ -43,7 +43,15 @@ public class SensorStatusQueryReceiveTask extends SocketResponseTask {
 
 //                mTaskCallBack.onReportTempSensorResult(mSocketDataArray.getID(), false);
 
+            } else if (SocketSecureKey.Util.isBleDevice(sensor)) {
+
+                mTaskCallBack.onQueryBleDeviceSensorResult(result, mSocketDataArray.getID(), status);
+
+            } else if (SocketSecureKey.Util.isElectricQuantity(sensor)) {
+
+                mTaskCallBack.onQueryTElectricQuantitySensorResult(result, mSocketDataArray.getID(), status);
             }
+
         }
 
     }

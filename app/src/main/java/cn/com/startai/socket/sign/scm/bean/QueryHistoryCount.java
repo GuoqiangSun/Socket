@@ -136,5 +136,17 @@ public class QueryHistoryCount {
 
     }
 
-
+    @Override
+    public String toString() {
+        return "QueryHistoryCount{" +
+                "complete=" + complete +
+                ", msgSeq=" + msgSeq +
+                ", needQueryFromServer=" + needQueryFromServer +
+                ", mac='" + mac + '\'' +
+                ", startTime='" + startTime + '\'' +
+                ", startTimeMillis=" + startTimeMillis +
+                ", endTime='" + endTime + '\'' +
+                ", interval=" + interval +
+                '}';
+    }
 }

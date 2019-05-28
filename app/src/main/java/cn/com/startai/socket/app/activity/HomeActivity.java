@@ -3,6 +3,7 @@ package cn.com.startai.socket.app.activity;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
@@ -14,6 +15,7 @@ import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AlertDialog;
 import android.view.MotionEvent;
 import android.widget.Toast;
 
@@ -126,10 +128,16 @@ public class HomeActivity extends XWalkWebActivity implements IAndJSCallBack,
 
     }
 
+
     @Override
     protected void onXWalkReady(Bundle savedInstanceState) {
         super.onXWalkReady(savedInstanceState);
         restoreFragment(savedInstanceState);
+        showweb();
+    }
+
+    // show webview
+    private void showweb() {
         if (mFragments.size() > ID_WEB) {
             BaseFragment baseFragment = mFragments.get(ID_WEB);
             ((WebFragment) baseFragment).onXwalReady();
@@ -154,7 +162,10 @@ public class HomeActivity extends XWalkWebActivity implements IAndJSCallBack,
 
         if (!PermissionHelper.isGranted(applicationContext, Manifest.permission.ACCESS_COARSE_LOCATION)
                 || !PermissionHelper.isGranted(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            Tlog.v(TAG, " permissions.add(PermissionGroup.LOCATION) ");
             permissions.add(PermissionGroup.LOCATION); // 开启蓝牙,wifi配网 需要此权限
+        } else {
+            Tlog.v(TAG, " has PermissionGroup.LOCATION ");
         }
 
         if (permissions.size() > 0) {
@@ -166,16 +177,41 @@ public class HomeActivity extends XWalkWebActivity implements IAndJSCallBack,
                 mPermissionRequest = new PermissionRequest(this);
             }
 
-            mPermissionRequest.requestPermissions(() -> Tlog.v(TAG, "HomeActivity onPermissionRequestFinish() "),
-                    (permission, granted) -> {
-                        Tlog.v(TAG, "HomeActivity onPermissionRequestResult permission :" + permission + " granted:" + granted);
-                        if (granted && PermissionGroup.STORAGE.equalsIgnoreCase(permission)) {
-                            FileManager.getInstance().recreate(getApplication());
-                            Debuger.getInstance().reCheckLogRecord(this);
+            mPermissionRequest.requestPermissions(new PermissionRequest.OnPermissionFinish() {
+                @Override
+                public void onAllPermissionRequestFinish() {
+                    Tlog.v(TAG, "HomeActivity onPermissionRequestFinish() ");
+                }
+            }, new PermissionRequest.OnPermissionResult() {
+                @Override
+                public boolean onPermissionRequestResult(String permission, boolean granted) {
+                    Tlog.v(TAG, "HomeActivity onPermissionRequestResult permission :" + permission + " granted:" + granted);
+                    if (granted && PermissionGroup.STORAGE.equalsIgnoreCase(permission)) {
+                        FileManager.getInstance().recreate(getApplication());
+                        Debuger.getInstance().reCheckLogRecord(HomeActivity.this);
+                    } else if (!granted && PermissionGroup.LOCATION.equalsIgnoreCase(permission)) {
+                        if (CustomManager.getInstance().isTriggerBle()) {
+                            alert();
                         }
-                        return true;
-                    }, per);
+                    }
+                    return true;
+                }
+            }, per);
         }
+    }
+
+    private void alert() {
+        AlertDialog.Builder b = new AlertDialog.Builder(HomeActivity.this);
+        b.setTitle(R.string.permission_request_title);
+        b.setMessage(R.string.permission_request);
+        b.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                finish();
+            }
+        });
+        b.setCancelable(false);
+        b.create().show();
     }
 
     private void addGuideFragment(FragmentTransaction fragmentTransaction, Bundle savedInstanceState) {

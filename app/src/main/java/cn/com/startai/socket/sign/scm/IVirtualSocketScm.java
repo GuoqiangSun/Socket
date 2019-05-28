@@ -212,6 +212,8 @@ public interface IVirtualSocketScm {
 
     void queryHistoryCount(QueryHistoryCount mQueryCount);
 
+    void queryNewHistoryCount(QueryHistoryCount mQueryCount);
+
     void queryCostRate(String mac);
 
     void queryCumuParam(String mac);
@@ -273,6 +275,10 @@ public interface IVirtualSocketScm {
     void onJSQueryTotalElectric(SpendingElectricityData obj);
 
     void queryMachineState(String mac);
+
+    void queryElectricQuantity(String mac);
+
+    void queryBleDevice(String mac);
 
     /**
      * author: Guoqiang_Sun
@@ -399,6 +405,10 @@ public interface IVirtualSocketScm {
         void onResultTotalElectricData(SpendingElectricityData obj);
 
         void onResultStateMachine(StateMachine mStateMachine);
+
+        void onResultQueryBleDeviceSensor(boolean result, String id, boolean status);
+
+        void onResultQueryTElectricQuantitySensor(boolean result, String id, boolean status);
     }
 
 

@@ -6,18 +6,26 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothGatt;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.location.LocationManager;
 import android.os.Looper;
+import android.provider.Settings;
+import android.support.v7.app.AlertDialog;
+import android.widget.Toast;
 
 import java.util.List;
 
+import cn.com.startai.socket.R;
 import cn.com.startai.socket.db.gen.DisplayBleDeviceDao;
 import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.LooperManager;
+import cn.com.startai.socket.mutual.Controller;
 import cn.com.startai.socket.mutual.js.bean.DisplayBleDevice;
+import cn.com.startai.socket.mutual.js.impl.AndJsBridge;
 import cn.com.startai.socket.sign.hardware.AbsBle;
 import cn.com.startai.socket.sign.hardware.ble.array.BleArray;
 import cn.com.startai.socket.sign.hardware.ble.array.BleArrayUtils;
@@ -25,6 +33,7 @@ import cn.com.startai.socket.sign.hardware.ble.util.DeviceEnablePost;
 import cn.com.startai.socket.sign.hardware.ble.util.InsertDisplayDeviceDaoUtil;
 import cn.com.startai.socket.sign.hardware.ble.xml.ConBleSp;
 import cn.com.swain.baselib.log.Tlog;
+import cn.com.swain.baselib.permission.PermissionGroup;
 import cn.com.swain.baselib.permission.PermissionHelper;
 import cn.com.swain.baselib.permission.PermissionRequest;
 import cn.com.swain.baselib.util.StrUtil;
@@ -354,7 +363,7 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
                             !Debuger.isBleDebug
                             && CustomManager.getInstance().isTriggerBle()
                             && !mBle.address.startsWith("90:00")
-                    ) {
+            ) {
 
                 if (Debuger.isLogDebug) {
                     Tlog.w(TAG, " ScanBle isTriggerBle " + mBle.address + " not startsWith 90:00");
@@ -447,11 +456,31 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
 
                 if (granted) {
                     scanBle();
+                } else {
+                    alert();
                 }
                 return true;
             }
         }, Manifest.permission.ACCESS_COARSE_LOCATION);
 
+    }
+
+
+    private void alert() {
+        AlertDialog.Builder b = new AlertDialog.Builder(app);
+        b.setTitle(R.string.permission_request_title);
+        b.setMessage(R.string.permission_request);
+        b.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                AndJsBridge andJsBridge = Controller.getInstance().getAndJsBridge();
+                if (andJsBridge != null) {
+                    andJsBridge.onJSFinish();
+                }
+            }
+        });
+        b.setCancelable(false);
+        b.create().show();
     }
 
     private void scanBle() {
@@ -588,6 +617,53 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
             mBmCallJs.onResultIsFirstBinding((displayDevice == null), displayDevice);
         }
 
+    }
+
+    private static final int REUQEST_LOCATION = 0x6598;
+
+    @Override
+    public void enableLocation() {
+        Intent i = new Intent();
+        i.setAction(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+
+        if (mBmCallJs != null) {
+            mBmCallJs.onResultStartActivityForResult(i, REUQEST_LOCATION);
+        }
+
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == REUQEST_LOCATION) {
+
+            LooperManager.getInstance().getWorkHandler().post(new Runnable() {
+                @Override
+                public void run() {
+                    LocationManager locationManager = (LocationManager) app.getSystemService(Context.LOCATION_SERVICE);
+                    boolean providerEnabledGps = locationManager != null && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+                    boolean providerEnabledNet = locationManager != null && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+                    if (mBmCallJs != null) {
+                        mBmCallJs.onResultLocationEnabled(providerEnabledGps || providerEnabledNet);
+                    }
+
+                }
+            });
+
+        }
+
+    }
+
+    @Override
+    public void queryLocationEnabled() {
+        LocationManager locationManager = (LocationManager) app.getSystemService(Context.LOCATION_SERVICE);
+        boolean providerEnabledGps = locationManager != null && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean providerEnabledNet = locationManager != null && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        Tlog.d(TAG, " queryLocationEnabled providerEnabledGps :" + providerEnabledGps + " providerEnabledNet:" + providerEnabledNet);
+        if (mBmCallJs != null) {
+            mBmCallJs.onResultLocationEnabled(providerEnabledGps || providerEnabledNet);
+        }
     }
 
     @Override

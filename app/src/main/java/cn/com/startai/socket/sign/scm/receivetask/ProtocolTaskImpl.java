@@ -16,6 +16,7 @@ import cn.com.startai.socket.sign.scm.receivetask.impl.control.HistoryCountTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.IndicatorStatusControlReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.IndicatorStatusQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.MaxOutputQueryReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.control.NewHistoryCountTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.NightLightQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.NightLightSetReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.RGBQueryReceiveTask;
@@ -319,7 +320,6 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                     case SocketSecureKey.Cmd.CMD_QUERY_TEMP_SENSOR_STATUS_RESPONSE:
                         new SensorStatusQueryReceiveTask(mTaskCallBack).execute(mParam);
                         break;
-
                     case SocketSecureKey.Cmd.CMD_QUERY_ANYNET_FLASH_RESPONSE:
                         new IndicatorStatusQueryReceiveTask(mTaskCallBack).execute(mParam);
                         break;
@@ -328,6 +328,9 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                         break;
                     case SocketSecureKey.Cmd.CMD_QUERY_STATE_MACHINE_RESPONSE:
                         new StateMachineQueryReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_NEW_HISTORY_RESPONSE:
+                        new NewHistoryCountTask(mTaskCallBack).execute(mParam);
                         break;
                     default:
                         new ScmErrorTask(ProtocolCode.ERROR_CODE_RESOLVE_CMD, mTaskCallBack).execute(mParam);

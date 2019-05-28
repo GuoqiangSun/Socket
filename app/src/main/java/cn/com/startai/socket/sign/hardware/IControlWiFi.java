@@ -152,6 +152,9 @@ public interface IControlWiFi {
 
     void bindThird(String type, Activity activity);
 
+    void skipWiFi(Activity act);
+
+
 
     interface IWiFiResultCallBack {
 
@@ -246,6 +249,8 @@ public interface IControlWiFi {
         void onResultThirdLogin(boolean b, String errcode);
 
         void onResultResendEmail(boolean b);
+
+        void onResultSkipWiFi(boolean b);
     }
 
 }

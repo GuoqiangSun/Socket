@@ -24,8 +24,8 @@ android {
         applicationId "cn.com.startai.aritempnb"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 16113
-        versionName "1.6.113"
+        versionCode 16116
+        versionName "1.6.116"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }

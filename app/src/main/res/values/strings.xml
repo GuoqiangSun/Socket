@@ -21,4 +21,7 @@
     <string name="temp_sensor_error_title">Abnormal temperature detection</string>
     <string name="temp_sensor_error">Please make sure temperature sensor is properly plugged on</string>
 
+    <string name="permission_request_title">Permission request</string>
+    <string name="permission_request">You must allow the location permission to use this app. Please go to the settings interface and open the location permission before opening the app.</string>
+
 </resources>

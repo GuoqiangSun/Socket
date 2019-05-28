@@ -413,11 +413,26 @@ public class SocketScmManager extends AbsSocketScm
     }
 
     @Override
+    public void queryNewHistoryCount(QueryHistoryCount mQueryCount) {
+        ResponseData mResponseData = MySocketDataCache.getQueryNewHistoryCount(mQueryCount.mac,
+                new Date(mQueryCount.getStartTimestampFromStr()),
+                new Date(mQueryCount.getEndTimestampFromStr()),
+                (byte) mQueryCount.interval);
+
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryNewHistoryCount " + String.valueOf(mResponseData));
+        }
+        onOutputProtocolData(mResponseData);
+    }
+
+    @Override
     public synchronized void queryHistoryCount(QueryHistoryCount mQueryCount) {
 
         ScmDevice scmDevice = mScmDeviceUtils.getScmDevice(mQueryCount.mac);
         scmDevice.removeQueryHistory();
-
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryHistoryCount " + String.valueOf(mQueryCount));
+        }
         QueryHistoryUtil.queryHistoryCount(mQueryCount, scmDevice);
         if (Debuger.isDebug) {
             testReport(mQueryCount.mac);
@@ -466,6 +481,13 @@ public class SocketScmManager extends AbsSocketScm
 
         }
 
+    }
+
+    @Override
+    public void onQueryNewHistoryCountResult(boolean result, QueryHistoryCount mCount) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onQueryHistoryCountResult(result, mCount);
+        }
     }
 
 
@@ -1204,6 +1226,25 @@ public class SocketScmManager extends AbsSocketScm
         ResponseData mResponseData = MySocketDataCache.getQueryMachineState(mac);
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " queryMachineState  data:" + String.valueOf(mResponseData));
+        }
+        onOutputProtocolData(mResponseData);
+    }
+
+    @Override
+    public void queryElectricQuantity(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getQueryElectricQuantityStatus(mac);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryElectricQuantity  data:" + String.valueOf(mResponseData));
+        }
+        onOutputProtocolData(mResponseData);
+
+    }
+
+    @Override
+    public void queryBleDevice(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getQueryBleDeviceStatus(mac);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryElectricQuantity  data:" + String.valueOf(mResponseData));
         }
         onOutputProtocolData(mResponseData);
     }
@@ -2505,6 +2546,20 @@ public class SocketScmManager extends AbsSocketScm
     public void onStateMachineResult(StateMachine mStateMachine) {
         if (mScmResultCallBack != null) {
             mScmResultCallBack.onResultStateMachine(mStateMachine);
+        }
+    }
+
+    @Override
+    public void onQueryBleDeviceSensorResult(boolean result, String id, boolean status) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onResultQueryBleDeviceSensor(result, id, status);
+        }
+    }
+
+    @Override
+    public void onQueryTElectricQuantitySensorResult(boolean result, String id, boolean status) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onResultQueryTElectricQuantitySensor(result, id, status);
         }
     }
 

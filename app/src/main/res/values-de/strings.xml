@@ -21,5 +21,7 @@
     <string name="temp_sensor_error_title">Die temperatur von anomalie!</string>
     <string name="temp_sensor_error">Bitte sorgen sie dafür, dass die temperatur - sensoren korrekt eingefügt wurde.</string>
 
+    <string name="permission_request_title">Die erlaubnis ersucht</string>
+    <string name="permission_request">Sie müssen es Finden von berechtigungen können MIT dieser app - schnittstelle offen MIT erlaubnis, bitte, dann öffnen sie die app</string>
 
 </resources>

@@ -24,6 +24,7 @@ import cn.com.startai.socket.db.gen.PowerCountdownDao;
 import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.global.FileManager;
 import cn.com.startai.socket.global.LooperManager;
+import cn.com.startai.socket.mutual.Controller;
 import cn.com.startai.socket.mutual.js.AbsAndJsBridge;
 import cn.com.startai.socket.mutual.js.IAndJSCallBack;
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
@@ -42,6 +43,8 @@ import cn.com.startai.socket.mutual.js.bean.WiFiConfig;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.DisplayDeviceList;
 import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
 import cn.com.startai.socket.mutual.js.xml.LocalData;
+import cn.com.startai.socket.sign.hardware.WiFi.impl.DeviceManager;
+import cn.com.startai.socket.sign.hardware.WiFi.impl.NetworkManager;
 import cn.com.startai.socket.sign.hardware.WiFi.util.DownloadTask;
 import cn.com.startai.socket.sign.js.jsInterface.Add;
 import cn.com.startai.socket.sign.js.jsInterface.ColourLamp;
@@ -653,6 +656,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
             mHardwareManager.controlWiFiDevice(obj);
         }
 
+//        onResultWiFiDeviceConnected(true, obj);
+
     }
 
 
@@ -944,8 +949,26 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onJSQueryHistoryCount(QueryHistoryCount mQueryCount) {
+        NetworkManager networkManager = Controller.getInstance().getNetworkManager();
+        boolean newDevice = true;
+        if (networkManager != null) {
+            DeviceManager deviceManager = networkManager.getDeviceManager();
+            if (deviceManager != null) {
+                DisplayDeviceList displayDeviceLst = deviceManager.getDisplayDeviceLst();
+                if (displayDeviceLst != null) {
+                    LanDeviceInfo displayDeviceByMac = displayDeviceLst.getDisplayDeviceByMac(mQueryCount.mac);
+                    if (displayDeviceByMac != null) {
+                        newDevice = displayDeviceByMac.getVersion() > 0x0605;
+                    }
+                }
+            }
+        }
         if (mScmVirtual != null) {
-            mScmVirtual.queryHistoryCount(mQueryCount);
+            if (newDevice) {
+                mScmVirtual.queryNewHistoryCount(mQueryCount);
+            } else {
+                mScmVirtual.queryHistoryCount(mQueryCount);
+            }
         }
     }
 
@@ -1262,8 +1285,29 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onJSQueryMachineState(String mac) {
-        if(mScmVirtual!=null){
+        if (mScmVirtual != null) {
             mScmVirtual.queryMachineState(mac);
+        }
+    }
+
+    @Override
+    public void onJSQueryElectricQuantity(String mac) {
+        if (mScmVirtual != null) {
+            mScmVirtual.queryElectricQuantity(mac);
+        }
+    }
+
+    @Override
+    public void onJSQueryBleDevice(String mac) {
+        if (mScmVirtual != null) {
+            mScmVirtual.queryBleDevice(mac);
+        }
+    }
+
+    @Override
+    public void onJSSkipWiFi() {
+        if (mHardwareManager != null) {
+            mHardwareManager.skipWiFi(getActivity());
         }
     }
 
@@ -1277,6 +1321,18 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onResultStateMachine(StateMachine mStateMachine) {
         String method = State.Method.callJsStateMachine(mStateMachine.mac, mStateMachine.toJsonStr());
+        loadJs(method);
+    }
+
+    @Override
+    public void onResultQueryBleDeviceSensor(boolean result, String id, boolean status) {
+        String method = TemperatureAndHumidity.Method.callJsBleSensorState(id, status);
+        loadJs(method);
+    }
+
+    @Override
+    public void onResultQueryTElectricQuantitySensor(boolean result, String id, boolean status) {
+        String method = TemperatureAndHumidity.Method.callJsPowerSensorState(id, status);
         loadJs(method);
     }
 
@@ -1864,6 +1920,12 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
+    public void onResultSkipWiFi(boolean b) {
+        String method = User.Method.callJsSkipWiFiResult(b);
+        loadJs(method);
+    }
+
+    @Override
     public void onResultUnbindWX(boolean b) {
         String method = User.Method.callJsUnbindWXResult(b);
         loadJs(method);
@@ -2209,10 +2271,6 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onResultUpdateVersion(boolean result, UpdateVersion mVersion) {
 
-        if (mHardwareManager != null) {
-            mHardwareManager.onDeviceUpdateResult(result, mVersion);
-        }
-
         if (mVersion.isQueryVersionAction()) {
             String method = Version.Method.callJsScmVersion(mVersion.mac,
                     mVersion.newVersion > mVersion.curVersion,
@@ -2233,6 +2291,10 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
             String method = Version.Method.callJsScmUpdate(mVersion.mac, nameByMac
                     , result);
             loadJs(method);
+        }
+
+        if (mHardwareManager != null) {
+            mHardwareManager.onDeviceUpdateResult(result, mVersion);
         }
 
     }

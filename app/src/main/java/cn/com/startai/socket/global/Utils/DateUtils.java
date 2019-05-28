@@ -302,6 +302,35 @@ public class DateUtils {
 
 
     public static void main(String[] args) {
+        long startTimeL = 1549814400000L;
+
+
+        SimpleDateFormat mFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
+
+        String startTime = mFormat.format(startTimeL);
+        System.out.println("startTime:" + startTime);
+
+        long startTimestamp = 0L;
+
+        try {
+
+            Date date = mFormat.parse(startTime);
+            String format = mFormat.format(date);
+
+            System.out.println("format:" + format);
+
+
+            startTimestamp = date.getTime();
+        } catch (ParseException e) {
+            e.printStackTrace();
+
+        }
+
+        System.out.println("startTimestamp:" + startTimestamp);
+
+    }
+
+    public static void mainTest() {
         System.out.println(" DateUtils main ");
 
         SimpleDateFormat mFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS", Locale.getDefault());

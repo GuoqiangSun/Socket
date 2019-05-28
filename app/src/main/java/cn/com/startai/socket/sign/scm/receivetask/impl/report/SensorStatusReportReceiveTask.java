@@ -40,6 +40,13 @@ public class SensorStatusReportReceiveTask extends SocketResponseTask {
         if (mTaskCallBack != null) {
             if (SocketSecureKey.Util.isTempSensor(sensor)) {
                 mTaskCallBack.onReportTempSensorResult(mSocketDataArray.getID(), status);
+            }else if (SocketSecureKey.Util.isBleDevice(sensor)) {
+
+                mTaskCallBack.onQueryBleDeviceSensorResult(true, mSocketDataArray.getID(), status);
+
+            } else if (SocketSecureKey.Util.isElectricQuantity(sensor)) {
+
+                mTaskCallBack.onQueryTElectricQuantitySensorResult(true, mSocketDataArray.getID(), status);
             }
         }
 

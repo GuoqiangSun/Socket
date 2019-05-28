@@ -117,6 +117,9 @@ public class HardwareManager extends AbsHardwareManager {
         if (mNetworkManager != null) {
             mNetworkManager.onActivityResult(requestCode, resultCode, data);
         }
+        if (mBleManager != null) {
+            mBleManager.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
     @Override
@@ -607,12 +610,18 @@ public class HardwareManager extends AbsHardwareManager {
         if (mNetworkManager != null) {
             mNetworkManager.queryLocationEnabled();
         }
+        if (mBleManager != null) {
+            mBleManager.queryLocationEnabled();
+        }
     }
 
     @Override
     public void enableLocation() {
         if (mNetworkManager != null) {
             mNetworkManager.enableLocation();
+        }
+        if (mBleManager != null) {
+            mBleManager.enableLocation();
         }
     }
 
@@ -668,7 +677,14 @@ public class HardwareManager extends AbsHardwareManager {
     @Override
     public void bindThird(String type, Activity activity) {
         if (mNetworkManager != null) {
-            mNetworkManager.bindThird(type,activity);
+            mNetworkManager.bindThird(type, activity);
+        }
+    }
+
+    @Override
+    public void skipWiFi(Activity act) {
+        if (mNetworkManager != null) {
+            mNetworkManager.skipWiFi(act);
         }
     }
 

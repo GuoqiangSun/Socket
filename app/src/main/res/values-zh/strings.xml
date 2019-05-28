@@ -21,4 +21,7 @@
     <string name="temp_sensor_error_title">温度检测异常！</string>
     <string name="temp_sensor_error">请确保温度传感器已正确插入！</string>
 
+    <string name="permission_request_title">权限请求</string>
+    <string name="permission_request">你必须允许定位权限可以使用此app,请到设置界面打开定位权限后再打开app!</string>
+
 </resources>

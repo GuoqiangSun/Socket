@@ -38,6 +38,10 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
         void onJSTHQueryTemperatureTimingAlarm(String obj, int model);
 
         void onJSQueryTemperatureSensor(String mac);
+
+        void onJSQueryElectricQuantity(String mac);
+
+        void onJSQueryBleDevice(String mac);
     }
 
     public static final class Method {
@@ -62,6 +66,26 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
                     .replace("$state", String.valueOf(state));
         }
 
+
+        private static final String METHOD_BLE_SENSOR_STATE
+                = "javascript:temperatureSensorStateResponse('$mac',$state)";
+
+        public static final String callJsBleSensorState(String mac, boolean state) {
+            if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
+            return METHOD_BLE_SENSOR_STATE.replace("$mac", mac)
+                    .replace("$state", String.valueOf(state));
+        }
+
+
+
+        private static final String METHOD_POWER_SENSOR_STATE
+                = "javascript:temperatureSensorPowerStateResponse('$mac',$state)";
+
+        public static final String callJsPowerSensorState(String mac, boolean state) {
+            if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
+            return METHOD_POWER_SENSOR_STATE.replace("$mac", mac)
+                    .replace("$state", String.valueOf(state));
+        }
 
 
 
@@ -180,6 +204,18 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
 
     }
 
+    @JavascriptInterface
+    public void temperatureSensorPowerStateRequest(String mac) {
+        Tlog.v(TAG, " temperatureSensorPowerStateRequest mac:" + mac);
+        getHandler().obtainMessage(MSG_QUERY_ELECTRIC_QUANTITY, mac).sendToTarget();
+    }
+
+    @JavascriptInterface
+    public void temperatureSensorBlueStateRequest(String mac) {
+        Tlog.v(TAG, " temperatureSensorBlueStateRequest mac:" + mac);
+        getHandler().obtainMessage(MSG_QUERY_BLE_DEVICE, mac).sendToTarget();
+    }
+
     /**
      * 设置告警湿度值请求
      */
@@ -258,6 +294,9 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
 
     private static final int MSG_QUERY_TEMP_SENSOR = 0x14;
 
+    private static final int MSG_QUERY_ELECTRIC_QUANTITY = 0x15;
+    private static final int MSG_QUERY_BLE_DEVICE = 0x16;
+
     @Override
     protected void handleMessage(Message msg) {
 
@@ -285,6 +324,14 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
         } else if (msg.what == MSG_QUERY_TEMP_SENSOR) {
             if (mCallBack != null) {
                 mCallBack.onJSQueryTemperatureSensor((String) msg.obj);
+            }
+        } else if (msg.what == MSG_QUERY_ELECTRIC_QUANTITY) {
+            if (mCallBack != null) {
+                mCallBack.onJSQueryElectricQuantity((String) msg.obj);
+            }
+        } else if (msg.what == MSG_QUERY_BLE_DEVICE) {
+            if (mCallBack != null) {
+                mCallBack.onJSQueryBleDevice((String) msg.obj);
             }
         }
 

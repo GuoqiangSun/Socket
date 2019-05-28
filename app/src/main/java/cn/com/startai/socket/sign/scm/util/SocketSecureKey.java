@@ -317,6 +317,12 @@ public class SocketSecureKey {
         public static final byte CMD_QUERY_STATE_MACHINE = 0x3F;
         public static final byte CMD_QUERY_STATE_MACHINE_RESPONSE = 0x40;
 
+        /**
+         * 查询历史数据
+         */
+        public static final byte CMD_NEW_HISTORY = 0x41;
+        public static final byte CMD_NEW_HISTORY_RESPONSE = 0x42;
+
 
         /**********report0x03**************/
 
@@ -606,9 +612,25 @@ public class SocketSecureKey {
          */
         public static final byte MODEL_TEMP_SENSOR = 0x01;
 
+        /**
+         * 电量
+         */
+        public static final byte MODEL_ELECTRIC_QUANTITY = 0x02;
+        /**
+         * ble设备
+         */
+        public static final byte MODEL_BLE_DEVICE = 0x03;
     }
 
     public static class Util {
+
+        public static boolean isElectricQuantity(byte sensor) {
+            return sensor == Model.MODEL_ELECTRIC_QUANTITY;
+        }
+
+        public static boolean isBleDevice(byte sensor) {
+            return sensor == Model.MODEL_BLE_DEVICE;
+        }
 
         public static boolean isTempSensor(byte sensor) {
             return sensor == Model.MODEL_TEMP_SENSOR;

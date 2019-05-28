@@ -65,6 +65,7 @@ public class DeviceManager implements IService {
 
     private static final int MAG_WHAT_FLUSH_DISPLAY_DEVICE = 0x02;
 
+
     private static final int MAG_WHAT_WIFI_CONFIG_SUCCESS = 0x03;
 
     private static final int MAG_WHAT_AUTO_BIND = 0x04;
@@ -74,6 +75,8 @@ public class DeviceManager implements IService {
     private static final int MAG_WHAT_FLUSH_ONE_DEVICE = 0x06;
 
     private static final int MAG_WHAT_QUERY_HISTORY = 0x07;
+
+    private static final int MAG_WHAT_AUTO_CON_DEVICE = 0x08;
 
     private Handler mDisplayHandler;
 
@@ -85,12 +88,17 @@ public class DeviceManager implements IService {
                 super.handleMessage(msg);
 
                 if (msg.what == MAG_WHAT_DISPLAY_BIND_DEVICE) {
+
                     String id = (String) msg.obj;
                     displayBindDeviceLst(id);
+
                 } else if (msg.what == MAG_WHAT_FLUSH_DISPLAY_DEVICE) {
+
                     String id = (String) msg.obj;
                     flushDevice(id, null);
+
                 } else if (msg.what == MAG_WHAT_WIFI_CONFIG_SUCCESS) {
+
                     String mac = (String) msg.obj;
 
                     if (mac == null) {
@@ -139,13 +147,17 @@ public class DeviceManager implements IService {
                     }
 
                 } else if (msg.what == MAG_WHAT_SHAKE) {
+
                     String id = (String) msg.obj;
                     shakeSwitchNight(id);
 
                 } else if (msg.what == MAG_WHAT_FLUSH_ONE_DEVICE) {
+
                     String mac = (String) msg.obj;
                     flushDevice(null, mac);
+
                 } else if (msg.what == MAG_WHAT_QUERY_HISTORY) {
+
                     boolean mHasQueryHistory = hasQueryHistory;
                     hasQueryHistory = true;
                     String mobj = (String) msg.obj;
@@ -159,6 +171,8 @@ public class DeviceManager implements IService {
                         Message messageH = mDisplayHandler.obtainMessage(MAG_WHAT_QUERY_HISTORY, mobj);
                         mDisplayHandler.sendMessageDelayed(messageH, DELAY_QUERY_HISTORY);
                     }
+                } else if (msg.what == MAG_WHAT_AUTO_CON_DEVICE) {
+//                    autoConDevice();
                 }
             }
         };
@@ -494,9 +508,9 @@ public class DeviceManager implements IService {
                         || mDevice.hasActivate != mLanDevice.getHasActivate()
                         || mDevice.hasRemote != mLanDevice.getHasRemote()
                         || (mDevice.ssid != null && !mDevice.ssid.equalsIgnoreCase(mLanDevice.getSsid()))
-                        || (mDevice.rssi != mLanDevice.rssi )
+                        || (mDevice.rssi != mLanDevice.rssi)
                         || (mDevice.mainVersion != mLanDevice.mainVersion)
-                        || (mDevice.subVersion != mLanDevice.subVersion) ) {
+                        || (mDevice.subVersion != mLanDevice.subVersion)) {
 
                     mLanDevice.setBindNeedPwd(mDevice.bindNeedPwd);
                     mLanDevice.setHasActivate(mDevice.hasActivate);
@@ -1129,6 +1143,11 @@ public class DeviceManager implements IService {
             mResultCallBack.onResultWiFiDeviceListDisplay(mLst);
         }
 
+        NetworkManager networkManager = Controller.getInstance().getNetworkManager();
+        if (networkManager != null) {
+            networkManager.controlWiFiDevice(mLanDeviceInfo);
+        }
+
         // 不需要回调给js了,局域网绑定成功已经回调过了。
 
 //        if (mResultCallBack != null) {
@@ -1236,6 +1255,10 @@ public class DeviceManager implements IService {
 
     private final DisplayDeviceList mDisplayDeviceLst = new DisplayDeviceList();
 
+    public DisplayDeviceList getDisplayDeviceLst() {
+        return mDisplayDeviceLst;
+    }
+
 
     private void shakeSwitchNight(String mid) {
         Tlog.v(TAG, "flushDevice() " + mid);
@@ -1314,7 +1337,7 @@ public class DeviceManager implements IService {
 
     }
 
-    private static final long DELAY_QUERY_HISTORY = 1000 *  30; // 延迟三分钟
+    private static final long DELAY_QUERY_HISTORY = 1000 * 60 * 3; // 延迟三分钟
 
     private void queryHistory(String mid) {
 
@@ -1436,6 +1459,18 @@ public class DeviceManager implements IService {
             }
 
 
+        }
+    }
+
+    private void autoConDevice() {
+        Tlog.v(TAG, "autoConDevice()  ");
+        Map<String, LanDeviceInfo> displayMacArray = mDisplayDeviceLst.getDisplayMacArray();
+        NetworkManager networkManager = Controller.getInstance().getNetworkManager();
+        for (Map.Entry<String, LanDeviceInfo> entries : displayMacArray.entrySet()) {
+            LanDeviceInfo value = entries.getValue();
+            if (networkManager != null) {
+                networkManager.controlWiFiDevice(value);
+            }
         }
     }
 
@@ -1652,6 +1687,13 @@ public class DeviceManager implements IService {
         }
 
         if (mDisplayHandler != null) {
+
+            if (mDisplayHandler.hasMessages(MAG_WHAT_AUTO_CON_DEVICE)) {
+                mDisplayHandler.removeMessages(MAG_WHAT_AUTO_CON_DEVICE);
+            }
+            mDisplayHandler.sendEmptyMessageDelayed(MAG_WHAT_AUTO_CON_DEVICE, 1000 * 2);
+
+
             if (mDisplayHandler.hasMessages(MAG_WHAT_FLUSH_DISPLAY_DEVICE)) {
                 mDisplayHandler.removeMessages(MAG_WHAT_FLUSH_DISPLAY_DEVICE);
             }

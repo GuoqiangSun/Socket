@@ -310,6 +310,13 @@ public abstract class AbsJsManager implements Device.IJSDeviceCallBack,//
         void onJSBindThird(String type);
 
         void onJSQueryMachineState(String mac);
+
+        void onJSQueryElectricQuantity(String mac);
+
+        void onJSQueryBleDevice(String mac);
+
+        void onJSSkipWiFi();
+
     }
 
 }

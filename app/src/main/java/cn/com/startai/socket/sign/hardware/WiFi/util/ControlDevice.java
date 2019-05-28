@@ -66,6 +66,7 @@ public class ControlDevice {
             Tlog.e(TAG, " handleMessage wait device response connected time out " + mac);
             if (mResultCallBack != null) {
                 hasCallJsCon = true;
+                // 做了自动连接，不在这里回调js
                 mResultCallBack.onResultWiFiDeviceConnected(true, lanDeviceInfo);
             }
         }
@@ -143,7 +144,8 @@ public class ControlDevice {
     }
 
     public void controlWiFiDevice(int token, String loginUserID, boolean lanDiscovery) {
-        Tlog.d(TAG, " controlWiFiDevice() token " + token + " userID:" + loginUserID + " lanDiscovery:" + lanDiscovery + " isWanBind" + lanDeviceInfo.getIsWanBind());
+        Tlog.d(TAG, " controlWiFiDevice() token " + token + " userID:" + loginUserID
+                + " lanDiscovery:" + lanDiscovery + " isWanBind:" + lanDeviceInfo.getIsWanBind());
 
         hasCallJsCon = false;
 
@@ -163,7 +165,9 @@ public class ControlDevice {
     }
 
     public void recontrolWiFiDevice(int token, String loginUserID, boolean lanDiscovery) {
-        Tlog.d(TAG, " recontrolWiFiDevice() token " + token + " userID:" + loginUserID + " lanDiscovery:" + lanDiscovery + " isWanBind" + lanDeviceInfo.getIsWanBind());
+        Tlog.d(TAG, " recontrolWiFiDevice() token " + token
+                + " userID:" + loginUserID + " lanDiscovery:" + lanDiscovery
+                + " isWanBind:" + lanDeviceInfo.getIsWanBind() + " canLanCom:" + canLanCom);
 
         hasCallJsCon = false;
 
@@ -247,6 +251,7 @@ public class ControlDevice {
             if (mResultCallBack != null) {
                 mResultCallBack.onResultNeedRequestToken(mac, loginUserID);
             }
+
 
         } else {
             Tlog.e(TAG, " checkComModel() canControlDevice token " + Integer.toHexString(token));

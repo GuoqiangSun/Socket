@@ -191,6 +191,10 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
     private final UserManager mUserManager;
     private final DeviceManager mDeviceManager;
 
+    public DeviceManager getDeviceManager() {
+        return mDeviceManager;
+    }
+
     public NetworkManager(Application app) {
         this.app = app;
         this.mUserManager = new UserManager(app);
@@ -716,6 +720,11 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
         mUserManager.thirdBind(type, activity);
     }
 
+    @Override
+    public void skipWiFi(Activity act) {
+        mUserManager.skipWiFi(act);
+    }
+
 
     @Override
     public void scanQRCode(Activity act) {
@@ -1045,6 +1054,7 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
 
     @Override
     public void receiveHeartbeat(String mac, boolean result) {
+        Tlog.e(TAG, " receiveHeartbeat  mac :" + mac + " result:" + result);
         ControlDevice controlDevice = mControlDeviceUtil.get(mac);
         if (controlDevice != null) {
 

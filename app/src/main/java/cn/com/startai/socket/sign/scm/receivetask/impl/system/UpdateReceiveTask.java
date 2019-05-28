@@ -3,9 +3,9 @@ package cn.com.startai.socket.sign.scm.receivetask.impl.system;
 import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
+import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun
@@ -42,8 +42,14 @@ public class UpdateReceiveTask extends SocketResponseTask {
         mVersion.curVersionMain = protocolParams[2];
         mVersion.curVersionSub = protocolParams[3];
 
+        Tlog.e(TAG, " UpdateReceiveTask curVersionMain:" + mVersion.curVersionMain
+                + "   mVersion.curVersionSub:" + mVersion.curVersionSub);
+
         mVersion.newVersionMain = protocolParams[4];
         mVersion.newVersionSub = protocolParams[5];
+
+        Tlog.e(TAG, " UpdateReceiveTask newVersionMain:" + mVersion.newVersionMain
+                + "   mVersion.newVersionSub:" + mVersion.newVersionSub);
 
         mVersion.curVersion = ((protocolParams[2] & 0xFF) << 8 | (protocolParams[3] & 0xFF));
         mVersion.newVersion = ((protocolParams[4] & 0xFF) << 8 | (protocolParams[5] & 0xFF));

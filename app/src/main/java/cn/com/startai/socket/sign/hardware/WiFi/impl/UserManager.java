@@ -574,6 +574,22 @@ public class UserManager implements IService {
     }
 
 
+    public void skipWiFi(Activity act) {
+
+        try {
+            act.startActivity(new Intent(android.provider.Settings.ACTION_WIFI_SETTINGS));
+        } catch (Exception e) {
+            try {
+                act.startActivity(new Intent(Settings.ACTION_SETTINGS));
+            } catch (Exception ee) {
+
+            }
+        }
+        if (mResultCallBack != null) {
+            mResultCallBack.onResultSkipWiFi(true);
+        }
+    }
+
     public void thirdBind(String type, Activity act) {
 
         if (act == null) {

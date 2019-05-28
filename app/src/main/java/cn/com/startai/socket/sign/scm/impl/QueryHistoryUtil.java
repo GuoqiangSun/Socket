@@ -26,7 +26,8 @@ import cn.com.swain.support.protocolEngine.pack.ResponseData;
  */
 public class QueryHistoryUtil {
 
-    private static String TAG = SocketScmManager.TAG;
+    //    private static String TAG = SocketScmManager.TAG;
+    private static String TAG = "abc";
 
     public static synchronized void queryHistoryCount(QueryHistoryCount mQueryCount,
                                                       ScmDevice scmDevice) {
@@ -96,6 +97,7 @@ public class QueryHistoryUtil {
             }
         }
 
+        final long oldStartTimestamp = startTimestamp;
 
         if (SocketSecureKey.Util.isIntervalMonth((byte) mQueryCount.interval)
                 || SocketSecureKey.Util.isIntervalWeek((byte) mQueryCount.interval)) {
@@ -110,9 +112,11 @@ public class QueryHistoryUtil {
                     int month = DateUtils.getMonth(System.currentTimeMillis());
 
                     if (DateUtils.getMonth(startTimestamp) == month) {
-
+//                        if (oldStartTimestamp != startTimestamp) {
+//                            startTimestamp = DateUtils.getLastMonth(startTimestamp);
+//                        }
                         Tlog.e(TAG, " queryBlobDataHistoryCount from db but curMonth=endMonth curTime:"
-                                + dateFormat.format(new Date(System.currentTimeMillis())));
+                                + dateFormat.format(System.currentTimeMillis()) + " startTimestamp:" + dateFormat.format(startTimestamp));
 
                         break;
                     }
@@ -121,8 +125,11 @@ public class QueryHistoryUtil {
 
                     if (startTimestamp >= (System.currentTimeMillis() - DateUtils.ONE_DAY * 7)) {
 
+                        if (oldStartTimestamp != startTimestamp) {
+                            startTimestamp -= DateUtils.ONE_DAY * 6;
+                        }
                         Tlog.e(TAG, " queryBlobDataHistoryCount from db but startTimestamp>=(curMillis-7) curTime:"
-                                + dateFormat.format(new Date(System.currentTimeMillis())));
+                                + dateFormat.format(System.currentTimeMillis()) + " startTimestamp:" + dateFormat.format(startTimestamp));
 
                         break;
 
@@ -141,10 +148,15 @@ public class QueryHistoryUtil {
                 }
 
                 if (countAverageElectricity == null) {
-                    startTimestamp = DateUtils.getLastMonth(startTimestamp);
+                    if (oldStartTimestamp != startTimestamp) {
+                        if (SocketSecureKey.Util.isIntervalMonth((byte) mQueryCount.interval)) {
+//                            startTimestamp = DateUtils.getLastMonth(startTimestamp); // 不要加，出错
+                        } else if (SocketSecureKey.Util.isIntervalWeek((byte) mQueryCount.interval)) {
+                            startTimestamp -= DateUtils.ONE_DAY * 6;
+                        }
+                    }
                     Tlog.e(TAG, " queryBlobDataHistoryCount from db but countAverageElectricity=null "
                             + dateFormat.format(new Date(startTimestamp)));
-
 
                     break;
                 }
@@ -200,10 +212,19 @@ public class QueryHistoryUtil {
 
         }
 
-        int lastMonth = DateUtils.getMonth(startTimestamp);
-        int lastYear = DateUtils.getYear(startTimestamp);
+        int lastMonth = DateUtils.getMonth(startTimestamp) - 1;
+        int lastYear = DateUtils.getYear(startTimestamp) - 1;
+
+        // 下一天的月份
+        int nextDayMonth = DateUtils.getMonth(startTimestamp + DateUtils.ONE_DAY);
+        // 下一天的年份
+        int nextDayYear = DateUtils.getYear(startTimestamp + DateUtils.ONE_DAY);
 
         while (startTimestamp < endTimestamp) { // 一天
+            if (SocketSecureKey.Util.isIntervalMonth((byte) mQueryCount.interval)) {
+                nextDayMonth = DateUtils.getMonth(startTimestamp + DateUtils.ONE_DAY); // 下一天的月份
+                nextDayYear = DateUtils.getYear(startTimestamp + DateUtils.ONE_DAY);
+            }
 
             if (Debuger.isLogDebug) {
                 Tlog.v(TAG, " queryHistoryCount startTime: "
@@ -276,6 +297,7 @@ public class QueryHistoryUtil {
 
             }
 
+            // 天
             for (int j = 0; j < CountElectricity.SIZE_ONE_DAY; j++) {
 
                 try {
@@ -322,6 +344,7 @@ public class QueryHistoryUtil {
                     boolean theEndMonth = (startTimestamp == endTimestamp - DateUtils.ONE_DAY);
 
                     if ((month - lastMonth == 1 || year - lastYear == 1 || theEndMonth)
+                            && (nextDayMonth - month == 1 || nextDayYear - year == 1 || theEndMonth)
                             && (j == CountElectricity.SIZE_ONE_DAY - 1)) {
 
                         Tlog.v(TAG, " startYear:" + DateUtils.getYear(startTimestamp)
@@ -332,6 +355,7 @@ public class QueryHistoryUtil {
                         int daysOfMonth = DateUtils.getDaysOfMonth(lastYear, lastMonth);
 
                         lastMonth = month;
+                        lastYear = year;
 
                         // 一个月一次的平均数据
                         mData = new QueryHistoryCount.Data();
@@ -419,6 +443,8 @@ public class QueryHistoryUtil {
 //                                / countNumber / CountElectricity.SIZE_ONE_DAY;
                         mCount.mDataArray.add(mData);
                         mCount.day++;
+
+                        Tlog.v(TAG, " queryBlobDataHistoryCount Count DB  add e:" + mData.e + " add s" + mData.s);
 
                         boolean lastWeek = startTimestamp < (endTimestamp - DateUtils.ONE_DAY * 8);
 

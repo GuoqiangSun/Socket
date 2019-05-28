@@ -111,6 +111,11 @@ public class User extends AbsHandlerJsInterface {
             return METHOD_BIND_PHONE_RESULT.replace("$result", String.valueOf(result));
         }
 
+        private static final String METHOD_SKIP_WIFI_RESULT = "javascript:settingWifiResponse($result)";
+
+        public static String callJsSkipWiFiResult(boolean result) {
+            return METHOD_SKIP_WIFI_RESULT.replace("$result", String.valueOf(result));
+        }
     }
 
     public interface IJSUserCallBack {
@@ -148,6 +153,8 @@ public class User extends AbsHandlerJsInterface {
         void onJSCallPhone(String phone);
 
         void onJSBindThird(String type);
+
+        void onJSSkipWiFi();
     }
 
     public static final String NAME_JSI = "User";
@@ -220,6 +227,13 @@ public class User extends AbsHandlerJsInterface {
         Tlog.v(TAG, " userInformationRequest ");
         getHandler().sendEmptyMessage(MSG_QUERY_INFORMATION);
     }
+
+    @JavascriptInterface
+    public void settingWifiRequest() {
+        Tlog.v(TAG, " settingWifiRequest ");
+        getHandler().sendEmptyMessage(MSG_SKIP_WIFI);
+    }
+
 
     @JavascriptInterface
     public void versionNumberRequest() {
@@ -301,6 +315,8 @@ public class User extends AbsHandlerJsInterface {
     private static final int MSG_MAKE_PHONE = 0x12;
 
     private static final int MSG_BIND_THIRD = 0x13;
+
+    private static final int MSG_SKIP_WIFI = 0x14;
 
     @Override
     protected void handleMessage(Message msg) {
@@ -419,6 +435,11 @@ public class User extends AbsHandlerJsInterface {
             case MSG_BIND_THIRD:
                 if (mCallBack != null) {
                     mCallBack.onJSBindThird((String) msg.obj);
+                }
+                break;
+            case MSG_SKIP_WIFI:
+                if (mCallBack != null) {
+                    mCallBack.onJSSkipWiFi();
                 }
                 break;
         }

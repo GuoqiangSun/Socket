@@ -501,14 +501,26 @@ public class MySocketDataCache implements IService {
         return newResponseDataRecord(mac, mSecureDataPack);
     }
 
-    public static ResponseData getQueryTempSensorStatus(String mac) {
+    public static ResponseData getQuerySensorStatus(String mac, byte model) {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
         mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_TEMP_SENSOR_STATUS);
         final byte[] params = new byte[1];
-        params[0] = SocketSecureKey.Model.MODEL_TEMP_SENSOR;
+        params[0] = model;
         mSecureDataPack.setParams(params);
         return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getQueryBleDeviceStatus(String mac) {
+        return getQuerySensorStatus(mac, SocketSecureKey.Model.MODEL_BLE_DEVICE);
+    }
+
+    public static ResponseData getQueryElectricQuantityStatus(String mac) {
+        return getQuerySensorStatus(mac, SocketSecureKey.Model.MODEL_ELECTRIC_QUANTITY);
+    }
+
+    public static ResponseData getQueryTempSensorStatus(String mac) {
+        return getQuerySensorStatus(mac, SocketSecureKey.Model.MODEL_TEMP_SENSOR);
     }
 
     public static ResponseData getQueryAllIndicatorState(String mac) {
@@ -528,7 +540,7 @@ public class MySocketDataCache implements IService {
         return newResponseDataRecord(mac, mSecureDataPack);
     }
 
-    public static ResponseData getTrunAllIndicatorState(String mac,boolean state) {
+    public static ResponseData getTrunAllIndicatorState(String mac, boolean state) {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
         mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_CONTROL_ANYNET_FLASH);
@@ -1230,7 +1242,35 @@ public class MySocketDataCache implements IService {
     }
 
 
+    public static ResponseData getQueryNewHistoryCount(String mac, Date mStart, Date mEnd, byte interval) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_NEW_HISTORY);
+
+        byte[] params = new byte[7];
+        params[0] = (byte) (mStart.getYear() + 1900 - 2000);
+        params[1] = (byte) (mStart.getMonth() + 1);
+        params[2] = (byte) mStart.getDate();
+
+        params[3] = (byte) (mEnd.getYear() + 1900 - 2000);
+        params[4] = (byte) (mEnd.getMonth() + 1);
+        params[5] = (byte) mEnd.getDate();
+
+        params[6] = interval;
+
+        mSecureDataPack.setParams(params);
+        return newResponseDataNoRecord(mac, mSecureDataPack);
+    }
+
+
     public static ResponseData getQueryHistoryCount(String mac, Date mStart, Date mEnd) {
+        return getQueryHistoryCount(mac, mStart, mEnd,
+                SocketSecureKey.Model.MODEL_INTERVAL_MINUTE // 始终查询五分钟数据
+        );
+    }
+
+
+    public static ResponseData getQueryHistoryCount(String mac, Date mStart, Date mEnd, byte interval) {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
         mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_HISTORY_COUNT);
@@ -1244,12 +1284,12 @@ public class MySocketDataCache implements IService {
         params[4] = (byte) (mEnd.getMonth() + 1);
         params[5] = (byte) mEnd.getDate();
 
-//                params[6] = (byte) mQueryCount.interval;
-        params[6] = (byte) 0x01; // 始终查询五分钟间隔
+        params[6] = interval;
 
         mSecureDataPack.setParams(params);
         return newResponseDataNoRecord(mac, mSecureDataPack);
     }
+
 
     /**
      * 设置费率

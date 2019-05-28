@@ -187,6 +187,8 @@ public interface OnTaskCallBack {
 
     void onQueryHistoryCountResult(boolean result, QueryHistoryCount mCount);
 
+    void onQueryNewHistoryCountResult(boolean result, QueryHistoryCount mCount);
+
     void onElectricityReportResult(boolean result, PointReport mElectricity);
 
     void onCostRateSetResult(boolean result, byte model);
@@ -233,4 +235,8 @@ public interface OnTaskCallBack {
     void onReportTempSensorResult( String mac,boolean status);
 
     void onStateMachineResult(StateMachine mStateMachine);
+
+    void onQueryBleDeviceSensorResult(boolean result, String id, boolean status);
+
+    void onQueryTElectricQuantitySensorResult(boolean result, String id, boolean status);
 }

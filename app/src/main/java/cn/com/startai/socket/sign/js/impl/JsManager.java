@@ -372,6 +372,20 @@ public class JsManager extends AbsJsManager implements IService {
         }
     }
 
+    @Override
+    public void onJSQueryElectricQuantity(String mac) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSQueryElectricQuantity(mac);
+        }
+    }
+
+    @Override
+    public void onJSQueryBleDevice(String mac) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSQueryBleDevice(mac);
+        }
+    }
+
 
     @Override
     public void onJSTSetCommonTiming(TimingCommonData mTimingCommonData) {
@@ -1039,6 +1053,13 @@ public class JsManager extends AbsJsManager implements IService {
     public void onJSBindThird(String type) {
         if (mJSManagerCallBack != null) {
             mJSManagerCallBack.onJSBindThird(type);
+        }
+    }
+
+    @Override
+    public void onJSSkipWiFi() {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSSkipWiFi();
         }
     }
 
