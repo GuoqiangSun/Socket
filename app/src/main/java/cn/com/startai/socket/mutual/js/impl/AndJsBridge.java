@@ -22,6 +22,7 @@ import cn.com.startai.socket.app.SocketApplication;
 import cn.com.startai.socket.db.gen.DaoSession;
 import cn.com.startai.socket.db.gen.PowerCountdownDao;
 import cn.com.startai.socket.db.manager.DBManager;
+import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.global.FileManager;
 import cn.com.startai.socket.global.LooperManager;
 import cn.com.startai.socket.mutual.Controller;
@@ -958,7 +959,11 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
                 if (displayDeviceLst != null) {
                     LanDeviceInfo displayDeviceByMac = displayDeviceLst.getDisplayDeviceByMac(mQueryCount.mac);
                     if (displayDeviceByMac != null) {
-                        newDevice = displayDeviceByMac.getVersion() > 0x0605;
+                        if (CustomManager.getInstance().isTriggerWiFi()) {
+                            newDevice = displayDeviceByMac.getVersion() > 0x0605;
+                        } else if (CustomManager.getInstance().isMUSIK()) {
+                            newDevice = false;
+                        }
                     }
                 }
             }

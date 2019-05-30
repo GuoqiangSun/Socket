@@ -86,6 +86,7 @@
                 <input type="button" value="普通按钮"/>
                 <input type="submit" name="tijiao" value="注册"/>
                 <input type="reset" name="quxiao" value="取消"/>
+                <button id="htmlOnClick" onclick="clickHandler()">htmlOnClick</button>
             </td>
         </tr>
         <tr>
@@ -96,5 +97,21 @@
         </tr>
     </table>
 </form>
+
+<script defer>
+ function clickHandler() {
+ var i = 1 / 0;
+ throw Error('参数1、参数2不能为空');
+  alert("onclick attribute in html");
+ }
+ function clickHandler2(e) {
+  alert(e.target.innerHTML);
+ }
+ document.getElementById("jsOnClick").onclick = clickHandler2;
+ document.getElementById("addEventListener").addEventListener("click",
+   clickHandler2);
+</script>
+
+
 </body>
 </html>

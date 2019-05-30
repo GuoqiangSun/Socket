@@ -198,6 +198,8 @@ public class Debuger implements IApp, IService {
                 CrashReport.initCrashReport(app, "1fb0d34c93", false);
             } else if (CustomManager.getInstance().isTriggerWiFi()) {
                 CrashReport.initCrashReport(app, "deab7c0351", false);
+            }else {
+                CrashReport.initCrashReport(app, "d45fc6bab2", false);
             }
         }
         Tlog.i(" Debuger init success...");

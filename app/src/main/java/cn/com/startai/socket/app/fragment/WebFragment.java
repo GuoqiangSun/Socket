@@ -9,11 +9,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.ValueCallback;
+import android.webkit.WebSettings;
 import android.widget.RelativeLayout;
+
+import com.tencent.bugly.crashreport.CrashReport;
+import com.tencent.bugly.crashreport.crash.h5.H5JavaScriptInterface;
 
 import org.xwalk.core.XWalkHttpAuthHandler;
 import org.xwalk.core.XWalkJavascriptResult;
 import org.xwalk.core.XWalkResourceClient;
+import org.xwalk.core.XWalkSettings;
 import org.xwalk.core.XWalkUIClient;
 import org.xwalk.core.XWalkView;
 import org.xwalk.core.XWalkWebResourceRequest;
@@ -216,12 +221,73 @@ public class WebFragment extends BaseFragment {
         }
     }
 
+    CrashReport.WebViewInterface mCrashReportWebView = new CrashReport.WebViewInterface() {
+        /**
+         * 获取WebView URL.
+         *
+         * @return WebView URL
+         */
+        @Override
+        public String getUrl() {
+            // 下面仅为例子，请用真正逻辑代替
+            return mXWWebView.getUrl();
+        }
+
+        /**
+         * 开启JavaScript.
+         *
+         * @param flag true表示开启，false表示关闭
+         */
+        @Override
+        public void setJavaScriptEnabled(boolean flag) {
+            // 下面仅为例子，请用真正逻辑代替
+            XWalkSettings settings = mXWWebView.getSettings();
+            settings.setJavaScriptEnabled(flag);
+        }
+
+        /**
+         * 加载URL.
+         *
+         * @param url 要加载的URL
+         */
+        @Override
+        public void loadUrl(String url) {
+            // 下面仅为例子，请用真正逻辑代替
+            mXWWebView.loadUrl(url);
+        }
+
+        /**
+         * 添加JavaScript接口对象.
+         *
+         * @param jsInterface JavaScript接口对象
+         * @param name JavaScript接口对象名称
+         */
+        @Override
+        public void addJavascriptInterface(H5JavaScriptInterface jsInterface, String name) {
+            // 下面仅为例子，请用真正逻辑代替
+            mXWWebView.addJavascriptInterface(jsInterface, name);
+        }
+
+        /**
+         * 获取WebView的内容描述.
+         *
+         * @return WebView的内容描述.
+         */
+        @Override
+        public CharSequence getContentDescription() {
+            // 下面仅为例子，请用真正逻辑代替
+            return mXWWebView.getContentDescription();
+        }
+    };
+// 调用Bugly设置JS异常捕获接口时传入创建的WebView接口对象即可
+
+
     private class MXWalkUIClient extends XWalkUIClient {
 
         MXWalkUIClient(XWalkView view) {
             super(view);
+//            CrashReport.setJavascriptMonitor(mCrashReportWebView, true);
         }
-
 
         @Override
         public void onPageLoadStarted(XWalkView view, String url) {
