@@ -86,6 +86,7 @@ import cn.com.startai.socket.sign.scm.bean.Timing.TimingListData;
 import cn.com.startai.socket.sign.scm.bean.TimingTempHumiData;
 import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.startai.socket.sign.scm.bean.sensor.SensorData;
+import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.ConstTempTiming;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.TempHumidityData;
 import cn.com.swain.baselib.app.IApp.IService;
 import cn.com.swain.baselib.file.FileUtil;
@@ -1317,6 +1318,27 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
+    public void onJSTHQueryConstTemperatureTimingAlarm(String mac, int model) {
+        if (mScmVirtual != null) {
+            mScmVirtual.queryConstTempTiming(mac, model);
+        }
+    }
+
+    @Override
+    public void onJSTHSetConstTemperatureTimingAlarm(ConstTempTiming mConstTempTiming) {
+        if (mScmVirtual != null) {
+            mScmVirtual.setConstTempTiming(mConstTempTiming);
+        }
+    }
+
+    @Override
+    public void onJSTHDelConstTemperatureTimingAlarm(ConstTempTiming mConstTempTiming) {
+        if (mScmVirtual != null) {
+            mScmVirtual.delConstTempTiming(mConstTempTiming);
+        }
+    }
+
+    @Override
     public void onResultTotalElectricData(SpendingElectricityData obj) {
         String method = SpendingCountdown.Method.callJsElectricityDataByTime(obj.mac, obj.model,
                 obj.totalElectric, obj.year, obj.month, obj.day);
@@ -1338,6 +1360,59 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onResultQueryTElectricQuantitySensor(boolean result, String id, boolean status) {
         String method = TemperatureAndHumidity.Method.callJsPowerSensorState(id, status);
+        loadJs(method);
+    }
+
+    @Override
+    public void onResultQueryConstTempTiming(String id, int model, ArrayList<ConstTempTiming> mArray) {
+
+        JSONArray array = new JSONArray();
+        if (mArray != null && mArray.size() > 0) {
+            JSONObject obj;
+            for (ConstTempTiming mConstTempTiming : mArray) {
+                obj = new JSONObject();
+                try {
+                    obj.put("startup", mConstTempTiming.startup);
+                    obj.put("minTemp", mConstTempTiming.minTemp);
+                    obj.put("maxTemp", mConstTempTiming.maxTemp);
+                    obj.put("week", mConstTempTiming.week);
+                    obj.put("startHour", mConstTempTiming.startHour);
+                    obj.put("startMinit", mConstTempTiming.startMinute);
+                    obj.put("endHour", mConstTempTiming.endHour);
+                    obj.put("endMinit", mConstTempTiming.endMinute);
+                    obj.put("model", mConstTempTiming.model);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+//                startup: 1, // 1启动，2关闭
+//                        maxTemp: 22℃, // 最小温度
+//                maxTemp: 35℃, // 最大温度
+//                week: 1, // 周期
+//                        startHour: 7,
+//                        startMinit: 22,
+//                        endHour: 15,
+//                        endMinit: 22
+                array.put(obj);
+            }
+        }
+        String jsonArrayData = array.toString();
+        String method = TemperatureAndHumidity.Method.callJsQueryConstTempTiming(id, model, jsonArrayData);
+        loadJs(method);
+    }
+
+    @Override
+    public void onSetConstTempTimingResult(ConstTempTiming mConstTempTiming) {
+        String method = TemperatureAndHumidity.Method.callJsSetConstTempTiming(mConstTempTiming.mac,
+                mConstTempTiming.id, mConstTempTiming.model, mConstTempTiming.startup,
+                mConstTempTiming.maxTemp, mConstTempTiming.minTemp, mConstTempTiming.week,
+                mConstTempTiming.startHour, mConstTempTiming.startMinute,
+                mConstTempTiming.endHour, mConstTempTiming.endMinute);
+        loadJs(method);
+    }
+
+    @Override
+    public void onResultDelConstTempTiming(String mac, byte result, byte id1, byte model) {
+        String method = TemperatureAndHumidity.Method.callJsDelConstTempTiming(mac, result, id1, model);
         loadJs(method);
     }
 

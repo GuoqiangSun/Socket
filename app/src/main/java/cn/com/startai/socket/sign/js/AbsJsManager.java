@@ -41,6 +41,7 @@ import cn.com.startai.socket.sign.scm.bean.TempHumidityAlarmData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingCommonData;
 import cn.com.startai.socket.sign.scm.bean.TimingTempHumiData;
+import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.ConstTempTiming;
 
 /**
  * author: Guoqiang_Sun
@@ -316,6 +317,12 @@ public abstract class AbsJsManager implements Device.IJSDeviceCallBack,//
         void onJSQueryBleDevice(String mac);
 
         void onJSSkipWiFi();
+
+        void onJSTHQueryConstTemperatureTimingAlarm(String mac, int model);
+
+        void onJSTHSetConstTemperatureTimingAlarm(ConstTempTiming mConstTempTiming);
+
+        void onJSTHDelConstTemperatureTimingAlarm(ConstTempTiming mConstTempTiming);
 
     }
 

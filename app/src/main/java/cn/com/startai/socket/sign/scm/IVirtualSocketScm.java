@@ -24,6 +24,7 @@ import cn.com.startai.socket.sign.scm.bean.Timing.TimingListData;
 import cn.com.startai.socket.sign.scm.bean.TimingTempHumiData;
 import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.startai.socket.sign.scm.bean.sensor.SensorData;
+import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.ConstTempTiming;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.TempHumidityData;
 
 /**
@@ -280,6 +281,14 @@ public interface IVirtualSocketScm {
 
     void queryBleDevice(String mac);
 
+    void queryConstTempTiming(String mac, int model);
+
+    void setConstTempTiming(ConstTempTiming mConstTempTiming);
+
+    void delConstTempTiming(ConstTempTiming mConstTempTiming);
+
+
+
     /**
      * author: Guoqiang_Sun
      * date : 2018/4/10 0010
@@ -409,6 +418,12 @@ public interface IVirtualSocketScm {
         void onResultQueryBleDeviceSensor(boolean result, String id, boolean status);
 
         void onResultQueryTElectricQuantitySensor(boolean result, String id, boolean status);
+
+        void onResultQueryConstTempTiming(String id, int model, ArrayList<ConstTempTiming> mArray);
+
+        void onSetConstTempTimingResult(ConstTempTiming mConstTempTiming);
+
+        void onResultDelConstTempTiming(String mac, byte result, byte id1, byte model);
     }
 
 

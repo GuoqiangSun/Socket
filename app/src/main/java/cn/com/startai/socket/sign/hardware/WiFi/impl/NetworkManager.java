@@ -229,6 +229,12 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
 
         StartAI.getInstance().initialization(app, mqttInitParam);
 
+//        StartAI.getInstance().getBaseBusiManager().checkIdentifyCode();TYPE_EMAIL_UPDATE_EMAILNUM
+
+//        StartAI.getInstance().getBaseBusiManager().sendEmail();TYPE_CODE_TO_BIND_EMAIL
+
+//        StartAI.getInstance().getBaseBusiManager().bindEmail();
+
         mUserManager.onSCreate();
         mDeviceManager.onSCreate();
 

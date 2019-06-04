@@ -20,6 +20,7 @@ import cn.com.startai.socket.sign.scm.bean.Timing.TimingCommonData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingListData;
 import cn.com.startai.socket.sign.scm.bean.TimingTempHumiData;
 import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
+import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.ConstTempTiming;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.Humidity;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.Temperature;
 import cn.com.swain.support.protocolEngine.task.FailTaskResult;
@@ -239,4 +240,11 @@ public interface OnTaskCallBack {
     void onQueryBleDeviceSensorResult(boolean result, String id, boolean status);
 
     void onQueryTElectricQuantitySensorResult(boolean result, String id, boolean status);
+
+    void onQueryConstTempTimingResult(String id, int model, ArrayList<ConstTempTiming> mArray);
+
+    void onSetConstTempTimingResult(ConstTempTiming mConstTempTiming);
+
+    void onDelConstTempTimingResult(String id, byte result, byte id1, byte model);
+
 }

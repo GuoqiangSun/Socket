@@ -58,6 +58,7 @@ import cn.com.startai.socket.sign.scm.bean.Timing.TimingListData;
 import cn.com.startai.socket.sign.scm.bean.TimingTempHumiData;
 import cn.com.startai.socket.sign.scm.bean.UpdateVersion;
 import cn.com.startai.socket.sign.scm.bean.sensor.SensorData;
+import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.ConstTempTiming;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.Humidity;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.TempHumidityData;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.Temperature;
@@ -968,6 +969,45 @@ public class SocketScmManager extends AbsSocketScm
         onOutputProtocolData(mResponseData);
     }
 
+
+    @Override
+    public void queryConstTempTiming(String mac, int model) {
+
+        ResponseData mResponseData = MySocketDataCache.getQueryConstTemperatureTiming(mac, model);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryConstTempTiming: " + String.valueOf(mResponseData));
+        }
+        onOutputProtocolData(mResponseData);
+    }
+
+    @Override
+    public void setConstTempTiming(ConstTempTiming mConstTempTiming) {
+
+        ResponseData mResponseData = MySocketDataCache.getSetConstTemperatureTiming(
+                mConstTempTiming.mac, mConstTempTiming.id, mConstTempTiming.model,
+                mConstTempTiming.startup, mConstTempTiming.minTemp, mConstTempTiming.maxTemp,
+                mConstTempTiming.week,
+                mConstTempTiming.startHour, mConstTempTiming.startMinute,
+                mConstTempTiming.endHour, mConstTempTiming.endMinute);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " setConstTempTiming: " + String.valueOf(mResponseData));
+        }
+        onOutputProtocolData(mResponseData);
+    }
+
+    @Override
+    public void delConstTempTiming(ConstTempTiming mConstTempTiming) {
+
+        ResponseData mResponseData =
+                MySocketDataCache.getDelConstTemperatureTiming(mConstTempTiming.mac,
+                        mConstTempTiming.id,
+                        mConstTempTiming.model);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " delConstTempTiming: " + String.valueOf(mResponseData));
+        }
+        onOutputProtocolData(mResponseData);
+    }
+
     @Override
     public void queryTempHumidityData(String mac) {
         ResponseData mResponseTempDataUp = MySocketDataCache.getQueryTemperatureLimitUp(mac);
@@ -1248,6 +1288,7 @@ public class SocketScmManager extends AbsSocketScm
         }
         onOutputProtocolData(mResponseData);
     }
+
 
     @Override
     public void queryRunningNightLight(String mac) {
@@ -2560,6 +2601,27 @@ public class SocketScmManager extends AbsSocketScm
     public void onQueryTElectricQuantitySensorResult(boolean result, String id, boolean status) {
         if (mScmResultCallBack != null) {
             mScmResultCallBack.onResultQueryTElectricQuantitySensor(result, id, status);
+        }
+    }
+
+    @Override
+    public void onQueryConstTempTimingResult(String id, int model, ArrayList<ConstTempTiming> mArray) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onResultQueryConstTempTiming(id, model, mArray);
+        }
+    }
+
+    @Override
+    public void onSetConstTempTimingResult(ConstTempTiming mConstTempTiming) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onSetConstTempTimingResult(mConstTempTiming);
+        }
+    }
+
+    @Override
+    public void onDelConstTempTimingResult(String id, byte result, byte id1, byte model) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onResultDelConstTempTiming(id, result, id1, model);
         }
     }
 

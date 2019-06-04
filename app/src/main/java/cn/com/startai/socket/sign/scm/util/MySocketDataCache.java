@@ -603,6 +603,60 @@ public class MySocketDataCache implements IService {
         return newResponseDataRecord(mac, mSecureDataPack);
     }
 
+    public static ResponseData getQueryConstTemperatureLimitUp(String mac) {
+        return getQueryConstTemperatureTiming(mac,
+                SocketSecureKey.Model.ALARM_LIMIT_UP);
+    }
+
+    public static ResponseData getQueryConstTemperatureLimitDown(String mac) {
+        return getQueryConstTemperatureTiming(mac,
+                SocketSecureKey.Model.ALARM_LIMIT_DOWN);
+    }
+
+    public static ResponseData getQueryConstTemperatureTiming(String mac, int model) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_CONST_TEMPERATURE_TIMING);
+
+        final byte[] params = new byte[]{(byte) model};
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getSetConstTemperatureTiming(String mac, int id, int model, int startup, int minTemp,int maxTemp, int week,
+                                                            int startHour, int startMinute, int endHour, int endMinute) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_CONST_TEMPERATURE_TIMING);
+
+        final byte[] params = new byte[10];
+        params[0] = (byte) (id & 0xFF);
+        params[1] = (byte) (model & 0xFF);
+        params[2] = (byte) (startup & 0xFF);
+        params[3] = (byte) (minTemp & 0xFF);
+        params[4] = (byte) (maxTemp & 0xFF);
+        params[5] = (byte) (week & 0xFF);
+        params[6] = (byte) (startHour & 0xFF);
+        params[7] = (byte) (startMinute & 0xFF);
+        params[8] = (byte) (endHour & 0xFF);
+        params[9] = (byte) (endMinute & 0xFF);
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+
+    public static ResponseData getDelConstTemperatureTiming(String mac, int id, int model) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_DEL_CONST_TEMPERATURE_TIMING);
+
+        final byte[] params = new byte[2];
+        params[0] = (byte) (id & 0xFF);
+        params[1] = (byte) (model & 0xFF);
+        mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
     public static ResponseData getQueryTemperatureLimitDown(String mac) {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
@@ -1259,7 +1313,7 @@ public class MySocketDataCache implements IService {
         params[6] = interval;
 
         mSecureDataPack.setParams(params);
-        return newResponseDataNoRecord(mac, mSecureDataPack);
+        return newResponseDataRecord(mac, mSecureDataPack);
     }
 
 

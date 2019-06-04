@@ -428,6 +428,7 @@ public class UserManager implements IService {
                     } else {
                         if (mResultCallBack != null) {
                             mResultCallBack.onResultThirdLogin(false, "");
+                            mResultCallBack.onResultMsgSendError("5004");
                         }
                     }
 
@@ -440,6 +441,7 @@ public class UserManager implements IService {
                         Tlog.e(TAG, " onFacebookResult fail ");
                         if (mResultCallBack != null) {
                             mResultCallBack.onResultThirdLogin(false, "");
+                            mResultCallBack.onResultMsgSendError("5004");
                         }
                         return;
                     }
@@ -468,6 +470,7 @@ public class UserManager implements IService {
                         Tlog.e(TAG, " onFacebookBindResult fail ");
                         if (mResultCallBack != null) {
                             mResultCallBack.onResultThirdLogin(false, "");
+                            mResultCallBack.onResultMsgSendError("5004");
                         }
                         return;
                     }
@@ -496,6 +499,7 @@ public class UserManager implements IService {
                         Tlog.e(TAG, " onGoogleResult fail ");
                         if (mResultCallBack != null) {
                             mResultCallBack.onResultThirdLogin(false, "");
+                            mResultCallBack.onResultMsgSendError("5004");
                         }
                         return;
                     }
@@ -535,6 +539,7 @@ public class UserManager implements IService {
                     if (!result || account == null) {
                         Tlog.e(TAG, " onGoogleBindResult fail ");
                         if (mResultCallBack != null) {
+                            mResultCallBack.onResultMsgSendError("5004");
                             mResultCallBack.onResultThirdLogin(false, "");
                         }
                         return;

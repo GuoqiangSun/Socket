@@ -8,6 +8,7 @@ import org.xwalk.core.JavascriptInterface;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.bean.TempHumidityAlarmData;
 import cn.com.startai.socket.sign.scm.bean.TimingTempHumiData;
+import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.ConstTempTiming;
 import cn.com.swain.baselib.jsInterface.AbsHandlerJsInterface;
 import cn.com.swain.baselib.log.Tlog;
 
@@ -42,6 +43,13 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
         void onJSQueryElectricQuantity(String mac);
 
         void onJSQueryBleDevice(String mac);
+
+        void onJSTHQueryConstTemperatureTimingAlarm(String mac, int model);
+
+        void onJSTHSetConstTemperatureTimingAlarm(ConstTempTiming mConstTempTiming);
+
+        void onJSTHDelConstTemperatureTimingAlarm(ConstTempTiming mConstTempTiming);
+
     }
 
     public static final class Method {
@@ -77,7 +85,6 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
         }
 
 
-
         private static final String METHOD_POWER_SENSOR_STATE
                 = "javascript:temperatureSensorPowerStateResponse('$mac',$state)";
 
@@ -87,7 +94,46 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
                     .replace("$state", String.valueOf(state));
         }
 
+        private static final String METHOD_QUERY_CONST_TEMP_TIMING_
+                = "javascript:timingConstTemperatureDataResponse('$mac',$model,'$data')";
 
+        public static final String callJsQueryConstTempTiming(String mac, int model, String jsonData) {
+            if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
+            return METHOD_QUERY_CONST_TEMP_TIMING_.replace("$mac", mac)
+                    .replace("$model", String.valueOf(model)).replace("$data", jsonData);
+        }
+
+        private static final String METHOD_SET_CONST_TEMP_TIMING_
+                = "javascript:timingConstTemperatureDataSetResponse('$mac',$id,$model,$startup,$maxTemp,$minTemp,$week,$startHour,$startMinute,$endHour,$endMinute)";
+
+        public static final String callJsSetConstTempTiming(String mac, int id, int model, int startup,
+                                                            int maxTemp, int minTemp, int week, int startHour, int startMinute,
+                                                            int endHour, int endMinute) {
+            if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
+            return METHOD_SET_CONST_TEMP_TIMING_.replace("$mac", mac)
+                    .replace("$id", String.valueOf(id))
+                    .replace("$model", String.valueOf(model))
+                    .replace("$startup", String.valueOf(startup))
+                    .replace("$maxTemp", String.valueOf(maxTemp))
+                    .replace("$minTemp", String.valueOf(minTemp))
+                    .replace("$week", String.valueOf(week))
+                    .replace("$startHour", String.valueOf(startHour))
+                    .replace("$startMinute", String.valueOf(startMinute))
+                    .replace("$endHour", String.valueOf(endHour))
+                    .replace("$endMinute", String.valueOf(endMinute))
+                    ;
+        }
+
+        private static final String METHOD_DEL_CONST_TEMP_TIMING_
+                = "javascript:timingConstTemperatureDataDeleteResponse('$mac',$result,$id,$model)";
+
+        public static final String callJsDelConstTempTiming(String mac, int result, int id,int model) {
+            if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
+            return METHOD_DEL_CONST_TEMP_TIMING_.replace("$mac", mac)
+                    .replace("$result", String.valueOf(result))
+                    .replace("$id", String.valueOf(id))
+                    .replace("$model", String.valueOf(model));
+        }
 
         private static final String METHOD_TEMPERATURE_HUMIDITY_DATA
                 = "javascript:temperatureAndHumidityDataResponse('$mac','$data')";
@@ -242,7 +288,52 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
         getHandler().obtainMessage(MSG_QUERY_TEMP_TIMING, model, model, mac).sendToTarget();
     }
 
+    ///////
+    @JavascriptInterface
+    public void timingConstTemperatureDataRequest(String mac, int model) {
+        Tlog.v(TAG, " timingConstTemperatureDataRequest mac:" + mac + " model:" + model);
+        getHandler().obtainMessage(MSG_QUERY_CONST_TEMP_TIMING, model, model, mac).sendToTarget();
+    }
 
+
+    @JavascriptInterface
+    public void timingConstTemperatureDataSet(String mac, int id, int model, int startup, int minTemp, int maxTemp, int week,
+                                              int startHour, int startMinute,
+                                              int endHour, int endMinute) {
+        Tlog.v(TAG, " timingConstTemperatureDataSet mac:" + mac + " id:" + id
+                + " model:" + model + " startup:" + startup + "minTemp:" + minTemp
+                + "maxTemp:" + maxTemp + " week:" + week
+                + " startHour:" + startHour + " startMinute:" + startMinute
+                + " endHour:" + endHour + " endMinute:" + endMinute);
+
+        ConstTempTiming mTiming = new ConstTempTiming();
+        mTiming.mac = mac;
+        mTiming.id = id;
+        mTiming.model = model;
+        mTiming.startup = startup;
+        mTiming.minTemp = minTemp;
+        mTiming.maxTemp = maxTemp;
+        mTiming.week = week;
+        mTiming.startHour = startHour;
+        mTiming.startMinute = startMinute;
+        mTiming.endHour = endHour;
+        mTiming.endMinute = endMinute;
+
+        getHandler().obtainMessage(MSG_SET_CONST_TEMP_TIMING, mTiming).sendToTarget();
+
+    }
+
+    @JavascriptInterface
+    public void timingConstTemperatureDataDelete(String mac, int id, int model) {
+        Tlog.v(TAG, " timingConstTemperatureDataDelete mac:" + mac + " id:" + id + " model:" + model);
+        ConstTempTiming mTiming = new ConstTempTiming();
+        mTiming.mac = mac;
+        mTiming.id = id;
+        mTiming.model = model;
+        getHandler().obtainMessage(MSG_DEL_CONST_TEMP_TIMING, mTiming).sendToTarget();
+    }
+
+    ///////
     @JavascriptInterface
     public void alarmTimingAndTemperatureValueRequest(String mac, int id, boolean on,
                                                       String time, String offTime, int week, boolean startup,
@@ -297,6 +388,11 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
     private static final int MSG_QUERY_ELECTRIC_QUANTITY = 0x15;
     private static final int MSG_QUERY_BLE_DEVICE = 0x16;
 
+
+    private static final int MSG_QUERY_CONST_TEMP_TIMING = 0x17;
+    private static final int MSG_SET_CONST_TEMP_TIMING = 0x18;
+    private static final int MSG_DEL_CONST_TEMP_TIMING = 0x19;
+
     @Override
     protected void handleMessage(Message msg) {
 
@@ -332,6 +428,18 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
         } else if (msg.what == MSG_QUERY_BLE_DEVICE) {
             if (mCallBack != null) {
                 mCallBack.onJSQueryBleDevice((String) msg.obj);
+            }
+        } else if (msg.what == MSG_QUERY_CONST_TEMP_TIMING) {
+            if (mCallBack != null) {
+                mCallBack.onJSTHQueryConstTemperatureTimingAlarm((String) msg.obj, msg.arg1);
+            }
+        } else if (msg.what == MSG_SET_CONST_TEMP_TIMING) {
+            if (mCallBack != null) {
+                mCallBack.onJSTHSetConstTemperatureTimingAlarm((ConstTempTiming) msg.obj);
+            }
+        } else if (msg.what == MSG_DEL_CONST_TEMP_TIMING) {
+            if (mCallBack != null) {
+                mCallBack.onJSTHDelConstTemperatureTimingAlarm((ConstTempTiming) msg.obj);
             }
         }
 

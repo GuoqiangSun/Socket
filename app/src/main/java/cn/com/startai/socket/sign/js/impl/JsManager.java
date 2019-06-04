@@ -53,6 +53,7 @@ import cn.com.startai.socket.sign.scm.bean.TempHumidityAlarmData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingCommonData;
 import cn.com.startai.socket.sign.scm.bean.TimingTempHumiData;
+import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.ConstTempTiming;
 import cn.com.swain.baselib.app.IApp.IService;
 import cn.com.swain.baselib.jsInterface.AbsJsInterface;
 import cn.com.swain.baselib.log.Tlog;
@@ -386,6 +387,26 @@ public class JsManager extends AbsJsManager implements IService {
         }
     }
 
+    @Override
+    public void onJSTHQueryConstTemperatureTimingAlarm(String mac, int model) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSTHQueryConstTemperatureTimingAlarm(mac,model);
+        }
+    }
+
+    @Override
+    public void onJSTHSetConstTemperatureTimingAlarm(ConstTempTiming mConstTempTiming) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSTHSetConstTemperatureTimingAlarm(mConstTempTiming);
+        }
+    }
+
+    @Override
+    public void onJSTHDelConstTemperatureTimingAlarm(ConstTempTiming mConstTempTiming) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSTHDelConstTemperatureTimingAlarm(mConstTempTiming);
+        }
+    }
 
     @Override
     public void onJSTSetCommonTiming(TimingCommonData mTimingCommonData) {

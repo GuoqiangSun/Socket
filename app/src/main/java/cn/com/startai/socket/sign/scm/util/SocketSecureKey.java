@@ -323,6 +323,23 @@ public class SocketSecureKey {
         public static final byte CMD_NEW_HISTORY = 0x41;
         public static final byte CMD_NEW_HISTORY_RESPONSE = 0x42;
 
+        /**
+         * 设置恒温温度
+         */
+        public static final byte CMD_SET_CONST_TEMPERATURE_TIMING = 0x43;
+        public static final byte CMD_SET_CONST_TEMPERATURE_TIMING_RESPONSE = 0x44;
+
+        /**
+         * 查询恒温温度
+         */
+        public static final byte CMD_QUERY_CONST_TEMPERATURE_TIMING = 0x45;
+        public static final byte CMD_QUERY_CONST_TEMPERATURE_TIMING_RESPONSE = 0x46;
+
+        /**
+         * 删除恒温温度
+         */
+        public static final byte CMD_DEL_CONST_TEMPERATURE_TIMING = 0x47;
+        public static final byte CMD_DEL_CONST_TEMPERATURE_TIMING_RESPONSE = 0x48;
 
         /**********report0x03**************/
 
