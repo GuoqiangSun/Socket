@@ -9,6 +9,7 @@ import cn.com.startai.socket.sign.scm.receivetask.impl.NullTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.ScmErrorTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.CosntTempTimingDelReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.CosntTempTimingQueryReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.control.CosntTempTimingSetReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.CostRateQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.CostRateSetReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.CountdownQueryReceiveTask;
@@ -335,7 +336,7 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                         new NewHistoryCountTask(mTaskCallBack).execute(mParam);
                         break;
                     case SocketSecureKey.Cmd.CMD_SET_CONST_TEMPERATURE_TIMING_RESPONSE:
-                        new CosntTempTimingQueryReceiveTask(mTaskCallBack).execute(mParam);
+                        new CosntTempTimingSetReceiveTask(mTaskCallBack).execute(mParam);
                         break;
                     case SocketSecureKey.Cmd.CMD_QUERY_CONST_TEMPERATURE_TIMING_RESPONSE:
                         new CosntTempTimingQueryReceiveTask(mTaskCallBack).execute(mParam);

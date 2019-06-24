@@ -104,18 +104,19 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
         }
 
         private static final String METHOD_SET_CONST_TEMP_TIMING_
-                = "javascript:timingConstTemperatureDataSetResponse('$mac',$id,$model,$startup,$maxTemp,$minTemp,$week,$startHour,$startMinute,$endHour,$endMinute)";
+                = "javascript:timingConstTemperatureDataSetResponse('$mac',$result,$id,$model,$startup,$minTemp,$maxTemp,$week,$startHour,$startMinute,$endHour,$endMinute)";
 
-        public static final String callJsSetConstTempTiming(String mac, int id, int model, int startup,
-                                                            int maxTemp, int minTemp, int week, int startHour, int startMinute,
+        public static final String callJsSetConstTempTiming(String mac,int result, int id, int model, int startup,
+                                                            int minTemp, int maxTemp, int week, int startHour, int startMinute,
                                                             int endHour, int endMinute) {
             if (mac == null || "".equals(mac)) mac = H5Config.DEFAULT_MAC;
             return METHOD_SET_CONST_TEMP_TIMING_.replace("$mac", mac)
+                    .replace("$result", String.valueOf(result))
                     .replace("$id", String.valueOf(id))
                     .replace("$model", String.valueOf(model))
                     .replace("$startup", String.valueOf(startup))
-                    .replace("$maxTemp", String.valueOf(maxTemp))
                     .replace("$minTemp", String.valueOf(minTemp))
+                    .replace("$maxTemp", String.valueOf(maxTemp))
                     .replace("$week", String.valueOf(week))
                     .replace("$startHour", String.valueOf(startHour))
                     .replace("$startMinute", String.valueOf(startMinute))
@@ -301,8 +302,8 @@ public class TemperatureAndHumidity extends AbsHandlerJsInterface {
                                               int startHour, int startMinute,
                                               int endHour, int endMinute) {
         Tlog.v(TAG, " timingConstTemperatureDataSet mac:" + mac + " id:" + id
-                + " model:" + model + " startup:" + startup + "minTemp:" + minTemp
-                + "maxTemp:" + maxTemp + " week:" + week
+                + " model:" + model + " startup:" + startup + " minTemp:" + minTemp
+                + " maxTemp:" + maxTemp + " week:" + week
                 + " startHour:" + startHour + " startMinute:" + startMinute
                 + " endHour:" + endHour + " endMinute:" + endMinute);
 

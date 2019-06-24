@@ -13,6 +13,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'org.greenrobot.greendao'
 apply plugin: 'com.github.kt3k.coveralls'
 
+apply plugin: "jacoco-android"
 
 
 android {
@@ -172,6 +173,7 @@ dependencies {
     api 'com.facebook.android:facebook-login:4.40.0'
     //    implementation 'com.facebook.android:facebook-android-sdk:4.33.0'
     // google
+//    implementation 'com.google.android.gms:play-services-auth:17.0.0'
     implementation 'com.google.android.gms:play-services-auth:16.0.1'
     //    compile 'com.google.android.gms:play-services:12.0.1'
     //twitter
@@ -190,12 +192,12 @@ dependencies {
 
     implementation 'cn.com.startai:mqsdk:3.1.75'
     implementation 'com.blankj:utilcode:1.22.1'
-    implementation 'org.xutils:xutils:3.5.0'
+    implementation 'org.xutils:xutils:3.5.1'
     implementation 'cn.com.startai:fastdfssdk:1.0.2'
     api 'com.android.support:multidex:1.0.3'
 
-    api 'cn.com.swain169:baselib:3.2.16'
-    implementation 'cn.com.swain169:fastble:3.2.01'
+    api 'cn.com.swain169:baselib:3.2.27'
+//    implementation 'cn.com.swain169:fastble:3.2.01'
     implementation 'cn.com.swain169:protocolEngine:3.2.11'
     implementation 'cn.com.swain169:fastudp:3.2.01'
     // 调试
@@ -203,15 +205,16 @@ dependencies {
     //支付宝 sdk
     api(name: 'alipaySdk-15.5.9-20181123210601', ext: 'aar')
 
-
+    // startai app 开发基础库
+    api 'cn.com.startai:common:1.0.09'
     //zxing二维码识别 基础包
-    implementation 'com.google.zxing:core:3.3.0'
+    implementation 'com.google.zxing:core:3.3.3'
     //二维码扫描 ui 库
-    implementation 'com.mylhyl:zxingscanner:2.1.0'
+    implementation 'com.mylhyl:zxingscanner:2.1.6'
     //startai 二维码扫描 sdk
-    implementation 'cn.com.startai:scansdk:1.1.5'
+    implementation 'cn.com.startai:scansdk:1.2.11'
 
-    compile 'com.tencent.bugly:crashreport:2.8.6.0'
+    implementation 'com.tencent.bugly:crashreport:2.8.6.0'
 
 }
 

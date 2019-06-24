@@ -45,7 +45,7 @@ public class CosntTempTimingQueryReceiveTask extends SocketResponseTask {
         ArrayList<ConstTempTiming> mArray = new ArrayList<ConstTempTiming>();
         ConstTempTiming mConstTempTiming;
 
-        int model = 0;
+        int model = 1;
 
         for (int i = 0; i < j; i++) {
             mConstTempTiming = new ConstTempTiming();

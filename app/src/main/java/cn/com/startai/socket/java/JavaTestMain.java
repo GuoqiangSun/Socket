@@ -1,7 +1,5 @@
 package cn.com.startai.socket.java;
 
-import com.google.gson.JsonObject;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,16 +14,20 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.TimeZone;
 
@@ -75,8 +77,137 @@ public class JavaTestMain {
 
 //        FThexStr();
 
-        System.err.println("end");
+        for (int i = 0; i < 10; i++) {
+            cal();
+//            cal2();
+        }
 
+        System.err.println("end ");
+    }
+
+    private static void cal() {
+        byte[] md5 = new byte[16];
+        Random r = new Random();
+
+        for (int i = 0; i < 16; i++) {
+            md5[i] = (byte) r.nextInt();
+//            System.out.println(" md5:" + md5[i]);
+        }
+//        byte and = 0x03;
+//        System.out.println(and + " :" + Integer.toBinaryString(and));
+//        System.out.println(" md5[14]:" + (md5[14] & 0xFF) + " " + Integer.toBinaryString(md5[14] & 0xFF));
+//        System.out.println(" md5[15]:" + ((md5[15] & 0xFF) >> 6) + " " + Integer.toBinaryString((md5[15] & 0xFF) >> 6));
+//        System.out.println(" md5[15]:" + ((md5[15] & 0xFF) >> 4) + " " + Integer.toBinaryString((md5[15] & 0xFF) >> 4));
+//        System.out.println(" md5[15]:" + ((md5[15] & 0xFF) >> 2) + " " + Integer.toBinaryString((md5[15] & 0xFF) >> 2));
+//        System.out.println(" md5[15]:" + (md5[15] & 0xFF) + " " + Integer.toBinaryString(md5[15] & 0xFF));
+
+        ag0(md5);
+//        ag1(md5);
+//        ag2(md5);
+    }
+
+    private static void ag0(byte[] md5) {
+        int a = c5((md5[14] & 0xFF) & 0x07);
+        int b = c5(((md5[15] & 0xFF) >> 6) & 0x07);
+        int c = c5(((md5[15] & 0xFF) >> 4) & 0x07);
+        int d = c5(((md5[15] & 0xFF) >> 2) & 0x07);
+        int e = c5(((md5[15] & 0xFF) & 0x07));
+        System.out.println(" a :" + a + " b :" + b + " c :" + c + " d :" + d + " e :" + e);
+    }
+
+    private static int c5(int a) {
+//        a = a & 0x07 + 1;
+        return a > 0x05 ? a & 0x03 + 2 : ((a <= 0) ? 1 : a);
+    }
+
+    private static void ag1(byte[] md5) {
+        int a = ((md5[14] & 0xFF) & 0x03) + 2;
+        int b = (((md5[15] & 0xFF) >> 6) & 0x03) + 2;
+        int c = (((md5[15] & 0xFF) >> 4) & 0x03) + 2;
+        int d = (((md5[15] & 0xFF) >> 2) & 0x03) + 1;
+        int e = ((md5[15] & 0xFF) & 0x03) + 2;
+        System.out.println(" a :" + a + " b :" + b + " c :" + c + " d :" + d + " e :" + e + " -------");
+    }
+
+    private static void ag2(byte[] md5) {
+        int a = md5[15] & 0x07;
+        a = c5(a);
+        int b = md5[15] & 0x38 >> 3;
+        b = c5(b);
+        int c = md5[15] & 0xE0 >> 5;
+        c = c5(c);
+        int d = md5[15] & 0x1c >> 2;
+        d = c5(d);
+        int e = md5[14] & 0x07;
+        e = c5(e);
+        System.out.println("------- a :" + a + " b :" + b + " c :" + c + " d :" + d + " e :" + e);
+    }
+
+
+    private static void cal2() {
+        byte[] md5 = new byte[16];
+        Random r = new Random();
+
+        for (int i = 0; i < 16; i++) {
+            md5[i] = (byte) r.nextInt();
+//            System.out.println(" md5:" + md5[i]);
+        }
+//        byte and = 0x03;
+//        System.out.println(and + " :" + Integer.toBinaryString(and));
+//        System.out.println(" md5[14]:" + (md5[14] & 0xFF) + " " + Integer.toBinaryString(md5[14] & 0xFF));
+//        System.out.println(" md5[15]:" + ((md5[15] & 0xFF) >> 6) + " " + Integer.toBinaryString((md5[15] & 0xFF) >> 6));
+//        System.out.println(" md5[15]:" + ((md5[15] & 0xFF) >> 4) + " " + Integer.toBinaryString((md5[15] & 0xFF) >> 4));
+//        System.out.println(" md5[15]:" + ((md5[15] & 0xFF) >> 2) + " " + Integer.toBinaryString((md5[15] & 0xFF) >> 2));
+//        System.out.println(" md5[15]:" + (md5[15] & 0xFF) + " " + Integer.toBinaryString(md5[15] & 0xFF));
+        int a = ((md5[14] & 0xFF) & 0x03) + 2;
+        int b = (((md5[15] & 0xFF) >> 6) & 0x03) + 2;
+        int c = (((md5[15] & 0xFF) >> 4) & 0x03) + 2;
+        int d = (((md5[15] & 0xFF) >> 2) & 0x03) + 1;
+        int e = ((md5[15] & 0xFF) & 0x03) + 2;
+        System.out.println(" a :" + a + " b :" + b + " c :" + c + " d :" + d + " e :" + e + " -------");
+
+//        System.out.println(" md5[15]:" + (md5[15] & 0xFF) + " " + Integer.toBinaryString(md5[15] & 0xFF));
+
+    }
+
+
+    private static void strEncord() {
+
+        String bleName = "123abc公司";
+        try {
+            byte[] bytes = bleName.getBytes();
+            for (byte b : bytes) {
+                System.out.print(" " + Integer.toHexString(b & 0xFF));
+            }
+            System.out.println();
+
+            byte[] asciis = bleName.getBytes("US-ASCII");
+            for (byte b : asciis) {
+                System.out.print(" " + Integer.toHexString(b & 0xFF));
+            }
+            System.out.println();
+
+            byte[] gbks = bleName.getBytes("GBK");
+            for (byte b : gbks) {
+                System.out.print(" " + Integer.toHexString(b & 0xFF));
+            }
+            System.out.println();
+
+            String s = new String(asciis);
+            System.out.println(s);
+
+            s = new String(asciis, StandardCharsets.US_ASCII);
+            System.out.println(s);
+
+            s = new String(asciis, "GBK");
+            System.out.println(s);
+
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        String name = Charset.defaultCharset().name();
+        System.err.println("Charset " + name);
 
     }
 

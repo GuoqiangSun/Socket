@@ -57,6 +57,8 @@ public class TimingAdvanceData {
             obj.put("state", this.startup);
             obj.put("week", this.week);
 
+            obj.put("firstSwitch", this.on);
+
             String onCycle = this.onIntervalHour + ":" + this.onIntervalMinute;
             obj.put("onCycle",onCycle);
 

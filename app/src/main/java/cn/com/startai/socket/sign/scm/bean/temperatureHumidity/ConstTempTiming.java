@@ -7,6 +7,7 @@ package cn.com.startai.socket.sign.scm.bean.temperatureHumidity;
  */
 public class ConstTempTiming {
     public String mac;
+    public int result;
     public int id;
     public int model;
     public int startup;
@@ -23,6 +24,7 @@ public class ConstTempTiming {
     public String toString() {
         return "ConstTempTiming{" +
                 "mac='" + mac + '\'' +
+                ", result=" + result +
                 ", id=" + id +
                 ", model=" + model +
                 ", startup=" + startup +

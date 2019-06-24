@@ -13,7 +13,6 @@ import android.location.LocationManager;
 import android.os.Looper;
 import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
-import android.widget.Toast;
 
 import java.util.List;
 
@@ -33,7 +32,6 @@ import cn.com.startai.socket.sign.hardware.ble.util.DeviceEnablePost;
 import cn.com.startai.socket.sign.hardware.ble.util.InsertDisplayDeviceDaoUtil;
 import cn.com.startai.socket.sign.hardware.ble.xml.ConBleSp;
 import cn.com.swain.baselib.log.Tlog;
-import cn.com.swain.baselib.permission.PermissionGroup;
 import cn.com.swain.baselib.permission.PermissionHelper;
 import cn.com.swain.baselib.permission.PermissionRequest;
 import cn.com.swain.baselib.util.StrUtil;
@@ -292,6 +290,7 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
         return false;
     }
 
+
     /***************/
 
     @Override
@@ -349,28 +348,31 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
     @Override
     public void onResultBsGattScan(ScanBle mBle) {
 
-        if (mScanning) {
-            if (!mBle.isValid()) {
-                if (Debuger.isLogDebug) {
-                    Tlog.w(TAG, " ScanBle is unValid " + mBle.address
-                            + "--" + mBle.name + "--" + mBle.getFirstBroadUUID());
-                }
-                return;
+        if (!mScanning) {
+            Tlog.e(TAG, "onResultBsGattScan() " + mBle.toString() + "already stop scanning");
+            return;
+        }
+        if (!mBle.isValid()) {
+            if (Debuger.isLogDebug) {
+                Tlog.w(TAG, " ScanBle is unValid " + mBle.address
+                        + "--" + mBle.name + "--" + mBle.getFirstBroadUUID());
             }
+            return;
+        }
 
-            if (
-                    !Debuger.isDebug &&
-                            !Debuger.isBleDebug
-                            && CustomManager.getInstance().isTriggerBle()
-                            && !mBle.address.startsWith("90:00")
-            ) {
+        if (
+                !Debuger.isDebug &&
+                        !Debuger.isBleDebug
+                        && CustomManager.getInstance().isTriggerBle()
+                        && !mBle.address.startsWith("90:00")
+        ) {
 
-                if (Debuger.isLogDebug) {
-                    Tlog.w(TAG, " ScanBle isTriggerBle " + mBle.address + " not startsWith 90:00");
-                }
-                return;
-
+            if (Debuger.isLogDebug) {
+                Tlog.w(TAG, " ScanBle isTriggerBle " + mBle.address + " not startsWith 90:00");
             }
+            return;
+
+        }
 
 //            if (!mBle.matchBroadUUID(mShowUuid)) {
 //                if (Debuger.isLogDebug) {
@@ -381,14 +383,13 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
 //            }
 
 
-            if (Debuger.isLogDebug) {
-                Tlog.w(TAG, " onResultBsGattScan " + mBle.toString());
-            }
-
-            displayBle(mBle);
-        } else {
-            Tlog.e(TAG, "onResultBsGattScan() " + mBle.toString() + "already stop scanning");
+        if (Debuger.isLogDebug) {
+            mBle.name += "n";
+            Tlog.w(TAG, " onResultBsGattScan " + mBle.toString());
         }
+
+        displayBle(mBle);
+
 
     }
 

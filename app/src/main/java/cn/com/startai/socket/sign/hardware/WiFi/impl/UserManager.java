@@ -77,7 +77,7 @@ import cn.com.startai.mqttsdk.control.entity.AreaLocation;
 import cn.com.startai.mqttsdk.listener.IOnCallListener;
 import cn.com.startai.mqttsdk.localbusi.SUserManager;
 import cn.com.startai.mqttsdk.mqtt.request.MqttPublishRequest;
-import cn.com.startai.scansdk.ChargerScanActivity;
+import cn.com.startai.scansdk.ChargerScanScanActivity;
 import cn.com.startai.socket.db.gen.JsUserInfoDao;
 import cn.com.startai.socket.db.gen.JsWeatherInfoDao;
 import cn.com.startai.socket.db.gen.UserInfoDao;
@@ -394,7 +394,7 @@ public class UserManager implements IService {
 
     public void scanQRCode(Activity act) {
 
-        ChargerScanActivity.showActivityForResult(act, REQUEST_SCAN_QR);
+        ChargerScanScanActivity.showActivityForResult(act, REQUEST_SCAN_QR);
 
     }
 

@@ -1,5 +1,7 @@
 package cn.com.startai.socket.sign.scm.receivetask.impl.system;
 
+import java.nio.charset.StandardCharsets;
+
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
@@ -36,7 +38,7 @@ public class RenameReceiveTask extends SocketResponseTask {
         boolean result = SocketSecureKey.Util.resultIsOk(protocolParams[0]);
 
         String deviceName;
-        deviceName = new String(protocolParams, 1, 32);
+        deviceName = new String(protocolParams, 1, 32, StandardCharsets.US_ASCII);
         deviceName = deviceName.trim().replaceAll("\\s*", "");
         Tlog.v(TAG, " deviceName :" + deviceName);
 

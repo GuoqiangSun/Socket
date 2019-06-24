@@ -26,8 +26,8 @@ android {
         applicationId "cn.com.startai.bluetoothsocket"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 16377
-        versionName "1.6.377"
+        versionCode 16383
+        versionName "1.6.383"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true

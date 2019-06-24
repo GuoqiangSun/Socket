@@ -1,10 +1,13 @@
 package cn.com.startai.socket.sign.scm.receivetask.impl.system;
 
+import java.nio.charset.StandardCharsets;
+
+import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.startai.socket.sign.scm.util.SocketSecureKey;
+import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.support.protocolEngine.datagram.SocketDataArray;
 import cn.com.swain.support.protocolEngine.task.SocketResponseTask;
-import cn.com.swain.baselib.log.Tlog;
 
 /**
  * author: Guoqiang_Sun
@@ -36,7 +39,11 @@ public class QueryNameReceiveTask extends SocketResponseTask {
         boolean result = SocketSecureKey.Util.resultIsOk(protocolParams[0]);
 
         String deviceName;
-        deviceName = new String(protocolParams, 1, 32);
+        if (CustomManager.getInstance().isTriggerBle()) {
+            deviceName = new String(protocolParams, 1, 32, StandardCharsets.US_ASCII);
+        } else {
+            deviceName = new String(protocolParams, 1, 32);
+        }
         deviceName = deviceName.trim().replaceAll("\\s*", "");
         Tlog.v(TAG, " deviceName :" + deviceName);
 

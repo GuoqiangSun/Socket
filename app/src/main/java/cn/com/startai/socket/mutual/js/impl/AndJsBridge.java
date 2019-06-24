@@ -1372,6 +1372,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
             for (ConstTempTiming mConstTempTiming : mArray) {
                 obj = new JSONObject();
                 try {
+                    obj.put("id",mConstTempTiming.id);
                     obj.put("startup", mConstTempTiming.startup);
                     obj.put("minTemp", mConstTempTiming.minTemp);
                     obj.put("maxTemp", mConstTempTiming.maxTemp);
@@ -1403,8 +1404,9 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onSetConstTempTimingResult(ConstTempTiming mConstTempTiming) {
         String method = TemperatureAndHumidity.Method.callJsSetConstTempTiming(mConstTempTiming.mac,
+                mConstTempTiming.result,
                 mConstTempTiming.id, mConstTempTiming.model, mConstTempTiming.startup,
-                mConstTempTiming.maxTemp, mConstTempTiming.minTemp, mConstTempTiming.week,
+                mConstTempTiming.minTemp, mConstTempTiming.maxTemp, mConstTempTiming.week,
                 mConstTempTiming.startHour, mConstTempTiming.startMinute,
                 mConstTempTiming.endHour, mConstTempTiming.endMinute);
         loadJs(method);

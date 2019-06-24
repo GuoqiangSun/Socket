@@ -6,15 +6,20 @@ buildscript {
         google()
         jcenter()
         mavenLocal()
+        mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.1'
+        classpath 'com.android.tools.build:gradle:3.4.1'
 
         // Green DAO
         classpath 'org.greenrobot:greendao-gradle-plugin:3.2.2'
 
         // twitter lib use
         classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.0.1'
+
+
+        classpath "com.dicedmelon.gradle:jacoco-android:0.1.4"
+        classpath "org.jacoco:org.jacoco.core:0.7.9"
 
     }
 }

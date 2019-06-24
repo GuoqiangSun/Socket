@@ -48,11 +48,9 @@ public class TimingSetReceiveTask extends SocketResponseTask {
 
             if (protocolParams.length > 13) {
                 mResult.startup = SocketSecureKey.Util.startup(protocolParams[13]);//onOff
-            } else {
-                mResult.startup = SocketSecureKey.Util.startup(protocolParams[8]);//onOff
             }
 
-            if (protocolParams.length >= 14) {
+            if (protocolParams.length > 14) {
                 mResult.week = (byte) (protocolParams[14] & 0xFF);//week
             }
 

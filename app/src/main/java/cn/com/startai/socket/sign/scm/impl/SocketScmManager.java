@@ -13,6 +13,7 @@ import android.os.Message;
 import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
 
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -1598,7 +1599,10 @@ public class SocketScmManager extends AbsSocketScm
     public void rename(RenameBean obj) {
         String mac = obj.address;
         String name = obj.name;
-        byte[] bytes = name != null ? name.getBytes() : mac.getBytes();
+        String deviceName = name != null ? name : mac;
+        byte[] bytes = CustomManager.getInstance().isTriggerBle()
+                ? deviceName.getBytes(StandardCharsets.US_ASCII)
+                : deviceName.getBytes();
         ResponseData mResponseData = MySocketDataCache.getRename(mac, bytes);
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " rename  " + String.valueOf(mResponseData));
