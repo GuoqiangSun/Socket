@@ -77,12 +77,44 @@ public class JavaTestMain {
 
 //        FThexStr();
 
-        for (int i = 0; i < 10; i++) {
-            cal();
-//            cal2();
+//        for (int i = 0; i < 10; i++) {
+//            cal();
+////            cal2();
+//        }
+
+
+        cpl();
+
+        System.out.println(Double.toHexString(2.2D));
+        System.out.println(Double.toHexString(3.2D));
+        System.out.println(Double.toHexString(3.3D));
+        System.out.println(Double.toHexString(33.3D));
+        System.err.println("end ");
+    }
+
+    private static void cpl() {
+        Long ll = 1L;
+        Long lll = 1L;
+        System.err.println("ll=lll " + (ll.equals(lll)));
+    }
+
+
+    private static void fenlei() {
+        int sum = 0;
+        for (int i = 1; i < 100; i++) {
+
+            sum += i;
+
+            if (i % 2 == 0) {
+                System.out.println(i + " 是偶数");
+            } else {
+                System.out.println(i + " 是奇数");
+            }
+
         }
 
-        System.err.println("end ");
+        System.out.println("100以内整数和:" + sum);
+
     }
 
     private static void cal() {

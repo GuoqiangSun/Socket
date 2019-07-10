@@ -384,7 +384,6 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
 
 
         if (Debuger.isLogDebug) {
-            mBle.name += "n";
             Tlog.w(TAG, " onResultBsGattScan " + mBle.toString());
         }
 
@@ -654,6 +653,51 @@ public class BleManager extends AbsBle implements IBleScanObserver, IBleConCallB
 
         }
 
+    }
+
+
+    @Override
+    public void onDeviceResponseRename(String address, String name) {
+        if (address != null) {
+            if (mLastConScanBle != null &&
+                    mLastConScanBle.address != null &&
+                    mLastConScanBle.address.equalsIgnoreCase(address)) {
+                mLastConScanBle.name = name;
+            }
+            if (mCurConnectedBle != null &&
+                    mCurConnectedBle.address != null &&
+                    mCurConnectedBle.address.equalsIgnoreCase(address)) {
+                mCurConnectedBle.name = name;
+            }
+            if (mCurConnectingBle != null &&
+                    mCurConnectingBle.address != null &&
+                    mCurConnectingBle.address.equalsIgnoreCase(address)) {
+                mCurConnectingBle.name = name;
+            }
+            ScanBle connectedBle = mBleArray.getConnectedBle(address);
+            if (connectedBle != null) {
+                connectedBle.name = name;
+            }
+            ScanBle displayBle = mBleArray.getDisplayBle(address);
+            if (displayBle != null) {
+                displayBle.name = name;
+            }
+
+            DisplayBleDeviceDao displayDeviceDao = DBManager.getInstance().getDaoSession().getDisplayBleDeviceDao();
+            List<DisplayBleDevice> list = displayDeviceDao.queryBuilder()
+                    .where(DisplayBleDeviceDao.Properties.Address.eq(address)).list();
+
+            if (list.size() > 0) {
+                DisplayBleDevice displayBleDevice = list.get(0);
+                displayBleDevice.name = name;
+                displayDeviceDao.update(displayBleDevice);
+            }
+
+            if (mBmCallJs != null) {
+                DisplayBleDevice mDisplayDevice = new DisplayBleDevice().memorize(displayBle);
+                mBmCallJs.onResultHWDisplay(mDisplayDevice);
+            }
+        }
     }
 
     @Override

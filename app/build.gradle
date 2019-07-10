@@ -32,6 +32,7 @@ android {
         multiDexEnabled true
 
 
+
         // Specifies the ABI configurations of your native
         // libraries Gradle should build and package with your APK.
 //        ndk {
@@ -190,7 +191,7 @@ dependencies {
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0'
     implementation files('libs/startai-esptouch-sender-1.0.jar')
 
-    implementation 'cn.com.startai:mqsdk:3.1.75'
+    implementation 'cn.com.startai:mqsdk:3.1.76'
     implementation 'com.blankj:utilcode:1.22.1'
     implementation 'org.xutils:xutils:3.5.1'
     implementation 'cn.com.startai:fastdfssdk:1.0.2'

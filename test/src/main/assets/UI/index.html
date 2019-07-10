@@ -3,8 +3,6 @@
 <head>
     <title>用户登录.html</title>
 
-    <meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
-    <meta http-equiv="description" content="this is my page">
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 
     <!--<link rel="stylesheet" type="text/css" href="./styles.css">-->
@@ -13,103 +11,105 @@
 
 <body>
 <form name="user" action="#" method="get">
-    <table  align="center">
-        <tr>
-            <td>用户名</td>
-            <td>
-                <input type="text" name="username" />
-            </td>
-        </tr>
-        <tr>
-            <td>密码</td>
-            <td>
-                <input type="password"/>
-            </td>
-        </tr>
-        <tr>
-            <td>性别</td>
-            <td>
-                <input type="radio" name="name" checked="checked"/>男
-                <input type="radio" name="name"/>女
-            </td>
-        </tr>
-        <tr>
-            <td>地址</td>
-            <td>
-                <select>
-                    <option>北京</option>
-                    <option>天津</option>
-                    <option>上海</option>
-                </select>
-                <select>
-                    <option>海淀区</option>
-                    <option>朝阳区</option>
-                    <option>昌平区</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td>爱好</td>
-            <td>
-                <input type="checkbox" name="sport" checked="checked"/>运动
-                <input type="checkbox" name="basketball"/>篮球
-                <input type="checkbox" name="volleyball"/>排球
-            </td>
-        </tr>
-        <tr>
-            <td>邮箱</td>
-            <td>
-                <input type="text" name="emall" />
-            </td>
-        </tr>
-        <tr>
-            <td>电话号码</td>
-            <td>
-                <input type="text" name="phone" />
-            </td>
-        </tr>
-        <tr>
-            <td>上传头像</td>
-            <td>
-                <input type="file" name="file" />
-            </td>
-        </tr>
-        <tr>
-            <td>其他</td>
-            <td>
-                <textarea rows="15" cols="50"></textarea>
-            </td>
-        </tr>
-        <tr>
-            <td></td>
-            <td>
-                <input type="button" value="普通按钮"/>
-                <input type="submit" name="tijiao" value="注册"/>
-                <input type="reset" name="quxiao" value="取消"/>
-                <button id="htmlOnClick" onclick="clickHandler()">htmlOnClick</button>
-            </td>
-        </tr>
-        <tr>
-            <td></td>
-            <td>
-                <input type="image" name="img" src="btn.gif"/>
-            </td>
-        </tr>
+    <table align="center">
+        <button id="htmlOnClick" onclick="clickHandler()">htmlOnClick</button>
     </table>
 </form>
 
+<script src="./device.js" type="text/javascript" charset="utf-8"></script>
+<script src="./device2.js" type="text/javascript" charset="utf-8"></script>
+<script src="./HashMap.js" type="text/javascript" charset="utf-8"></script>
 <script defer>
+
+
  function clickHandler() {
- var i = 1 / 0;
- throw Error('参数1、参数2不能为空');
-  alert("onclick attribute in html");
+
+
+            var hm = new HashMap();
+           console.log("a","size = "+hm.size());
+            hm.put(123,123);
+        console.log("a","size = "+hm.size());
+        var device =  hm.get(123);
+        console.log("a","device = "+device);
+
+    virtualDevice2.mac = "01:01:01:01:01:01"
+    showVirtualDevice2();
+
+    initDevice();
+    getDevice().mac  =  "01:01:01:01:01:01";
+    showDevice();
+
  }
- function clickHandler2(e) {
-  alert(e.target.innerHTML);
+
+
+ function clickHandler0() {
+ <!--var i = 1 / 0;-->
+ <!--throw Error('参数1、参数2不能为空');-->
+  <!--alert("onclick attribute in html");-->
+
+let a = 0x0a0a0a0a;
+console.log("a","a = "+a);
+
+
+    let temps =0x010101020305;
+
+
+
+console.log(" temps parseInt = " +  parseInt(temps,10))
+
+    console.log(" temps[0x0x010101020305] = " + temps)
+    console.log(" [0x01020305] = " + 0x01020305)
+    console.log(" [0x010100000000] = " + 0x010100000000)
+
+    let tempsD = temps - 0x01020305;
+    console.log(" temps - 0x01020305 = " + tempsD)
+
+console.log(" tempsD/0x100000000 = " + (tempsD/0x10000000))
+
+    console.log(" tempsD>>>32 = " + (tempsD>>>32))
+
+
+    console.log(" 0x0101010101>>>24 = " + (0x01010101>>>24))
+
+
+    let buf = new Array()
+    let tempsT = new Date().getTime()
+     console.log(" tempsT = " + tempsT)
+
+    let tempsLow = (tempsT & 0xFFFFFFFF)>>>0;
+    console.log(" tempsLow = " + tempsLow)
+
+      let tempsHigh = tempsT/0x100000000;
+
+    console.log(" tempsHigh = " +tempsHigh)
+
+    buf[0] = ((tempsHigh >> 8) & 0xFF)
+    buf[1] = ((tempsHigh >> 0) & 0xFF)
+    buf[2] = ((tempsLow >> 24) & 0xFF)
+    buf[3] = ((tempsLow >> 16) & 0xFF)
+    buf[4] = ((tempsLow >> 8) & 0xFF)
+    buf[5] = ((tempsLow >> 0) & 0xFF)
+    console.log('buf0', buf[0].toString(16))
+    console.log('buf1', buf[1].toString(16))
+    console.log('buf2', buf[2].toString(16))
+    console.log('buf3', buf[3].toString(16))
+    console.log('buf4', buf[4].toString(16))
+    console.log('buf5', buf[5].toString(16))
+
+    let temps2 = temps>>32;
+    console.log(temps2)
+   let buf2 = new Array()
+    buf2[0] = ((temps2 >> 8) & 0xFF)
+    buf2[1] = ((temps2 >> 0) & 0xFF)
+    console.log('buf0', buf2[0].toString(16))
+    console.log('buf1', buf2[1].toString(16))
  }
- document.getElementById("jsOnClick").onclick = clickHandler2;
- document.getElementById("addEventListener").addEventListener("click",
-   clickHandler2);
+
+
+
+
+
+
 </script>
 
 

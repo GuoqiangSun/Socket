@@ -486,6 +486,10 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
         if (mScmVirtual != null) {
             mScmVirtual.rename(obj);
         }
+
+        if (CustomManager.getInstance().isTriggerBle()) {
+            onResultRename(obj.address, true, obj.name);
+        }
     }
 
     @Override
@@ -1372,7 +1376,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
             for (ConstTempTiming mConstTempTiming : mArray) {
                 obj = new JSONObject();
                 try {
-                    obj.put("id",mConstTempTiming.id);
+                    obj.put("id", mConstTempTiming.id);
                     obj.put("startup", mConstTempTiming.startup);
                     obj.put("minTemp", mConstTempTiming.minTemp);
                     obj.put("maxTemp", mConstTempTiming.maxTemp);

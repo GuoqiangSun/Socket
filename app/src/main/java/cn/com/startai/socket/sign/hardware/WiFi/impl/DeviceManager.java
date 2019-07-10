@@ -1586,6 +1586,8 @@ public class DeviceManager implements IService {
 
     }
 
+    private boolean hasDisplay = false;
+
     private synchronized void displayBindDeviceLst(String mid) {
         Tlog.v(TAG, "displayBindDeviceLst() " + mid);
 
@@ -1681,6 +1683,7 @@ public class DeviceManager implements IService {
             stringLanDeviceInfoMap.clear();
         }
 
+        hasDisplay = true;
         if (mResultCallBack != null) {
             Tlog.e(TAG, "displayBindDeviceLst() onResultWiFiDeviceListDisplay(mDisplayDeviceLst) ");
             mResultCallBack.onResultWiFiDeviceListDisplay(mDisplayDeviceLst);
@@ -1694,12 +1697,14 @@ public class DeviceManager implements IService {
             mDisplayHandler.sendEmptyMessageDelayed(MAG_WHAT_AUTO_CON_DEVICE, 1000 * 2);
 
 
-            if (mDisplayHandler.hasMessages(MAG_WHAT_FLUSH_DISPLAY_DEVICE)) {
-                mDisplayHandler.removeMessages(MAG_WHAT_FLUSH_DISPLAY_DEVICE);
-            }
+            if (StartAI.getInstance().getConnectState() == PersistentConnectState.CONNECTED) {
+                if (mDisplayHandler.hasMessages(MAG_WHAT_FLUSH_DISPLAY_DEVICE)) {
+                    mDisplayHandler.removeMessages(MAG_WHAT_FLUSH_DISPLAY_DEVICE);
+                }
 
-            Message message = mDisplayHandler.obtainMessage(MAG_WHAT_FLUSH_DISPLAY_DEVICE, mid);
-            mDisplayHandler.sendMessageDelayed(message, 1000 * 3);
+                Message message = mDisplayHandler.obtainMessage(MAG_WHAT_FLUSH_DISPLAY_DEVICE, mid);
+                mDisplayHandler.sendMessageDelayed(message, 500);
+            }
 
 
             if (!hasQueryHistory && !mDisplayHandler.hasMessages(MAG_WHAT_QUERY_HISTORY)) {
@@ -1922,6 +1927,16 @@ public class DeviceManager implements IService {
         if (mDisplayHandler != null) {
             Message message = mDisplayHandler.obtainMessage(MAG_WHAT_AUTO_BIND, userID);
             mDisplayHandler.sendMessageDelayed(message, 1000 * 6L);
+
+
+            if (hasDisplay) {
+                if (!mDisplayHandler.hasMessages(MAG_WHAT_FLUSH_DISPLAY_DEVICE)) {
+                    Message message0 = mDisplayHandler.obtainMessage(MAG_WHAT_FLUSH_DISPLAY_DEVICE, userID);
+                    mDisplayHandler.sendMessageDelayed(message0, 500);
+                }
+            }
+
+
         }
     }
 

@@ -342,6 +342,10 @@ public class HardwareManager extends AbsHardwareManager {
         if (mNetworkManager != null) {
             mNetworkManager.onDeviceResponseRename(id, name);
         }
+
+        if (mBleManager != null) {
+            mBleManager.onDeviceResponseRename(id, name);
+        }
     }
 
     @Override

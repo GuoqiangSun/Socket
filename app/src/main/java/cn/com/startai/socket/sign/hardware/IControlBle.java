@@ -3,6 +3,7 @@ package cn.com.startai.socket.sign.hardware;
 import android.content.Intent;
 
 import cn.com.startai.socket.mutual.js.bean.DisplayBleDevice;
+import cn.com.startai.socket.sign.scm.bean.RenameBean;
 
 /**
  * author: Guoqiang_Sun
@@ -58,6 +59,7 @@ public interface IControlBle {
 
     void onActivityResult(int requestCode, int resultCode, Intent data);
 
+    void onDeviceResponseRename(String mac,String name);
 
     interface IBleResultCallBack {
 
