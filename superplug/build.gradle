@@ -41,7 +41,11 @@ android {
     }
     android.applicationVariants.all { variant ->
         variant.outputs.all {
-            outputFileName = "MUSIK-${variant.versionName}-${variant.buildType.name}.apk"
+            if ("true" == IS_JENKINS) {
+                outputFileName = "app-release.apk"
+            } else {
+                outputFileName = "MUSIK-${variant.versionName}-${variant.buildType.name}.apk"
+            }
         }
     }
     productFlavors {

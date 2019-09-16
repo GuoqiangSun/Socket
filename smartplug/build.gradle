@@ -42,7 +42,11 @@ android {
     }
     android.applicationVariants.all { variant ->
         variant.outputs.all {
-            outputFileName = "smartplug-${variant.versionName}-${variant.buildType.name}.apk"
+            if ("true" == IS_JENKINS) {
+                outputFileName = "app-release.apk"
+            } else {
+                outputFileName = "smartplug-${variant.versionName}-${variant.buildType.name}.apk"
+            }
         }
     }
 }

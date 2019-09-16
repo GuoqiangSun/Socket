@@ -42,7 +42,11 @@ android {
     }
     android.applicationVariants.all { variant ->
         variant.outputs.all {
-            outputFileName = "TriggerWiFi-${variant.versionName}-${variant.buildType.name}.apk"
+            if ("true" == IS_JENKINS) {
+                outputFileName = "app-release.apk"
+            } else {
+                outputFileName = "TriggerWiFi-${variant.versionName}-${variant.buildType.name}.apk"
+            }
         }
     }
     productFlavors {
