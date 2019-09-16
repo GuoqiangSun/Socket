@@ -5,7 +5,7 @@ android {
         config {
             keyAlias 'airtemp-nb'
             keyPassword 'startai'
-            storeFile file('D:/AS_project/key/startai-key')
+            storeFile file('..\\startai-key')
             storePassword 'startai'
         }
     }
