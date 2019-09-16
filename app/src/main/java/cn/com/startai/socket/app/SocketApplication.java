@@ -60,7 +60,7 @@ public class SocketApplication extends MultiDexApplication implements Thread.Unc
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         Tlog.v(TAG, "SocketApplication onConfigurationChanged() " + newConfig.toString());
-    }
+  }
 
     public static void uncaughtH5Exception(String msg) {
         Tlog.e(TAG, " SocketApplication uncaughtH5Exception :\n" + msg);

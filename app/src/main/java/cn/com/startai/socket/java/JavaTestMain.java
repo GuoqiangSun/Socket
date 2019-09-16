@@ -83,19 +83,59 @@ public class JavaTestMain {
 //        }
 
 
-        cpl();
+//        cpl();
 
-        System.out.println(Double.toHexString(2.2D));
-        System.out.println(Double.toHexString(3.2D));
-        System.out.println(Double.toHexString(3.3D));
-        System.out.println(Double.toHexString(33.3D));
+//        108 = 90 + 18
+
+//        System.out.println(259 & 256);
+//        System.out.println(259 / 256);
+
+
+        sanjiao();
+
         System.err.println("end ");
+    }
+
+    private static void sanjiao() {
+
+        double cos = Math.cos(108d);
+        System.out.println(" cons 108 = " + cos);
+
+        double sin18 = Math.sin(18d);
+        System.out.println(" sin 18 = " + sin18);
+
+        double sin = Math.sin(72d);
+        System.out.println(" sin 72 = " + sin);
+
+        for (int i = 0; i <= 180; i++) {
+            double d = i * Math.PI / 180;
+            double cos1 = Math.cos(d);
+            System.out.print(" cos(" + i + "); d=" + d + " cos=" + cos1 + ", ");
+            if (i == 90) {
+                System.out.println();
+            }
+        }
+        System.out.println();
+        for (int i = 0; i < 180; i++) {
+            double d = i * Math.PI / 180;
+            double sin1 = Math.sin(d);
+            System.out.print(" sin(" + i + "); d=" + d + " sin=" + sin1 + ", ");
+            if (i == 90) {
+                System.out.println();
+            }
+        }
+
     }
 
     private static void cpl() {
         Long ll = 1L;
         Long lll = 1L;
         System.err.println("ll=lll " + (ll.equals(lll)));
+
+        System.out.println(Double.toHexString(2.2D));
+        System.out.println(Double.toHexString(3.2D));
+        System.out.println(Double.toHexString(3.3D));
+        System.out.println(Double.toHexString(33.3D));
     }
 
 

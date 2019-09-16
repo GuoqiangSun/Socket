@@ -212,7 +212,7 @@ public class Debuger implements IApp, IService {
         if (logPath.exists()) {
             final String prefix = String.valueOf(CustomManager.getInstance().getCustom())
                     + String.valueOf(CustomManager.getInstance().getProduct());
-            if (!TFlog.hasILogRecordImpl()) {
+            if (!Tlog.hasILogRecordImpl()) {
                 LogRecordManager mLogRecord = new LogRecordManager(logPath, prefix, 1024 * 1024 * 8);
                 Tlog.set(mLogRecord);
             }

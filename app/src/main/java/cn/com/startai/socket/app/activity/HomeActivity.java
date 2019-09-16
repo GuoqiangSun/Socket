@@ -42,7 +42,7 @@ import cn.com.startai.socket.sign.js.jsInterface.Router;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.swain.baselib.Queue.LimitQueue;
 import cn.com.swain.baselib.app.IApp.IService;
-import cn.com.swain.baselib.app.utils.StatusBarUtil;
+import cn.com.swain.baselib.display.StatusBarUtil;
 import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.baselib.permission.PermissionGroup;
 import cn.com.swain.baselib.permission.PermissionHelper;

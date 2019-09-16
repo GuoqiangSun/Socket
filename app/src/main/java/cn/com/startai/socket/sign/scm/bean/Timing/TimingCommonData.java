@@ -42,6 +42,10 @@ public class TimingCommonData {
         this.model = model;
     }
 
+    public byte getModel() {
+        return model;
+    }
+
     public void setModelIsCommon() {
         this.model = SocketSecureKey.Model.TIMING_COMMON;
     }

@@ -513,7 +513,7 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
             Tlog.v(TAG, "startAirKiss() config ssid: " + ssid + " pwd:" + pwd);
 
             String bssid = WiFiUtil.getWiFiBSSID(ssid, mWiFiManager);
-            Tlog.e(TAG, " getWiFiBSSID " + bssid);
+            Tlog.e(TAG, " getWiFiBSSID :" + bssid);
 
 
             if (!MacUtil.macMatches(bssid)) {

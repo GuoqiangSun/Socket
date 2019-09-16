@@ -2129,7 +2129,7 @@ public class SocketScmManager extends AbsSocketScm
             TimingSetResult mResult = new TimingSetResult();
             mResult.result = true;
             mResult.mac = mData.getMac();
-            mResult.model = SocketSecureKey.Util.getAdvanceTiming();
+            mResult.model = mData.getModel();
             mResult.id = mData.getId();
             mResult.startup = mData.getStartup();
             mResult.state = mData.getState();
@@ -2148,7 +2148,7 @@ public class SocketScmManager extends AbsSocketScm
             TimingSetResult mResult = new TimingSetResult();
             mResult.result = true;
             mResult.mac = mAdvanceData.mac;
-            mResult.model = SocketSecureKey.Util.getAdvanceTiming();
+            mResult.model = mAdvanceData.model;
             mResult.id = mAdvanceData.id;
             mResult.startup = mAdvanceData.startup;
             mResult.state = mAdvanceData.state;

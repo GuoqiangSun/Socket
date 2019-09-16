@@ -699,6 +699,11 @@ public class DeviceManager implements IService {
 
                     mResultCallBack.onResultBindDevice(true, omac);
 
+                    if (mDiscoveryDeviceInfo != null) {
+                        mDisplayDeviceLst.add(mDiscoveryDeviceInfo);
+                        mResultCallBack.onResultWiFiDeviceListDisplay(new DisplayDeviceList(mDiscoveryDeviceInfo));
+                    }
+
                 }
             }
         }

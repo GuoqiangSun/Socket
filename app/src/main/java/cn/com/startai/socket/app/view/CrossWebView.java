@@ -6,6 +6,8 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 
+import org.xwalk.core.XWalkNavigationHistory;
+import org.xwalk.core.XWalkNavigationItem;
 import org.xwalk.core.XWalkPreferences;
 import org.xwalk.core.XWalkSettings;
 import org.xwalk.core.XWalkView;
@@ -77,7 +79,7 @@ public class CrossWebView extends XWalkView {
         settings.setDomStorageEnabled(true);
         settings.setCacheMode(XWalkSettings.LOAD_NO_CACHE);
 
-        setLayerType(View.LAYER_TYPE_HARDWARE,null);
+        setLayerType(View.LAYER_TYPE_HARDWARE, null);
     }
 
     private final String JAVA_SCRIPT = "javascript:";
@@ -106,6 +108,7 @@ public class CrossWebView extends XWalkView {
 
     public void disableGoBack(boolean status) {
         this.status = status;
+        Tlog.e(TAG, " navigationItem disableGoBack status: " + status);
     }
 
     @Override
@@ -124,6 +127,30 @@ public class CrossWebView extends XWalkView {
         }
         return super.dispatchKeyEvent(event);
 
+
+    }
+
+    private boolean goforward(){
+
+        // Go forward
+        if (
+                getNavigationHistory().canGoForward()) {
+            getNavigationHistory().navigate(
+                    XWalkNavigationHistory.Direction.FORWARD, 1);
+            return false;
+        }
+        return true;
+    }
+
+    private boolean goback() {
+        if (getNavigationHistory().canGoBack()) {
+//            XWalkNavigationItem navigationItem = getNavigationHistory().getCurrentItem();
+            getNavigationHistory().navigate(
+                    XWalkNavigationHistory.Direction.BACKWARD, 1);
+            Tlog.d(TAG, " navigationItem navigate: BACKWARD ");
+            return false;
+        }
+        return true;
     }
 
     @Override

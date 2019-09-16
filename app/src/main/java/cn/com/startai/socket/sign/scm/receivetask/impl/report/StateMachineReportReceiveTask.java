@@ -81,6 +81,7 @@ public class StateMachineReportReceiveTask extends SocketResponseTask {
         mStateMachine.temperature = Bit.isOne(protocolParams[3], 0);
         mStateMachine.temperatureSensing = Bit.isOne(protocolParams[3], 1);
         mStateMachine.humidity = Bit.isOne(protocolParams[3], 2);
+        mStateMachine.highTemperature = Bit.isOne(protocolParams[3], 3);
 
         mStateMachine.setMeasure = Bit.isOne(protocolParams[4], 0);
         mStateMachine.setCost = Bit.isOne(protocolParams[4], 1);

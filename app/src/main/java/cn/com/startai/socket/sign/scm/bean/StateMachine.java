@@ -47,6 +47,7 @@ public class StateMachine {
     public boolean highTimer;
     public boolean UsbTimer;
     public boolean temperature;
+    public boolean highTemperature;
     public boolean temperatureSensing;
     public boolean humidity;
     public boolean setMeasure;
@@ -104,6 +105,7 @@ public class StateMachine {
             obj.put("temperature", temperature);
             obj.put("temperatureSensing", temperatureSensing);
             obj.put("humidity", humidity);
+            obj.put("highTemperature", highTemperature);
 
             obj.put("setMeasure", setMeasure);
             obj.put("setCost", setCost);
