@@ -199,7 +199,7 @@ dependencies {
 //    implementation 'cn.com.swain169:fastudp:3.2.01'
 //    implementation 'cn.com.swain169:fastble:3.2.01'
 
-    api 'cn.com.swain169:baselib:3.2.32'
+    api 'cn.com.swain169:baselib:3.2.33'
     implementation 'cn.com.swain169:protocolEngine:3.2.11'
     // 调试
     api 'com.facebook.stetho:stetho:1.5.0'
