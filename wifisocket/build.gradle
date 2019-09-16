@@ -19,7 +19,7 @@ android {
         minSdkVersion 19
         targetSdkVersion 27
         versionCode WiFiSocket_APP_VERSION as int
-        versionName WiFiSocket_APP_VERSION_NAME as String
+        versionName WiFiSocket_APP_NAME as String
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
         signingConfig signingConfigs.wifisocket
