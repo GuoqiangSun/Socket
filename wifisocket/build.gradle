@@ -19,7 +19,7 @@ android {
         minSdkVersion 19
         targetSdkVersion 27
         versionCode WiFiSocket_APP_VERSION as int
-        versionName JENKINS_BUILD_NUMBER
+        versionName WiFiSocket_APP_VERSION_NAME as String
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
         signingConfig signingConfigs.wifisocket
@@ -35,11 +35,9 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.wifisocket
-            buildConfigField "String", "JENKINS_BUILD_NUMBER", JENKINS_BUILD_NUMBER
         }
         debug {
             signingConfig signingConfigs.wifisocket
-            buildConfigField "String", "JENKINS_BUILD_NUMBER", JENKINS_BUILD_NUMBER
         }
     }
     android.applicationVariants.all { variant ->
