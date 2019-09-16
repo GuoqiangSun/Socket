@@ -41,7 +41,7 @@ android {
     }
     android.applicationVariants.all { variant ->
         variant.outputs.all {
-            if ("true" == IS_JENKINS) {
+            if ((IS_JENKINS as int) ==1) {
                 outputFileName = "app-release.apk"
             } else {
                 outputFileName = "AirTempNB-${variant.versionName}-${variant.buildType.name}.apk"
