@@ -18,8 +18,8 @@ android {
         applicationId "cn.com.startai.smartplug"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 16037
-        versionName "1.6.037"
+        versionCode SMART_APP_VERSION as int
+        versionName SMART_APP_NAME as String
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }

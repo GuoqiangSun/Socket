@@ -18,8 +18,8 @@ android {
         applicationId "cn.com.startai.superplug"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 16100
-        versionName "1.6.100"
+        versionCode MUSIK_APP_VERSION as int
+        versionName MUSIK_APP_NAME as String
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }
