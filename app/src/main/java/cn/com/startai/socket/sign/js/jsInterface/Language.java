@@ -7,7 +7,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.DisplayMetrics;
 
-import org.xwalk.core.JavascriptInterface;
+import android.webkit.JavascriptInterface;
 
 import java.util.Locale;
 

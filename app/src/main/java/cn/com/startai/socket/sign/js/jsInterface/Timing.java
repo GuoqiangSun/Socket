@@ -3,7 +3,7 @@ package cn.com.startai.socket.sign.js.jsInterface;
 import android.os.Looper;
 import android.os.Message;
 
-import org.xwalk.core.JavascriptInterface;
+import android.webkit.JavascriptInterface;
 
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.startai.socket.sign.scm.bean.Timing.TimingAdvanceData;

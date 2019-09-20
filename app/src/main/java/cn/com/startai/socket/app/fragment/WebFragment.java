@@ -1,31 +1,25 @@
 package cn.com.startai.socket.app.fragment;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.net.http.SslError;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.ValueCallback;
-import android.webkit.WebSettings;
 import android.widget.RelativeLayout;
 
-import com.tencent.bugly.crashreport.CrashReport;
-import com.tencent.bugly.crashreport.crash.h5.H5JavaScriptInterface;
+import com.tencent.smtt.export.external.interfaces.IX5WebChromeClient;
+import com.tencent.smtt.export.external.interfaces.JsResult;
+import com.tencent.smtt.sdk.CookieSyncManager;
+import com.tencent.smtt.sdk.DownloadListener;
+import com.tencent.smtt.sdk.WebChromeClient;
+import com.tencent.smtt.sdk.WebView;
+import com.tencent.smtt.sdk.WebViewClient;
 
-import org.xwalk.core.XWalkHttpAuthHandler;
-import org.xwalk.core.XWalkJavascriptResult;
-import org.xwalk.core.XWalkResourceClient;
-import org.xwalk.core.XWalkSettings;
-import org.xwalk.core.XWalkUIClient;
-import org.xwalk.core.XWalkView;
-import org.xwalk.core.XWalkWebResourceRequest;
-import org.xwalk.core.XWalkWebResourceResponse;
 
 import cn.com.startai.socket.R;
-import cn.com.startai.socket.app.activity.XWalkWebActivity;
 import cn.com.startai.socket.app.view.CrossWebView;
 import cn.com.startai.socket.app.view.DialogUtils;
 import cn.com.startai.socket.debuger.Debuger;
@@ -41,7 +35,6 @@ import cn.com.swain.baselib.log.Tlog;
  */
 
 public class WebFragment extends BaseFragment {
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,27 +47,15 @@ public class WebFragment extends BaseFragment {
 
     private IWebFragmentCallBack mCallBack;
 
-    public void onXwalReady() {
-        onXwalkReady(getRootView());
-    }
-
     private synchronized void onXwalkReady(View mRootView) {
         Tlog.w(TAG, " WebFragment onXwalReady() exe ");
-        if (mXWWebView == null) {
-            Activity activity = getActivity();
-            mCallBack = (IWebFragmentCallBack) activity;
-            if (mCallBack != null) {
-                String loadUrl = mCallBack.getLoadUrl();
-                if (((XWalkWebActivity)activity).isXWalkReady()) {
-                    initXW(mRootView, loadUrl);
-                } else {
-                    Tlog.w(TAG, " WebFragment isXReady false ");
-                }
-            } else {
-                Tlog.w(TAG, " WebFragment onXwalkReady mCallBack=null ");
-            }
+        Activity activity = getActivity();
+        mCallBack = (IWebFragmentCallBack) activity;
+        if (mCallBack != null) {
+            String loadUrl = mCallBack.getLoadUrl();
+            initXW(mRootView, loadUrl);
         } else {
-            Tlog.w(TAG, " WebFragment onXwalkReady mXWWebView=null ");
+            Tlog.w(TAG, " WebFragment onXwalkReady mCallBack=null ");
         }
     }
 
@@ -107,7 +88,7 @@ public class WebFragment extends BaseFragment {
     public void releaseWeb() {
         if (mXWWebView != null) {
             mXWWebView.stopLoading();
-            mXWWebView.onDestroy();
+            mXWWebView.destroy();
             mXWWebView = null;
         }
     }
@@ -135,16 +116,18 @@ public class WebFragment extends BaseFragment {
         }
     }
 
+    private long loadUrlTs;
 
     private void initXW(View mRootView, String loadUrl) {
 
+        Tlog.v(TAG, " initXW::" + loadUrl);
 
-//        mXWWebView = mRootView.findViewById(R.id.web_view);
+        mXWWebView = mRootView.findViewById(R.id.web_view);
 
-        mXWWebView = new CrossWebView(getContext());
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
-        ((ViewGroup) mRootView).addView(mXWWebView, params);
+//        mXWWebView = new CrossWebView(getContext());
+//        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+//                RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+//        ((ViewGroup) mRootView).addView(mXWWebView, params);
 
         if (loadUrl != null) {
 
@@ -153,9 +136,18 @@ public class WebFragment extends BaseFragment {
                 mJsManager.regJsInterface(mXWWebView);
             }
 
-            mXWWebView.setUIClient(new MXWalkUIClient(mXWWebView));
-            mXWWebView.setResourceClient(new MXWalkResourceClient(mXWWebView));
+            loadUrlTs = System.currentTimeMillis();
+
+            this.mXWWebView.setWebViewClient(new MWebViewClient());
+
+            this.mXWWebView.setWebChromeClient(new MWebChromeClient());
+
+            this.mXWWebView.setDownloadListener(new MDownloadListener());
+
             mXWWebView.loadUrl(loadUrl);
+
+            CookieSyncManager.createInstance(getContext());
+            CookieSyncManager.getInstance().sync();
 
         } else {
             mXWWebView.setBackgroundColor(Color.parseColor("#ff00ff"));
@@ -166,174 +158,86 @@ public class WebFragment extends BaseFragment {
 
     }
 
-    private class MXWalkResourceClient extends XWalkResourceClient {
-
-        public MXWalkResourceClient(XWalkView view) {
-            super(view);
-        }
+    private class MDownloadListener implements DownloadListener {
 
         @Override
-        public boolean shouldOverrideUrlLoading(XWalkView view, String url) {
-            Tlog.v(TAG, "WebFragment shouldOverrideUrlLoading() " + url);
-            return super.shouldOverrideUrlLoading(view, url);
-        }
-
-        @Override
-        public void onReceivedLoadError(XWalkView view, int errorCode, String description, String failingUrl) {
-            Tlog.v(TAG, "WebFragment onReceivedLoadError() "
-                    + String.valueOf(errorCode)
-                    + " description:" + description
-                    + " failingUrl:" + failingUrl);
-            super.onReceivedLoadError(view, errorCode, description, failingUrl);
-        }
-
-        @Override
-        public void onReceivedSslError(XWalkView view, ValueCallback<Boolean> callback, SslError error) {
-            Tlog.v(TAG, "WebFragment onReceivedSslError() " + String.valueOf(error));
-            super.onReceivedSslError(view, callback, error);
-        }
-
-        @Override
-        public void onReceivedHttpAuthRequest(XWalkView view, XWalkHttpAuthHandler handler, String host, String realm) {
-            Tlog.v(TAG, "WebFragment onReceivedHttpAuthRequest() " + String.valueOf(host) + " realm:" + realm);
-            super.onReceivedHttpAuthRequest(view, handler, host, realm);
-        }
-
-        @Override
-        public XWalkWebResourceResponse shouldInterceptLoadRequest(XWalkView view, XWalkWebResourceRequest request) {
-
-            if (Debuger.isLogDebug) {
-                StringBuilder sb = new StringBuilder();
-                sb.append(" getMethod: ");
-                sb.append(request.getMethod());
-
-                sb.append(", getUrl: ");
-                sb.append(request.getUrl());
-
-                sb.append(", getRequestHeaders: ");
-                sb.append(String.valueOf(request.getRequestHeaders()));
-
-                Tlog.v(TAG, "WebActivity shouldInterceptLoadRequest() " + sb.toString());
-
-            }
-
-            return super.shouldInterceptLoadRequest(view, request);
+        public void onDownloadStart(String arg0, String arg1, String arg2,
+                                    String arg3, long arg4) {
         }
     }
 
-    CrashReport.WebViewInterface mCrashReportWebView = new CrashReport.WebViewInterface() {
-        /**
-         * 获取WebView URL.
-         *
-         * @return WebView URL
-         */
+    private class MWebChromeClient extends WebChromeClient {
+
         @Override
-        public String getUrl() {
-            // 下面仅为例子，请用真正逻辑代替
-            return mXWWebView.getUrl();
+        public boolean onJsConfirm(WebView arg0, String arg1, String arg2,
+                                   JsResult arg3) {
+            return super.onJsConfirm(arg0, arg1, arg2, arg3);
         }
 
         /**
-         * 开启JavaScript.
-         *
-         * @param flag true表示开启，false表示关闭
+         * 全屏播放配置
          */
         @Override
-        public void setJavaScriptEnabled(boolean flag) {
-            // 下面仅为例子，请用真正逻辑代替
-            XWalkSettings settings = mXWWebView.getSettings();
-            settings.setJavaScriptEnabled(flag);
-        }
-
-        /**
-         * 加载URL.
-         *
-         * @param url 要加载的URL
-         */
-        @Override
-        public void loadUrl(String url) {
-            // 下面仅为例子，请用真正逻辑代替
-            mXWWebView.loadUrl(url);
-        }
-
-        /**
-         * 添加JavaScript接口对象.
-         *
-         * @param jsInterface JavaScript接口对象
-         * @param name JavaScript接口对象名称
-         */
-        @Override
-        public void addJavascriptInterface(H5JavaScriptInterface jsInterface, String name) {
-            // 下面仅为例子，请用真正逻辑代替
-            mXWWebView.addJavascriptInterface(jsInterface, name);
-        }
-
-        /**
-         * 获取WebView的内容描述.
-         *
-         * @return WebView的内容描述.
-         */
-        @Override
-        public CharSequence getContentDescription() {
-            // 下面仅为例子，请用真正逻辑代替
-            return mXWWebView.getContentDescription();
-        }
-    };
-// 调用Bugly设置JS异常捕获接口时传入创建的WebView接口对象即可
-
-
-    private class MXWalkUIClient extends XWalkUIClient {
-
-        MXWalkUIClient(XWalkView view) {
-            super(view);
-//            CrashReport.setJavascriptMonitor(mCrashReportWebView, true);
+        public void onShowCustomView(View view,
+                                     IX5WebChromeClient.CustomViewCallback customViewCallback) {
+            super.onShowCustomView(view, customViewCallback);
         }
 
         @Override
-        public void onPageLoadStarted(XWalkView view, String url) {
-            super.onPageLoadStarted(view, url);
-            Tlog.v(TAG, "WebFragment onPageLoadStarted() ");
+        public void onHideCustomView() {
+            super.onHideCustomView();
+        }
+
+
+        @Override
+        public boolean onJsAlert(WebView arg0, String arg1, String arg2,
+                                 JsResult arg3) {
+            //这里写入自定义的window alert
+            DialogUtils.alert(getActivity(), arg2, arg3);
+            return super.onJsAlert(arg0, arg1, arg2, arg3);
+        }
+
+    }
+
+    private class MWebViewClient extends WebViewClient {
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            return false;
+        }
+
+        private boolean firstLoad = true;
+        private long pageStarted;
+
+        @Override
+        public void onPageStarted(WebView webView, String s, Bitmap bitmap) {
+            if (Debuger.isLogDebug && firstLoad) {
+                pageStarted = System.currentTimeMillis();
+                Tlog.d(TAG, "WebFragment first page load started take up time:"
+                        + (pageStarted - loadUrlTs));
+            }
+            super.onPageStarted(webView, s, bitmap);
         }
 
         @Override
-        public void onPageLoadStopped(XWalkView view, String url, LoadStatus status) {
-            super.onPageLoadStopped(view, url, status);
-            Tlog.v(TAG, "WebFragment onPageLoadStopped() ");
+        public void onPageFinished(WebView view, String url) {
+            if (Debuger.isLogDebug && firstLoad) {
+                Tlog.d(TAG, "WebFragment first page load finish take up time:"
+                        + (System.currentTimeMillis() - pageStarted));
+                Tlog.d(TAG, "WebFragment first load url finish take up time:"
+                        + (System.currentTimeMillis() - loadUrlTs));
+            }
+            firstLoad = false;
+
             if (firstAdd) {
                 firstAdd = false;
                 if (mCallBack != null) {
                     mCallBack.onWebLoadFinish();
                 }
             }
+            super.onPageFinished(view, url);
         }
-
-        @Override
-        public boolean onJsAlert(XWalkView view, String url, String message, final XWalkJavascriptResult result) {
-            Tlog.v(TAG, "WebFragment onJsAlert() " + message);
-            DialogUtils.alert(getActivity(), message, result);
-            return true;
-        }
-
-        @Override
-        public boolean onJsConfirm(XWalkView view, String url, String message, XWalkJavascriptResult result) {
-            Tlog.v(TAG, "WebFragment onJsConfirm() ");
-            return super.onJsConfirm(view, url, message, result);
-        }
-
-        @Override
-        public boolean onJsPrompt(XWalkView view, String url, String message, String defaultValue, XWalkJavascriptResult result) {
-            Tlog.v(TAG, "WebFragment onJsPrompt() ");
-            return super.onJsPrompt(view, url, message, defaultValue, result);
-        }
-
-        @Override
-        public boolean onJavascriptModalDialog(XWalkView view, JavascriptMessageType type, String url, String message, String defaultValue, XWalkJavascriptResult result) {
-            Tlog.v(TAG, "WebFragment onJavascriptModalDialog() ");
-            return super.onJavascriptModalDialog(view, type, url, message, defaultValue, result);
-        }
-
-
     }
+
 
     /**
      * author: Guoqiang_Sun

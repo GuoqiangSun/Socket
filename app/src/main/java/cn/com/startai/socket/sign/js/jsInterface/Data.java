@@ -1,6 +1,6 @@
 package cn.com.startai.socket.sign.js.jsInterface;
 
-import org.xwalk.core.JavascriptInterface;
+import android.webkit.JavascriptInterface;
 
 import cn.com.startai.socket.mutual.Controller;
 import cn.com.startai.socket.sign.js.util.H5Config;

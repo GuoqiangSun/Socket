@@ -1,114 +1,94 @@
 package cn.com.startai.socket.app.view;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
-import android.view.View;
 
-import org.xwalk.core.XWalkNavigationHistory;
-import org.xwalk.core.XWalkNavigationItem;
-import org.xwalk.core.XWalkPreferences;
-import org.xwalk.core.XWalkSettings;
-import org.xwalk.core.XWalkView;
+import com.tencent.smtt.sdk.WebSettings;
+import com.tencent.smtt.sdk.WebView;
+import com.tencent.smtt.sdk.WebViewClient;
 
-import java.util.Locale;
-
-import cn.com.startai.socket.app.SocketApplication;
-import cn.com.startai.socket.debuger.Debuger;
 import cn.com.swain.baselib.log.Tlog;
 
-/**
- * author: Guoqiang_Sun
- * date : 2018/3/28 0028
- * desc :
- */
+public class CrossWebView extends WebView {
 
-public class CrossWebView extends XWalkView {
 
-    private static final String TAG = SocketApplication.TAG;
-
-    public CrossWebView(Context context) {
-        super(context);
-        init();
+    public CrossWebView(Context arg0) {
+        super(arg0);
+        setBackgroundColor(85621);
     }
 
-    public CrossWebView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        init();
-    }
+    @SuppressLint("SetJavaScriptEnabled")
+    public CrossWebView(Context arg0, AttributeSet arg1) {
+        super(arg0, arg1);
 
-    private void init() {
-
-        // crossWalk 在浏览器调试
-        if (Debuger.isDebug || Debuger.isH5Debug) {
-            XWalkPreferences.setValue(XWalkPreferences.REMOTE_DEBUGGING, true);
-        }
-
-
-        setDrawingCacheEnabled(true);
-        setChildrenDrawingCacheEnabled(true);
-
-        XWalkSettings settings = getSettings();
-
-        // 支持 JavaScript
-//        settings.setJavaScriptEnabled(true);
-
-        //设置自适应屏幕，两者合用
-        settings.setUseWideViewPort(true);
-        settings.setLoadWithOverviewMode(true);
-
-        //缩放操作
-        settings.setSupportZoom(false);
-
-
-        //其他细节操作
-        settings.setAllowFileAccess(true);
-        settings.setAllowContentAccess(true);
-
-        //js弹窗
-//        settings.setJavaScriptCanOpenWindowsAutomatically(true);
-        settings.setJavaScriptCanOpenWindowsAutomatically(false);
-
-        settings.setSupportMultipleWindows(true);
-        settings.setAllowFileAccessFromFileURLs(true);
-        // 跨域
-        settings.setAllowUniversalAccessFromFileURLs(true);
-        settings.setLoadsImagesAutomatically(true);
-
-        settings.setDomStorageEnabled(true);
-        settings.setCacheMode(XWalkSettings.LOAD_NO_CACHE);
-
-        setLayerType(View.LAYER_TYPE_HARDWARE, null);
-    }
-
-    private final String JAVA_SCRIPT = "javascript:";
-
-    @Deprecated
-    public void loadJs(String url, Object... args) {
-        try {
-
-            if (!url.startsWith(JAVA_SCRIPT)) {
-                url = JAVA_SCRIPT + url;
+        WebViewClient client = new WebViewClient() {
+            /**
+             * 防止加载网页时调起系统浏览器
+             */
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);
+                return true;
             }
+        };
+        this.setWebViewClient(client);
+        // this.setWebChromeClient(chromeClient);
+        // WebStorage webStorage = WebStorage.getInstance();
+        initWebViewSettings();
+        this.getView().setClickable(true);
+    }
 
-            String formatUrl = String.format(Locale.CHINA, url, args);
-//            Tlog.d(TAG, getUrl() + "\n" + formatUrl);
-            this.loadUrl(formatUrl);
+    private void initWebViewSettings() {
+        Context context = getContext();
+        initWebViewSettings(context.getDir("appcache", 0).getPath(),
+                context.getDir("databases", 0).getPath(),
+                context.getDir("geolocation", 0).getPath());
+    }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+    private void initWebViewSettings(String appcache, String dbcache, String geocache) {
 
-            Tlog.e(TAG, " loadJs Exception : ", e);
+        WebSettings webSetting = getSettings();
+        webSetting.setJavaScriptEnabled(true);
+        webSetting.setJavaScriptCanOpenWindowsAutomatically(true);
+        webSetting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+        webSetting.setAllowFileAccess(true);
+        webSetting.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NARROW_COLUMNS);
+        webSetting.setSupportZoom(true);
+        webSetting.setBuiltInZoomControls(true);
+        webSetting.setUseWideViewPort(true);
+        webSetting.setSupportMultipleWindows(false);
+        // webSetting.setLoadWithOverviewMode(true);
+        webSetting.setAppCacheEnabled(true);
+        // webSetting.setDatabaseEnabled(true);
+        webSetting.setDomStorageEnabled(true);
 
+        webSetting.setGeolocationEnabled(true);
+        webSetting.setAppCacheMaxSize(Long.MAX_VALUE);
+        if (appcache != null) {
+            webSetting.setAppCachePath(appcache);
         }
+        if (dbcache != null) {
+            webSetting.setDatabasePath(dbcache);
+        }
+        if (geocache != null) {
+            webSetting.setGeolocationDatabasePath(geocache);
+        }
+        // webSetting.setPageCacheCapacity(IX5WebSettings.DEFAULT_CACHE_CAPACITY);
+        webSetting.setPluginState(WebSettings.PluginState.ON_DEMAND);
+        // webSetting.setRenderPriority(WebSettings.RenderPriority.HIGH);
+        // webSetting.setPreFectch(true);
+
+        // this.getSettingsExtension().setPageCacheCapacity(IX5WebSettings.DEFAULT_CACHE_CAPACITY);
+        // extension settings 的设计
+
     }
 
     private boolean status = true;
 
     public void disableGoBack(boolean status) {
         this.status = status;
-        Tlog.e(TAG, " navigationItem disableGoBack status: " + status);
+        Tlog.e(" navigationItem disableGoBack status: " + status);
     }
 
     @Override
@@ -119,43 +99,19 @@ public class CrossWebView extends XWalkView {
 //        }
 //        return event.getKeyCode() != KeyEvent.KEYCODE_BACK && super.dispatchKeyEvent(event);
 
-
         if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
             if (status) {
                 return false;
+            } else {
+                if (canGoBack()) {
+                    goBack();
+                    return true;
+                }else {
+                    return super.dispatchKeyEvent(event);
+                }
             }
         }
         return super.dispatchKeyEvent(event);
 
-
     }
-
-    private boolean goforward(){
-
-        // Go forward
-        if (
-                getNavigationHistory().canGoForward()) {
-            getNavigationHistory().navigate(
-                    XWalkNavigationHistory.Direction.FORWARD, 1);
-            return false;
-        }
-        return true;
-    }
-
-    private boolean goback() {
-        if (getNavigationHistory().canGoBack()) {
-//            XWalkNavigationItem navigationItem = getNavigationHistory().getCurrentItem();
-            getNavigationHistory().navigate(
-                    XWalkNavigationHistory.Direction.BACKWARD, 1);
-            Tlog.d(TAG, " navigationItem navigate: BACKWARD ");
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        return super.onTouchEvent(event);
-    }
-
 }

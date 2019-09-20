@@ -1,22 +1,20 @@
 package cn.com.startai.socket.app.activity;
 
-import android.net.http.SslError;
+import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.webkit.ValueCallback;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import org.xwalk.core.XWalkHttpAuthHandler;
-import org.xwalk.core.XWalkJavascriptResult;
-import org.xwalk.core.XWalkResourceClient;
-import org.xwalk.core.XWalkUIClient;
-import org.xwalk.core.XWalkView;
-import org.xwalk.core.XWalkWebResourceRequest;
-import org.xwalk.core.XWalkWebResourceResponse;
+import com.tencent.smtt.export.external.interfaces.IX5WebChromeClient;
+import com.tencent.smtt.export.external.interfaces.JsResult;
+import com.tencent.smtt.sdk.DownloadListener;
+import com.tencent.smtt.sdk.WebChromeClient;
+import com.tencent.smtt.sdk.WebView;
+import com.tencent.smtt.sdk.WebViewClient;
 
 import cn.com.startai.socket.R;
 import cn.com.startai.socket.app.view.CrossWebView;
@@ -37,6 +35,8 @@ public class WebActivity extends AppCompatActivity {
     private CrossWebView mWebView;
 
     private ProgressBar mProgressBar;
+
+    private long loadUrlTs;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -60,12 +60,16 @@ public class WebActivity extends AppCompatActivity {
 
         mWebView = findViewById(R.id.web_view);
 
-        mWebView.setUIClient(new MXWalkUIClient(mWebView));
-        mWebView.setResourceClient(new MXWalkResourceClient(mWebView));
+        this.mWebView.setWebViewClient(new MWebViewClient());
+
+        this.mWebView.setWebChromeClient(new MWebChromeClient());
+
+        this.mWebView.setDownloadListener(new MDownloadListener());
+
         mWebView.disableGoBack(false);
         Tlog.v(TAG, " WebActivity loadUrl: " + path);
         mWebView.loadUrl(path);
-
+        loadUrlTs = System.currentTimeMillis();
     }
 
     @Override
@@ -86,42 +90,56 @@ public class WebActivity extends AppCompatActivity {
     public void releaseWeb() {
         if (mWebView != null) {
             mWebView.stopLoading();
-            mWebView.onDestroy();
+            mWebView.destroy();
             mWebView = null;
         }
     }
 
-    private class MXWalkResourceClient extends XWalkResourceClient {
+    private class MDownloadListener implements DownloadListener {
 
-        public MXWalkResourceClient(XWalkView view) {
-            super(view);
+        @Override
+        public void onDownloadStart(String arg0, String arg1, String arg2,
+                                    String arg3, long arg4) {
+        }
+    }
+
+    private class MWebChromeClient extends WebChromeClient {
+
+        @Override
+        public boolean onJsConfirm(WebView arg0, String arg1, String arg2,
+                                   JsResult arg3) {
+            return super.onJsConfirm(arg0, arg1, arg2, arg3);
+        }
+
+        /**
+         * 全屏播放配置
+         */
+        @Override
+        public void onShowCustomView(View view,
+                                     IX5WebChromeClient.CustomViewCallback customViewCallback) {
+            super.onShowCustomView(view, customViewCallback);
         }
 
         @Override
-        public void onLoadStarted(XWalkView view, String url) {
-            if (Debuger.isLogDebug) {
-                Tlog.v(TAG, "WebActivity onLoadStarted() " + url);
-            }
-            super.onLoadStarted(view, url);
+        public void onHideCustomView() {
+            super.onHideCustomView();
         }
 
-        @Override
-        public void onLoadFinished(XWalkView view, String url) {
-            if (Debuger.isLogDebug) {
-                Tlog.v(TAG, "WebActivity onLoadFinished() " + url);
-            }
-            super.onLoadFinished(view, url);
 
+        @Override
+        public boolean onJsAlert(WebView arg0, String arg1, String arg2,
+                                 JsResult arg3) {
+            //这里写入自定义的window alert
+            DialogUtils.alert(WebActivity.this, arg2, arg3);
+            return super.onJsAlert(arg0, arg1, arg2, arg3);
         }
 
-        //        true:表示当前url已经加载完成，即使url还会重定向都不会再进行加载
-        //        false 表示此url默认由系统处理，该重定向还是重定向，直到加载完成
-        @Override
-        public boolean shouldOverrideUrlLoading(XWalkView view, String url) {
-            if (Debuger.isLogDebug) {
-                Tlog.v(TAG, "WebActivity shouldOverrideUrlLoading() " + url);
-            }
+    }
 
+    private class MWebViewClient extends WebViewClient {
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+//            return false;
             if (url.startsWith("http:") || url.startsWith("https:")) {
 
 //                view.loadUrl(url);
@@ -134,125 +152,38 @@ public class WebActivity extends AppCompatActivity {
 //                startActivity(intent);
                 return true;
             }
-
-//            return super.shouldOverrideUrlLoading(view, url);
         }
 
+        private boolean firstLoad = true;
+        private long pageStarted;
+
         @Override
-        public void onReceivedLoadError(XWalkView view, int errorCode, String description, String failingUrl) {
-            if (Debuger.isLogDebug) {
-                Tlog.v(TAG, "WebActivity onReceivedLoadError() "
-                        + String.valueOf(errorCode)
-                        + " description:" + description
-                        + " failingUrl:" + failingUrl);
+        public void onPageStarted(WebView webView, String s, Bitmap bitmap) {
+            if (Debuger.isLogDebug && firstLoad) {
+                pageStarted = System.currentTimeMillis();
+                Tlog.d(TAG, "WebActivity first page load started take up time:"
+                        + (pageStarted - loadUrlTs));
             }
-            super.onReceivedLoadError(view, errorCode, description, failingUrl);
-        }
-
-        @Override
-        public void onReceivedSslError(XWalkView view, ValueCallback<Boolean> callback, SslError error) {
-            if (Debuger.isLogDebug) {
-                Tlog.v(TAG, "WebActivity onReceivedSslError() " + String.valueOf(error));
-            }
-            super.onReceivedSslError(view, callback, error);
-        }
-
-        @Override
-        public void onReceivedHttpAuthRequest(XWalkView view, XWalkHttpAuthHandler handler, String host, String realm) {
-            if (Debuger.isLogDebug) {
-                Tlog.v(TAG, "WebActivity onReceivedHttpAuthRequest() " + String.valueOf(host) + " realm:" + realm);
-            }
-            super.onReceivedHttpAuthRequest(view, handler, host, realm);
-        }
-
-        @Override
-        public XWalkWebResourceResponse shouldInterceptLoadRequest(XWalkView view, XWalkWebResourceRequest request) {
-
-            if (Debuger.isLogDebug) {
-                StringBuilder sb = new StringBuilder();
-                sb.append(" getMethod: ");
-                sb.append(request.getMethod());
-
-                sb.append(", getUrl: ");
-                sb.append(request.getUrl());
-
-                sb.append(", getRequestHeaders: ");
-                sb.append(String.valueOf(request.getRequestHeaders()));
-
-                Tlog.e(TAG, "WebActivity shouldInterceptLoadRequest() " + sb.toString());
-
-            }
-
-            return super.shouldInterceptLoadRequest(view, request);
-        }
-
-
-    }
-
-    private class MXWalkUIClient extends XWalkUIClient {
-
-        MXWalkUIClient(XWalkView view) {
-            super(view);
-        }
-
-        @Override
-        public void onPageLoadStarted(XWalkView view, String url) {
             if (mProgressBar != null) {
                 mProgressBar.setVisibility(View.VISIBLE);
             }
-            super.onPageLoadStarted(view, url);
-            if (Debuger.isLogDebug) {
-                Tlog.d(TAG, "WebActivity onPageLoadStarted() " + url);
-            }
+            super.onPageStarted(webView, s, bitmap);
         }
 
         @Override
-        public void onPageLoadStopped(XWalkView view, String url, LoadStatus status) {
-            super.onPageLoadStopped(view, url, status);
-            if (Debuger.isLogDebug) {
-                Tlog.d(TAG, "WebActivity onPageLoadStopped() " + url);
+        public void onPageFinished(WebView view, String url) {
+            if (Debuger.isLogDebug && firstLoad) {
+                Tlog.d(TAG, "WebActivity first page load finish take up time:"
+                        + (System.currentTimeMillis() - pageStarted));
+                Tlog.d(TAG, "WebActivity first load url finish take up time:"
+                        + (System.currentTimeMillis() - loadUrlTs));
             }
+            firstLoad = false;
             if (mProgressBar != null) {
                 mProgressBar.setVisibility(View.INVISIBLE);
             }
+            super.onPageFinished(view, url);
         }
-
-        @Override
-        public boolean onJsAlert(XWalkView view, String url, String message, XWalkJavascriptResult result) {
-            if (Debuger.isLogDebug) {
-                Tlog.v(TAG, "WebActivity onJsAlert() " + message);
-            }
-            DialogUtils.alert(WebActivity.this, message, result);
-            return true;
-        }
-
-        @Override
-        public boolean onJsConfirm(XWalkView view, String url, String message, XWalkJavascriptResult result) {
-            if (Debuger.isLogDebug) {
-                Tlog.v(TAG, "WebActivity onJsConfirm() ");
-            }
-            return super.onJsConfirm(view, url, message, result);
-        }
-
-        @Override
-        public boolean onJsPrompt(XWalkView view, String url, String message, String defaultValue,
-                                  XWalkJavascriptResult result) {
-            if (Debuger.isLogDebug) {
-                Tlog.v(TAG, "WebActivity onJsPrompt() ");
-            }
-            return super.onJsPrompt(view, url, message, defaultValue, result);
-        }
-
-        @Override
-        public boolean onJavascriptModalDialog(XWalkView view, JavascriptMessageType type, String url,
-                                               String message, String defaultValue, XWalkJavascriptResult result) {
-            if (Debuger.isLogDebug) {
-                Tlog.v(TAG, "WebActivity onJavascriptModalDialog() ");
-            }
-            return super.onJavascriptModalDialog(view, type, url, message, defaultValue, result);
-        }
-
-
     }
 
 

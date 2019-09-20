@@ -16,6 +16,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
 import android.widget.Toast;
 
@@ -54,7 +55,7 @@ import cn.com.swain.baselib.permission.PermissionRequest;
  * desc :
  * <p>
  */
-public class HomeActivity extends XWalkWebActivity implements IAndJSCallBack,
+public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         WebFragment.IWebFragmentCallBack {
 
     private static final String TAG = SocketApplication.TAG;
@@ -113,7 +114,6 @@ public class HomeActivity extends XWalkWebActivity implements IAndJSCallBack,
         Tlog.d(TAG, "activity mFragment : " + mFragments.hashCode());
 
         restoreFragment(savedInstanceState);
-
         requestPermission();
 
         if (CustomManager.getInstance().isMUSIK()) {
@@ -126,22 +126,6 @@ public class HomeActivity extends XWalkWebActivity implements IAndJSCallBack,
         IService = Controller.getInstance();
         IService.onSCreate();
 
-    }
-
-
-    @Override
-    protected void onXWalkReady(Bundle savedInstanceState) {
-        super.onXWalkReady(savedInstanceState);
-        restoreFragment(savedInstanceState);
-        showweb();
-    }
-
-    // show webview
-    private void showweb() {
-        if (mFragments.size() > ID_WEB) {
-            BaseFragment baseFragment = mFragments.get(ID_WEB);
-            ((WebFragment) baseFragment).onXwalReady();
-        }
     }
 
     private void requestPermission() {
@@ -233,14 +217,10 @@ public class HomeActivity extends XWalkWebActivity implements IAndJSCallBack,
 
         Fragment fragmentWeb = getFragmentByCache(savedInstanceState, String.valueOf(ID_WEB));
         if (fragmentWeb == null) {
-            if (isXWalkReady()) {
-                mCallJs = false;
-                Tlog.w(TAG, " mFragments add new webFragment");
-                mFragments.add(ID_WEB, new WebFragment());
-                fragmentTransaction.add(R.id.frame_content, mFragments.get(ID_WEB), String.valueOf(ID_WEB));
-            } else {
-                Tlog.w(TAG, " new webFragment but XWalk not ready");
-            }
+            mCallJs = false;
+            Tlog.w(TAG, " mFragments add new webFragment");
+            mFragments.add(ID_WEB, new WebFragment());
+            fragmentTransaction.add(R.id.frame_content, mFragments.get(ID_WEB), String.valueOf(ID_WEB));
         } else {
             Tlog.w(TAG, " mFragments add cache webFragment");
             if (mFragments.size() <= ID_WEB) {
