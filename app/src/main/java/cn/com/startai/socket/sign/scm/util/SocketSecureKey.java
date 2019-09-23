@@ -147,6 +147,19 @@ public class SocketSecureKey {
         public static final byte CMD_QUERY_SSID_RESPONSE = 0x3E;
 
 
+        /**
+         * 查询标签
+         */
+        public static final byte CMD_QUERY_LABEL = 0x41;
+        public static final byte CMD_QUERY_LABEL_RESPONSE = 0x42;
+
+        /**
+         * 查询标签
+         */
+        public static final byte CMD_SET_LABEL = 0x43;
+        public static final byte CMD_SET_LABEL_RESPONSE = 0x44;
+
+
         /**********0x02control**************/
 
 
@@ -340,6 +353,19 @@ public class SocketSecureKey {
          */
         public static final byte CMD_DEL_CONST_TEMPERATURE_TIMING = 0x47;
         public static final byte CMD_DEL_CONST_TEMPERATURE_TIMING_RESPONSE = 0x48;
+
+        /**
+         * 查询运行时长
+         */
+        public static final byte CMD_QUERY_RUNNING_TIME = 0x49;
+        public static final byte CMD_QUERY_RUNNING_TIME_RESPONSE = 0x4A;
+
+        /**
+         * 查询在线运行时长
+         */
+        public static final byte CMD_QUERY_ONLINE_RUNNING_TIME = 0x4B;
+        public static final byte CMD_QUERY_ONLINE_RUNNING_TIME_RESPONSE = 0x4C;
+
 
         /**********report0x03**************/
 

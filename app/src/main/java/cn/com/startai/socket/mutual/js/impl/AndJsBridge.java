@@ -71,6 +71,7 @@ import cn.com.startai.socket.sign.js.jsInterface.Weather;
 import cn.com.startai.socket.sign.scm.bean.CostRate;
 import cn.com.startai.socket.sign.scm.bean.CountdownData;
 import cn.com.startai.socket.sign.scm.bean.CumuParams;
+import cn.com.startai.socket.sign.scm.bean.Label;
 import cn.com.startai.socket.sign.scm.bean.LanBindInfo;
 import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
 import cn.com.startai.socket.sign.scm.bean.PointReport;
@@ -1343,6 +1344,34 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     }
 
     @Override
+    public void onJSQueryRunningTime(String mac) {
+        if (mScmVirtual != null) {
+            mScmVirtual.queryRunningTime(mac);
+        }
+    }
+
+    @Override
+    public void onJSQueryOnlineRunningTime(String mac) {
+        if (mScmVirtual != null) {
+            mScmVirtual.queryOnlineRunningTime(mac);
+        }
+    }
+
+    @Override
+    public void onJSQueryLabel(String mac) {
+        if (mScmVirtual != null) {
+            mScmVirtual.queryLabel(mac);
+        }
+    }
+
+    @Override
+    public void onJSSetLabel(Label mLabel) {
+        if (mScmVirtual != null) {
+            mScmVirtual.setLabel(mLabel);
+        }
+    }
+
+    @Override
     public void onResultTotalElectricData(SpendingElectricityData obj) {
         String method = SpendingCountdown.Method.callJsElectricityDataByTime(obj.mac, obj.model,
                 obj.totalElectric, obj.year, obj.month, obj.day);
@@ -1419,6 +1448,30 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
     @Override
     public void onResultDelConstTempTiming(String mac, byte result, byte id1, byte model) {
         String method = TemperatureAndHumidity.Method.callJsDelConstTempTiming(mac, result, id1, model);
+        loadJs(method);
+    }
+
+    @Override
+    public void onResultQueryRunningTime(String id, boolean result, long time) {
+        String method = Weather.Method.callJsQueryRunningTime(time, result, id);
+        loadJs(method);
+    }
+
+    @Override
+    public void onResultQueryOnlineRunningTime(String id, boolean result, long time) {
+        String method = Weather.Method.callJsQueryOnlineRunningTime(time, result, id);
+        loadJs(method);
+    }
+
+    @Override
+    public void onResultQueryLabel(String id, boolean resultIsOk, String label) {
+        String method = Weather.Method.callJsQueryLabel(id, label, resultIsOk);
+        loadJs(method);
+    }
+
+    @Override
+    public void onResultSetLabel(String id, boolean resultIsOk, String label) {
+        String method = Weather.Method.callJsSetLabel(id, label, resultIsOk);
         loadJs(method);
     }
 

@@ -623,7 +623,7 @@ public class MySocketDataCache implements IService {
         return newResponseDataRecord(mac, mSecureDataPack);
     }
 
-    public static ResponseData getSetConstTemperatureTiming(String mac, int id, int model, int startup, int minTemp,int maxTemp, int week,
+    public static ResponseData getSetConstTemperatureTiming(String mac, int id, int model, int startup, int minTemp, int maxTemp, int week,
                                                             int startHour, int startMinute, int endHour, int endMinute) {
         SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
         mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
@@ -654,6 +654,39 @@ public class MySocketDataCache implements IService {
         params[0] = (byte) (id & 0xFF);
         params[1] = (byte) (model & 0xFF);
         mSecureDataPack.setParams(params);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+
+    public static ResponseData getQueryRunningTime(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_RUNNING_TIME);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getQueryOnlineRunningTime(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_CONTROLLER);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_ONLINE_RUNNING_TIME);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getQueryLabel(String mac) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_QUERY_LABEL);
+        return newResponseDataRecord(mac, mSecureDataPack);
+    }
+
+    public static ResponseData getSetLabel(String mac, String label) {
+        SocketDataArray mSecureDataPack = getInstance().produceSocketDataArray(mac);
+        mSecureDataPack.setType(SocketSecureKey.Type.TYPE_SYSTEM);
+        mSecureDataPack.setCmd(SocketSecureKey.Cmd.CMD_SET_LABEL);
+        byte[] buf = new byte[256];
+        byte[] bytes = label.getBytes();
+        System.arraycopy(bytes, 0, buf, 0, bytes.length <= 256 ? bytes.length : 256);
+        mSecureDataPack.setParams(buf);
         return newResponseDataRecord(mac, mSecureDataPack);
     }
 

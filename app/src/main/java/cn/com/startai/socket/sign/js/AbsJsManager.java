@@ -32,6 +32,7 @@ import cn.com.startai.socket.sign.js.jsInterface.USBSwitch;
 import cn.com.startai.socket.sign.js.jsInterface.User;
 import cn.com.startai.socket.sign.js.jsInterface.Version;
 import cn.com.startai.socket.sign.js.jsInterface.Weather;
+import cn.com.startai.socket.sign.scm.bean.Label;
 import cn.com.startai.socket.sign.scm.bean.LanBindInfo;
 import cn.com.startai.socket.sign.scm.bean.PowerCountdown;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
@@ -324,6 +325,13 @@ public abstract class AbsJsManager implements Device.IJSDeviceCallBack,//
 
         void onJSTHDelConstTemperatureTimingAlarm(ConstTempTiming mConstTempTiming);
 
+        void onJSQueryRunningTime(String mac);
+
+        void onJSQueryOnlineRunningTime(String mac);
+
+        void onJSQueryLabel(String mac);
+
+        void onJSSetLabel(Label mLabel);
     }
 
 }

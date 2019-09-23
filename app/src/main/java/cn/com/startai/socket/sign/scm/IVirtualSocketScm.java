@@ -9,6 +9,7 @@ import cn.com.startai.socket.mutual.js.bean.WiFiDevice.LanDeviceInfo;
 import cn.com.startai.socket.sign.scm.bean.CostRate;
 import cn.com.startai.socket.sign.scm.bean.CountdownData;
 import cn.com.startai.socket.sign.scm.bean.CumuParams;
+import cn.com.startai.socket.sign.scm.bean.Label;
 import cn.com.startai.socket.sign.scm.bean.LanBindInfo;
 import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
 import cn.com.startai.socket.sign.scm.bean.PointReport;
@@ -287,6 +288,13 @@ public interface IVirtualSocketScm {
 
     void delConstTempTiming(ConstTempTiming mConstTempTiming);
 
+    void queryRunningTime(String mac);
+
+    void queryOnlineRunningTime(String mac);
+
+    void queryLabel(String mac);
+
+    void setLabel(Label mLabel);
 
 
     /**
@@ -424,6 +432,14 @@ public interface IVirtualSocketScm {
         void onSetConstTempTimingResult(ConstTempTiming mConstTempTiming);
 
         void onResultDelConstTempTiming(String mac, byte result, byte id1, byte model);
+
+        void onResultQueryRunningTime(String id, boolean result, long time);
+
+        void onResultQueryOnlineRunningTime(String id, boolean result, long time);
+
+        void onResultQueryLabel(String id, boolean resultIsOk, String label);
+
+        void onResultSetLabel(String id, boolean resultIsOk, String label);
     }
 
 

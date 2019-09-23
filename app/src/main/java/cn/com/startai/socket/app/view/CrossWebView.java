@@ -2,6 +2,7 @@ package cn.com.startai.socket.app.view;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 
@@ -9,6 +10,7 @@ import com.tencent.smtt.sdk.WebSettings;
 import com.tencent.smtt.sdk.WebView;
 import com.tencent.smtt.sdk.WebViewClient;
 
+import cn.com.startai.socket.debuger.Debuger;
 import cn.com.swain.baselib.log.Tlog;
 
 public class CrossWebView extends WebView {
@@ -44,6 +46,12 @@ public class CrossWebView extends WebView {
         initWebViewSettings(context.getDir("appcache", 0).getPath(),
                 context.getDir("databases", 0).getPath(),
                 context.getDir("geolocation", 0).getPath());
+        if (Debuger.isH5Debug) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                android.webkit.WebView.setWebContentsDebuggingEnabled(true);
+                WebView.setWebContentsDebuggingEnabled(true);
+            }
+        }
     }
 
     private void initWebViewSettings(String appcache, String dbcache, String geocache) {
@@ -106,7 +114,7 @@ public class CrossWebView extends WebView {
                 if (canGoBack()) {
                     goBack();
                     return true;
-                }else {
+                } else {
                     return super.dispatchKeyEvent(event);
                 }
             }

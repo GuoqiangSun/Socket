@@ -44,6 +44,7 @@ import cn.com.startai.socket.sign.scm.AbsSocketScm;
 import cn.com.startai.socket.sign.scm.bean.CostRate;
 import cn.com.startai.socket.sign.scm.bean.CountdownData;
 import cn.com.startai.socket.sign.scm.bean.CumuParams;
+import cn.com.startai.socket.sign.scm.bean.Label;
 import cn.com.startai.socket.sign.scm.bean.LanBindInfo;
 import cn.com.startai.socket.sign.scm.bean.LanBindingDevice;
 import cn.com.startai.socket.sign.scm.bean.PointReport;
@@ -1005,6 +1006,42 @@ public class SocketScmManager extends AbsSocketScm
                         mConstTempTiming.model);
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " delConstTempTiming: " + String.valueOf(mResponseData));
+        }
+        onOutputProtocolData(mResponseData);
+    }
+
+    @Override
+    public void queryRunningTime(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getQueryRunningTime(mac);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryRunningTime: " + String.valueOf(mResponseData));
+        }
+        onOutputProtocolData(mResponseData);
+    }
+
+    @Override
+    public void queryOnlineRunningTime(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getQueryOnlineRunningTime(mac);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryOnlineRunningTime: " + String.valueOf(mResponseData));
+        }
+        onOutputProtocolData(mResponseData);
+    }
+
+    @Override
+    public void queryLabel(String mac) {
+        ResponseData mResponseData = MySocketDataCache.getQueryLabel(mac);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " queryLabel: " + String.valueOf(mResponseData));
+        }
+        onOutputProtocolData(mResponseData);
+    }
+
+    @Override
+    public void setLabel(Label mLabel) {
+        ResponseData mResponseData = MySocketDataCache.getSetLabel(mLabel.mac, mLabel.label);
+        if (Debuger.isLogDebug) {
+            Tlog.v(TAG, " setLabel: " + String.valueOf(mResponseData));
         }
         onOutputProtocolData(mResponseData);
     }
@@ -2627,6 +2664,32 @@ public class SocketScmManager extends AbsSocketScm
         if (mScmResultCallBack != null) {
             mScmResultCallBack.onResultDelConstTempTiming(id, result, id1, model);
         }
+    }
+
+    @Override
+    public void onQueryRunningTimeResult(String id, boolean result, long time) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onResultQueryRunningTime(id, result, time);
+        }
+    }
+
+    @Override
+    public void onQueryOnlineRunningTimeResult(String id, boolean result, long time) {
+        if (mScmResultCallBack != null) {
+            mScmResultCallBack.onResultQueryOnlineRunningTime(id, result, time);
+        }
+    }
+
+    @Override
+    public void onQueryLabelResult(String id, boolean resultIsOk, String label) {
+        if (mScmResultCallBack != null)
+            mScmResultCallBack.onResultQueryLabel(id, resultIsOk, label);
+    }
+
+    @Override
+    public void onSetQueryLabelResult(String id, boolean resultIsOk, String label) {
+        if (mScmResultCallBack != null)
+            mScmResultCallBack.onResultSetLabel(id, resultIsOk, label);
     }
 
 

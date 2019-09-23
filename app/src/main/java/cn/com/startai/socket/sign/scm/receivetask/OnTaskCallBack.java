@@ -247,4 +247,11 @@ public interface OnTaskCallBack {
 
     void onDelConstTempTimingResult(String id, byte result, byte id1, byte model);
 
+    void onQueryRunningTimeResult(String id, boolean result, long time);
+
+    void onQueryOnlineRunningTimeResult(String id, boolean result, long time);
+
+    void onQueryLabelResult(String id, boolean resultIsOk, String label);
+
+    void onSetQueryLabelResult(String id, boolean resultIsOk, String label);
 }

@@ -22,8 +22,10 @@ import cn.com.startai.socket.sign.scm.receivetask.impl.control.MaxOutputQueryRec
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.NewHistoryCountTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.NightLightQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.NightLightSetReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.control.OnlineRunningTimeReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.RGBQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.RGBSetReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.control.RunningTimeReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.SensorStatusQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.SpendingElectricityQueryReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.control.SpendingElectricitySetReceiveTask;
@@ -63,12 +65,14 @@ import cn.com.startai.socket.sign.scm.receivetask.impl.system.ControlReceiveTask
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.DeviceBindTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.DeviceDiscoveryTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.DisControlReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.system.LabelReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.QueryNameReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.QuerySSIDReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.QueryTimezoneReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.RecoverySettingReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.RenameReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.RequestTokenReceiveTask;
+import cn.com.startai.socket.sign.scm.receivetask.impl.system.SetLabelReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.SetTimezoneReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.SleepReceiveTask;
 import cn.com.startai.socket.sign.scm.receivetask.impl.system.UpdateReceiveTask;
@@ -242,7 +246,12 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                     case SocketSecureKey.Cmd.CMD_QUERY_SSID_RESPONSE:
                         new QuerySSIDReceiveTask(mTaskCallBack).execute(mParam);
                         break;
-
+                    case SocketSecureKey.Cmd.CMD_QUERY_LABEL_RESPONSE:
+                        new LabelReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_SET_LABEL_RESPONSE:
+                        new SetLabelReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
                     default:
                         new ScmErrorTask(ProtocolCode.ERROR_CODE_RESOLVE_CMD, mTaskCallBack).execute(mParam);
                         break;
@@ -343,6 +352,12 @@ public class ProtocolTaskImpl extends SimpleProtocolResult {
                         break;
                     case SocketSecureKey.Cmd.CMD_DEL_CONST_TEMPERATURE_TIMING_RESPONSE:
                         new CosntTempTimingDelReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_QUERY_RUNNING_TIME_RESPONSE:
+                        new RunningTimeReceiveTask(mTaskCallBack).execute(mParam);
+                        break;
+                    case SocketSecureKey.Cmd.CMD_QUERY_ONLINE_RUNNING_TIME_RESPONSE:
+                        new OnlineRunningTimeReceiveTask(mTaskCallBack).execute(mParam);
                         break;
                     default:
                         new ScmErrorTask(ProtocolCode.ERROR_CODE_RESOLVE_CMD, mTaskCallBack).execute(mParam);

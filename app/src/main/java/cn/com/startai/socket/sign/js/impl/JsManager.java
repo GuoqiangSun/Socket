@@ -44,6 +44,7 @@ import cn.com.startai.socket.sign.js.jsInterface.User;
 import cn.com.startai.socket.sign.js.jsInterface.Version;
 import cn.com.startai.socket.sign.js.jsInterface.Weather;
 import cn.com.startai.socket.sign.js.util.H5Config;
+import cn.com.startai.socket.sign.scm.bean.Label;
 import cn.com.startai.socket.sign.scm.bean.LanBindInfo;
 import cn.com.startai.socket.sign.scm.bean.PowerCountdown;
 import cn.com.startai.socket.sign.scm.bean.QueryHistoryCount;
@@ -664,6 +665,35 @@ public class JsManager extends AbsJsManager implements IService {
             mJSManagerCallBack.onJSQueryWeatherByIp();
         }
     }
+
+    @Override
+    public void onJSQueryRunningTime(String mac) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSQueryRunningTime(mac);
+        }
+    }
+
+    @Override
+    public void onJSQueryOnlineRunningTime(String mac) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSQueryOnlineRunningTime(mac);
+        }
+    }
+
+    @Override
+    public void onJSQueryLabel(String mac) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSQueryLabel(mac);
+        }
+    }
+
+    @Override
+    public void onJSSetLabel(Label mLabel) {
+        if (mJSManagerCallBack != null) {
+            mJSManagerCallBack.onJSSetLabel(mLabel);
+        }
+    }
+
 
     @Override
     public void onJSQuickQueryRelay(String mac) {
