@@ -212,11 +212,9 @@ dependencies {
     api 'com.android.support:multidex:1.0.3'
 
     //    api 'cn.com.swain169:baselib:3.2.27'
-
     //    implementation 'cn.com.swain169:fastudp:3.2.01'
-
     //    implementation 'cn.com.swain169:fastble:3.2.01'
-    api 'cn.com.swain169:baselib:3.2.35'
+    api 'cn.com.swain169:baselib:3.2.33'
     implementation 'cn.com.swain169:protocolEngine:3.2.11'
 
     // 调试
