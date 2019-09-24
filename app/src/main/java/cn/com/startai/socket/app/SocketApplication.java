@@ -129,6 +129,7 @@ public class SocketApplication extends MultiDexApplication implements Thread.Unc
 
         //x5内核初始化接口
         QbSdk.initX5Environment(getApplicationContext(), cb);
+
     }
 
     public static Runnable newKillRun(long delay) {

@@ -11,6 +11,8 @@ import android.support.v4.content.ContextCompat;
 import com.tencent.bugly.crashreport.CrashReport;
 
 import java.io.File;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import cn.com.startai.socket.BuildConfig;
 import cn.com.startai.socket.debuger.impl.IProductDetectionCallBack;
@@ -190,17 +192,40 @@ public class Debuger implements IApp, IService {
         }
 
         if (!Debuger.isDebug) {
+
+            CrashReport.UserStrategy strategy = new CrashReport.UserStrategy(app);
+            strategy.setCrashHandleCallback(new CrashReport.CrashHandleCallback() {
+                @Override
+                public synchronized Map<String, String> onCrashHandleStart(int i, String s, String s1, String s2) {
+                    LinkedHashMap<String, String> map = new LinkedHashMap<String, String>();
+                    String x5CrashInfo = com.tencent.smtt.sdk.WebView.getCrashExtraMessage(app);
+                    map.put("x5crashInfo", x5CrashInfo);
+                    return map;
+                }
+
+                @Override
+                public synchronized byte[] onCrashHandleStart2GetExtraDatas(int i, String s, String s1, String s2) {
+                    try {
+                        return "Extra data.".getBytes("UTF-8");
+                    } catch (Exception e) {
+                        return null;
+                    }
+                }
+            });
+            String appid;
+
             if (CustomManager.getInstance().isMUSIK()) {
-                CrashReport.initCrashReport(app, "d45fc6bab2", false);
+                appid = "d45fc6bab2";
             } else if (CustomManager.getInstance().isGrowroomate()) {
-                CrashReport.initCrashReport(app, "ce714ab581", false);
+                appid = "ce714ab581";
             } else if (CustomManager.getInstance().isTriggerBle()) {
-                CrashReport.initCrashReport(app, "1fb0d34c93", false);
+                appid = "1fb0d34c93";
             } else if (CustomManager.getInstance().isTriggerWiFi()) {
-                CrashReport.initCrashReport(app, "deab7c0351", false);
-            }else {
-                CrashReport.initCrashReport(app, "d45fc6bab2", false);
+                appid = "deab7c0351";
+            } else {
+                appid = "d45fc6bab2";
             }
+            CrashReport.initCrashReport(app, appid, true, strategy);
         }
         Tlog.i(" Debuger init success...");
     }

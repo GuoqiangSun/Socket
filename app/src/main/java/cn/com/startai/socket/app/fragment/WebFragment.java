@@ -169,6 +169,8 @@ public class WebFragment extends BaseFragment {
             }
         }
 
+        Tlog.v(TAG, "WebFragment x5 loaded::" + (mXWWebView.getX5WebViewExtension() != null));
+
         CookieSyncManager.createInstance(getContext());
         CookieSyncManager.getInstance().sync();
 
