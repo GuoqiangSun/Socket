@@ -41,5 +41,28 @@ public class LocalData extends BaseSpTool {
         return getString(KEY_LANGUAGE, def);
     }
 
+    private static final String KEY_FIRST_INSTALL = "firstInstall";
+
+    public void setIsFirstInstall(boolean firstInstall) {
+        putBoolean(KEY_FIRST_INSTALL, firstInstall);
+    }
+
+    public boolean isFirstInstall() {
+        return getBoolean(KEY_FIRST_INSTALL, false);
+    }
+
+    public boolean isFirstInstall(boolean def) {
+        return getBoolean(KEY_FIRST_INSTALL, def);
+    }
+
+    private static final String KEY_LAST_VERSION = "lastVersion";
+
+    public void setVersion(int version) {
+        putInt(KEY_LAST_VERSION, version);
+    }
+
+    public int getVersion(int def) {
+        return getInt(KEY_LAST_VERSION, def);
+    }
 
 }

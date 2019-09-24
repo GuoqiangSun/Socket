@@ -41,17 +41,21 @@ import cn.com.startai.socket.global.FileManager;
 import cn.com.startai.socket.mutual.Controller;
 import cn.com.startai.socket.mutual.js.IAndJSCallBack;
 import cn.com.startai.socket.mutual.js.bean.StatusBarBean;
+import cn.com.startai.socket.mutual.js.xml.LocalData;
 import cn.com.startai.socket.sign.hardware.manager.AbsHardwareManager;
 import cn.com.startai.socket.sign.js.jsInterface.Language;
 import cn.com.startai.socket.sign.js.jsInterface.Router;
 import cn.com.startai.socket.sign.js.util.H5Config;
 import cn.com.swain.baselib.Queue.LimitQueue;
 import cn.com.swain.baselib.app.IApp.IService;
+import cn.com.swain.baselib.app.utils.AppUtils;
 import cn.com.swain.baselib.display.StatusBarUtil;
 import cn.com.swain.baselib.log.Tlog;
 import cn.com.swain.baselib.permission.PermissionGroup;
 import cn.com.swain.baselib.permission.PermissionHelper;
 import cn.com.swain.baselib.permission.PermissionRequest;
+
+import static cn.com.swain.support.protocolEngine.ProtocolBuild.VERSION.getVersion;
 
 /**
  * author: Guoqiang_Sun
@@ -367,9 +371,17 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
             Tlog.e(TAG, "HomeActivity QbSdk.tbsCoreInited:" + SocketApplication.tbsCoreInited);
         }
 
-        if (!SocketApplication.tbsCoreInited // 初始化不成功 能加载x5
-                && QbSdk.canLoadX5(getApplicationContext())) {
-            new Thread(SocketApplication.newKillRun()).start();
+        LocalData localData = LocalData.getLocalData(getApplicationContext());
+        int version = localData.getVersion(-1);
+
+        if (version <= 0) { // 第一次用
+
+            localData.setVersion(AppUtils.getAppVersionCode(getApplicationContext()));
+
+            if (!SocketApplication.tbsCoreInited // 初始化不成功 能加载x5
+                    && QbSdk.canLoadX5(getApplicationContext())) {
+                new Thread(SocketApplication.newKillRun()).start();
+            }
         }
 
     }
