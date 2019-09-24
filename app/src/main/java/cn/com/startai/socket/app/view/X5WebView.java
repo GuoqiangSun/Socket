@@ -13,16 +13,16 @@ import com.tencent.smtt.sdk.WebViewClient;
 import cn.com.startai.socket.debuger.Debuger;
 import cn.com.swain.baselib.log.Tlog;
 
-public class CrossWebView extends WebView {
+public class X5WebView extends WebView {
 
 
-    public CrossWebView(Context arg0) {
+    public X5WebView(Context arg0) {
         super(arg0);
         setBackgroundColor(85621);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    public CrossWebView(Context arg0, AttributeSet arg1) {
+    public X5WebView(Context arg0, AttributeSet arg1) {
         super(arg0, arg1);
 
         WebViewClient client = new WebViewClient() {

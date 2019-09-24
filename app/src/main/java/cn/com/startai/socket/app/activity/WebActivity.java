@@ -17,7 +17,7 @@ import com.tencent.smtt.sdk.WebView;
 import com.tencent.smtt.sdk.WebViewClient;
 
 import cn.com.startai.socket.R;
-import cn.com.startai.socket.app.view.CrossWebView;
+import cn.com.startai.socket.app.view.X5WebView;
 import cn.com.startai.socket.app.view.DialogUtils;
 import cn.com.startai.socket.debuger.Debuger;
 import cn.com.swain.baselib.display.StatusBarUtil;
@@ -32,7 +32,7 @@ public class WebActivity extends AppCompatActivity {
 
     protected String TAG = "chromium";
 
-    private CrossWebView mWebView;
+    private X5WebView mWebView;
 
     private ProgressBar mProgressBar;
 

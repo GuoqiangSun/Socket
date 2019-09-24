@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.PixelFormat;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -19,6 +20,9 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
 import android.widget.Toast;
+
+import com.tencent.smtt.sdk.QbSdk;
+import com.tencent.smtt.sdk.TbsListener;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -90,7 +94,6 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         Tlog.v(TAG, "HomeActivity  onWindowFocusChanged() ");
     }
 
-
     IService IService;
 
     private long createTs;
@@ -101,6 +104,7 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         Tlog.v(TAG, "HomeActivity  onCreate() ");
 
         StatusBarUtil.fullscreenShowBarFontWhite(getWindow());
+        getWindow().setFormat(PixelFormat.TRANSLUCENT);
 
         setContentView(R.layout.activity_home);
 
@@ -588,8 +592,14 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         } else if (msg.what == MSG_WHAT_FINISH) {
 
             Tlog.e(TAG, "handleMessage finish ");
+            Tlog.e(TAG, " QbSdk.isTbsCoreInited():" + QbSdk.isTbsCoreInited());
+            Tlog.e(TAG, " QbSdk.tbsCoreInited:" + SocketApplication.tbsCoreInited);
 
-            this.finish();
+            if (SocketApplication.tbsCoreInited) {
+                this.finish();
+            } else {
+                SocketApplication.kill();
+            }
 
         } else if (msg.what == MSG_WHAT_CHANGE_STATUS_BAR) {
             showStatusBar = (Boolean) (msg.obj);

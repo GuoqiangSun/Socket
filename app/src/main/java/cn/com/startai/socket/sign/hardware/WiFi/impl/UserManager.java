@@ -1072,7 +1072,7 @@ public class UserManager implements IService {
 
         String loginUserID = getLoginUserID();
 
-        boolean isLogin = getLoginUserID() != null;
+        boolean isLogin = loginUserID != null && !"".equalsIgnoreCase(loginUserID);
 
         Tlog.e(TAG, " isLogin " + isLogin + " getLoginUserID:" + loginUserID);
 

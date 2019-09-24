@@ -7,7 +7,7 @@ import android.os.Message;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
-import cn.com.startai.socket.app.view.CrossWebView;
+import cn.com.startai.socket.app.view.X5WebView;
 import cn.com.startai.socket.global.LooperManager;
 import cn.com.startai.socket.mutual.js.bean.ColorLampRGB;
 import cn.com.startai.socket.mutual.js.bean.MobileBind;
@@ -133,7 +133,7 @@ public class JsManager extends AbsJsManager implements IService {
 
 //    private Data mData= new Data();
 
-    public void regJsInterface(CrossWebView mWebView) {
+    public void regJsInterface(X5WebView mWebView) {
 //        mWebView.addJavascriptInterface(mData, Data.NAME_JSI);
 
         if (mJSInterfaces != null && mWebView != null) {

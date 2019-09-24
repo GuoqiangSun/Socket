@@ -8,7 +8,6 @@ import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RelativeLayout;
 
 import com.tencent.smtt.export.external.interfaces.IX5WebChromeClient;
 import com.tencent.smtt.export.external.interfaces.JsResult;
@@ -20,7 +19,7 @@ import com.tencent.smtt.sdk.WebViewClient;
 
 
 import cn.com.startai.socket.R;
-import cn.com.startai.socket.app.view.CrossWebView;
+import cn.com.startai.socket.app.view.X5WebView;
 import cn.com.startai.socket.app.view.DialogUtils;
 import cn.com.startai.socket.debuger.Debuger;
 import cn.com.startai.socket.mutual.Controller;
@@ -41,7 +40,7 @@ public class WebFragment extends BaseFragment {
         Tlog.v(TAG, " WebFragment onCreate() " + hashCode());
     }
 
-    private CrossWebView mXWWebView;
+    private X5WebView mXWWebView;
 
     private volatile boolean firstAdd = true;
 

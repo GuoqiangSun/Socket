@@ -91,9 +91,22 @@ public class JavaTestMain {
 //        System.out.println(259 / 256);
 
 
-        sanjiao();
+//        sanjiao();
+
+        sb();
 
         System.err.println("end ");
+    }
+
+    private static void sb() {
+        StringBuffer sb = new StringBuffer();
+        sb.append("a").append("b");
+        System.out.println(sb.toString());
+        System.out.println("sb delete");
+        sb.delete(0, sb.length());
+        System.out.println(sb.toString());
+        sb.append("c").append("d");
+        System.out.println(sb.toString());
     }
 
     private static void sanjiao() {
