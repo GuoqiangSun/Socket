@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
+import android.net.Network;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -105,88 +106,99 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
         @Override
         public void onReceive(Context context, Intent intent) {
 
-            Tlog.v(TAG, " android.net.conn.CONNECTIVITY_CHANGE " + intent.getAction());
-
+            Tlog.v(TAG, " mNetWorkStateReceiver:: " + intent.getAction());
             //获得ConnectivityManager对象
             ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-
-            if (connMgr == null) {
-                Tlog.e(TAG, "ConnectivityManager==null");
-                return;
-            }
-
-            boolean wifiConnected = false;
-            String type;
-            NetworkInfo.State state;
-
-
-            //获取WIFI连接的信息
-            NetworkInfo wifiNetworkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-
-            if (wifiNetworkInfo.isConnected()) {
-
-                Tlog.v(TAG, "WIFI isConnected ");
-                wifiConnected = true;
-                type = wifiNetworkInfo.getTypeName();
-                state = wifiNetworkInfo.getState();
-
-            } else if (wifiNetworkInfo.isConnectedOrConnecting()) {
-
-                Tlog.v(TAG, "WIFI isConnecting");
-                type = wifiNetworkInfo.getTypeName();
-                state = wifiNetworkInfo.getState();
-
-            } else {
-
-                //获取移动数据连接的信息
-                NetworkInfo dataNetworkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
-
-                if (dataNetworkInfo != null && dataNetworkInfo.isConnected()) {
-
-                    Tlog.v(TAG, "mobile isConnected ");
-                    type = dataNetworkInfo.getTypeName();
-                    state = dataNetworkInfo.getState();
-
-                } else if (dataNetworkInfo != null && dataNetworkInfo.isConnectedOrConnecting()) {
-
-                    Tlog.v(TAG, "mobile isConnecting");
-                    type = dataNetworkInfo.getTypeName();
-                    state = dataNetworkInfo.getState();
-
-                } else {
-
-                    Tlog.v(TAG, " unknown network ");
-                    type = Add.NONE;
-                    state = NetworkInfo.State.UNKNOWN;
-
-                }
-            }
-
-//            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-//            //获取所有网络连接的信息
-//            Network[] networks = connMgr.getAllNetworks();
-//
-//            //通过循环将网络信息逐个取出来
-//            for (Network network : networks) {
-//                //获取ConnectivityManager对象对应的NetworkInfo对象
-//                NetworkInfo networkInfo = connMgr.getNetworkInfo(network);
-//                ｝
-//        }
 
             if (!WifiManager.NETWORK_STATE_CHANGED_ACTION.equalsIgnoreCase(intent.getAction())) {
                 mDeviceManager.onNetworkStateChange();
                 mControlDeviceUtil.onNetworkStateChange();
             }
 
-            if (wifiConnected) {
+            NetworkInfo networkInfo = getNetwork(connMgr);
+
+            if (networkInfo != null
+                    && networkInfo.getType() == ConnectivityManager.TYPE_WIFI
+                    && networkInfo.isConnected()) {
                 discoveryLanDevice(6);
             }
 
             if (mResultCallBack != null) {
-                mResultCallBack.onResultNetworkChange(type, Add.changeState(state));
+                if (networkInfo == null) {
+                    mResultCallBack.onResultNetworkChange(Add.NONE, Add.changeState(NetworkInfo.State.UNKNOWN));
+                } else {
+                    mResultCallBack.onResultNetworkChange(networkInfo.getTypeName(),
+                            Add.changeState(networkInfo.getState()));
+                }
             }
         }
     };
+
+    private NetworkInfo getNetwork(ConnectivityManager connMgr) {
+
+        if (connMgr == null) {
+            Tlog.e(TAG, "ConnectivityManager==null");
+            return null;
+        }
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            //获取所有网络连接的信息
+            Network[] networks = connMgr.getAllNetworks();
+
+            if (networks == null || networks.length <= 0) {
+                return null;
+            }
+
+            NetworkInfo dataNetworkInfo = null;
+            NetworkInfo wifiNetworkInfo = null;
+
+            //通过循环将网络信息逐个取出来
+            for (Network network : networks) {
+                //获取ConnectivityManager对象对应的NetworkInfo对象
+                NetworkInfo networkInfo = connMgr.getNetworkInfo(network);
+                Tlog.v(TAG, "networkInfo " + networkInfo);
+                if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+                    wifiNetworkInfo = networkInfo;
+                }
+                if (networkInfo.getType() == ConnectivityManager.TYPE_MOBILE) {
+                    dataNetworkInfo = networkInfo;
+                }
+            }
+
+            if (wifiNetworkInfo != null) {
+                return wifiNetworkInfo;
+            }
+
+            if (dataNetworkInfo != null) {
+                return dataNetworkInfo;
+            }
+
+            return connMgr.getNetworkInfo(networks[0]);
+
+        } else {
+
+            //获取WIFI连接的信息
+            NetworkInfo wifiNetworkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+
+            if (wifiNetworkInfo != null && wifiNetworkInfo.isConnectedOrConnecting()) {
+                Tlog.v(TAG, "WIFI wifiNetworkInfo " + wifiNetworkInfo);
+                return wifiNetworkInfo;
+            }
+
+            //获取移动数据连接的信息
+            NetworkInfo dataNetworkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+
+            if (dataNetworkInfo != null && dataNetworkInfo.isConnectedOrConnecting()) {
+                Tlog.v(TAG, "DATA dataNetworkInfo " + dataNetworkInfo);
+                return dataNetworkInfo;
+            }
+
+            Tlog.v(TAG, " unknown network ");
+            return null;
+
+        }
+
+    }
 
     private final UserManager mUserManager;
     private final DeviceManager mDeviceManager;

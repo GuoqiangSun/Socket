@@ -71,9 +71,8 @@ public class SocketApplication extends MultiDexApplication implements Thread.Unc
     public static void uncaughtH5Exception(String msg) {
         Tlog.e(TAG, " SocketApplication uncaughtH5Exception :\n" + msg);
         FileManager.getInstance().saveH5Exception(msg);
-        throw new RuntimeException(msg);
-//        android.os.Process.killProcess(android.os.Process.myPid());
-//        System.exit(1);
+        throw new RuntimeException(msg); // 抛异常,让bugly捕获上报
+//        kill();
     }
 
     public static void kill() {
@@ -81,7 +80,7 @@ public class SocketApplication extends MultiDexApplication implements Thread.Unc
         System.exit(1);
     }
 
-    public static boolean tbsCoreInited;
+    public static volatile boolean tbsCoreInited;
 
     private void initx5() {
 
@@ -130,6 +129,22 @@ public class SocketApplication extends MultiDexApplication implements Thread.Unc
 
         //x5内核初始化接口
         QbSdk.initX5Environment(getApplicationContext(), cb);
+    }
+
+    public static Runnable newKillRun() {
+        return new Runnable() {
+            @Override
+            public void run() {
+                Tlog.e(TAG, " start kill socketApplication");
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                SocketApplication.kill();
+                Tlog.e(TAG, " end kill socketApplication");
+            }
+        };
     }
 
 }

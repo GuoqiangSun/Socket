@@ -86,6 +86,21 @@ public class WebActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mWebView != null) {
+            mWebView.onResume();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mWebView != null) {
+            mWebView.onPause();
+        }
+    }
 
     public void releaseWeb() {
         if (mWebView != null) {

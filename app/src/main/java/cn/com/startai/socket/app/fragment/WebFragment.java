@@ -77,6 +77,23 @@ public class WebFragment extends BaseFragment {
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mXWWebView != null) {
+            mXWWebView.onResume();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mXWWebView != null) {
+            mXWWebView.onPause();
+        }
+    }
+
     @Override
     public void onDestroyView() {
         Tlog.v(TAG, " WebFragment onDestroyView() ");
@@ -128,32 +145,32 @@ public class WebFragment extends BaseFragment {
 //                RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
 //        ((ViewGroup) mRootView).addView(mXWWebView, params);
 
+
+        JsManager mJsManager = Controller.getInstance().getJsManager();
+        if (mJsManager != null) {
+            mJsManager.regJsInterface(mXWWebView);
+        }
+
+        loadUrlTs = System.currentTimeMillis();
+
+        this.mXWWebView.setWebViewClient(new MWebViewClient());
+
+        this.mXWWebView.setWebChromeClient(new MWebChromeClient());
+
+        this.mXWWebView.setDownloadListener(new MDownloadListener());
+
         if (loadUrl != null) {
-
-            JsManager mJsManager = Controller.getInstance().getJsManager();
-            if (mJsManager != null) {
-                mJsManager.regJsInterface(mXWWebView);
-            }
-
-            loadUrlTs = System.currentTimeMillis();
-
-            this.mXWWebView.setWebViewClient(new MWebViewClient());
-
-            this.mXWWebView.setWebChromeClient(new MWebChromeClient());
-
-            this.mXWWebView.setDownloadListener(new MDownloadListener());
-
             mXWWebView.loadUrl(loadUrl);
-
-            CookieSyncManager.createInstance(getContext());
-            CookieSyncManager.getInstance().sync();
-
         } else {
             mXWWebView.setBackgroundColor(Color.parseColor("#ff00ff"));
+            firstAdd = false;
             if (mCallBack != null) {
                 mCallBack.onWebLoadFinish();
             }
         }
+
+        CookieSyncManager.createInstance(getContext());
+        CookieSyncManager.getInstance().sync();
 
     }
 
@@ -224,8 +241,8 @@ public class WebFragment extends BaseFragment {
                         + (System.currentTimeMillis() - pageStarted));
                 Tlog.d(TAG, "WebFragment first load url finish take up time:"
                         + (System.currentTimeMillis() - loadUrlTs));
+                firstLoad = false;
             }
-            firstLoad = false;
 
             if (firstAdd) {
                 firstAdd = false;

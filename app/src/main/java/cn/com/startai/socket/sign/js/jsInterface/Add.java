@@ -92,7 +92,8 @@ public class Add extends AbsHandlerJsInterface {
         private static final String NETWORK_CHANGE = "javascript:switchNetworkResponse('$type',$state)";
 
         public static String callJsNetworkChange(String type, int state) {
-            return NETWORK_CHANGE.replace("$type", String.valueOf(type)).replace("$state", String.valueOf(state));
+            return NETWORK_CHANGE.replace("$type", String.valueOf(type))
+                    .replace("$state", String.valueOf(state));
         }
 
     }

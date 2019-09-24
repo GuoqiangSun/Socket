@@ -94,7 +94,7 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         Tlog.v(TAG, "HomeActivity  onWindowFocusChanged() ");
     }
 
-    IService IService;
+    private IService IService;
 
     private long createTs;
 
@@ -284,8 +284,7 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         Tlog.v(TAG, "HomeActivity onBackPressed() ");
 
         if (status) {
-            String method = Router.Method.callJsPressBack();
-            ajLoadJs(method);
+            ajLoadJs(Router.Method.callJsPressBack());
         }
 
     }
@@ -362,6 +361,16 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
 
         mFragments.clear();
         mMethodCache.clear();
+
+        if (Debuger.isLogDebug) {
+            Tlog.e(TAG, "HomeActivity QbSdk.isTbsCoreInited():" + QbSdk.isTbsCoreInited());
+            Tlog.e(TAG, "HomeActivity QbSdk.tbsCoreInited:" + SocketApplication.tbsCoreInited);
+        }
+
+        if (!SocketApplication.tbsCoreInited // 初始化不成功 能加载x5
+                && QbSdk.canLoadX5(getApplicationContext())) {
+            new Thread(SocketApplication.newKillRun()).start();
+        }
 
     }
 
@@ -592,14 +601,7 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         } else if (msg.what == MSG_WHAT_FINISH) {
 
             Tlog.e(TAG, "handleMessage finish ");
-            Tlog.e(TAG, " QbSdk.isTbsCoreInited():" + QbSdk.isTbsCoreInited());
-            Tlog.e(TAG, " QbSdk.tbsCoreInited:" + SocketApplication.tbsCoreInited);
-
-            if (SocketApplication.tbsCoreInited) {
-                this.finish();
-            } else {
-                SocketApplication.kill();
-            }
+            this.finish();
 
         } else if (msg.what == MSG_WHAT_CHANGE_STATUS_BAR) {
             showStatusBar = (Boolean) (msg.obj);
