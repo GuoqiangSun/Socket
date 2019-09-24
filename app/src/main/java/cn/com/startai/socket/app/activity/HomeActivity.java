@@ -366,6 +366,12 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
         mFragments.clear();
         mMethodCache.clear();
 
+        killx5();
+    }
+
+    // x5 第一次加载 需要kill进程
+    private void killx5() {
+
         if (Debuger.isLogDebug) {
             Tlog.e(TAG, "HomeActivity QbSdk.isTbsCoreInited():" + QbSdk.isTbsCoreInited());
             Tlog.e(TAG, "HomeActivity QbSdk.tbsCoreInited:" + SocketApplication.tbsCoreInited);
@@ -376,14 +382,13 @@ public class HomeActivity extends AppCompatActivity implements IAndJSCallBack,
 
         if (version <= 0) { // 第一次用
 
-            localData.setVersion(AppUtils.getAppVersionCode(getApplicationContext()));
+            localData.setVersionCommit(AppUtils.getAppVersionCode(getApplicationContext()));
 
             if (!SocketApplication.tbsCoreInited // 初始化不成功 能加载x5
                     && QbSdk.canLoadX5(getApplicationContext())) {
-                new Thread(SocketApplication.newKillRun()).start();
+                new Thread(SocketApplication.newKillRun(600)).start();
             }
         }
-
     }
 
 

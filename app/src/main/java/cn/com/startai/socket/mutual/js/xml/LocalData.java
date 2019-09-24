@@ -1,6 +1,7 @@
 package cn.com.startai.socket.mutual.js.xml;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 
 import cn.com.swain.baselib.sp.BaseSpTool;
 
@@ -59,6 +60,12 @@ public class LocalData extends BaseSpTool {
 
     public void setVersion(int version) {
         putInt(KEY_LAST_VERSION, version);
+    }
+
+    public void setVersionCommit(int version) {
+        SharedPreferences.Editor editor = getEditor();
+        editor.putInt(KEY_LAST_VERSION, version);
+        editor.commit();
     }
 
     public int getVersion(int def) {

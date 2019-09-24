@@ -131,20 +131,30 @@ public class SocketApplication extends MultiDexApplication implements Thread.Unc
         QbSdk.initX5Environment(getApplicationContext(), cb);
     }
 
-    public static Runnable newKillRun() {
-        return new Runnable() {
-            @Override
-            public void run() {
-                Tlog.e(TAG, " start kill socketApplication");
+    public static Runnable newKillRun(long delay) {
+        return new DelayKill(delay);
+    }
+
+    private static class DelayKill implements Runnable {
+        private long delay;
+
+        private DelayKill(long delay) {
+            this.delay = delay;
+        }
+
+        @Override
+        public void run() {
+            Tlog.e(TAG, " start kill socketApplication");
+            if (delay > 0) {
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(delay);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                SocketApplication.kill();
-                Tlog.e(TAG, " end kill socketApplication");
             }
-        };
+            SocketApplication.kill();
+            Tlog.e(TAG, " end kill socketApplication");
+        }
     }
 
 }
