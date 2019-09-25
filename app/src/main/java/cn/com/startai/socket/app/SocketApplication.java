@@ -50,8 +50,7 @@ public class SocketApplication extends MultiDexApplication implements Thread.Unc
             Stetho.initializeWithDefaults(this); //chrome://inspect
         }
 
-        Tlog.i("SocketApplication onCreate(); pid:"
-                + android.os.Process.myPid()
+        Tlog.i("SocketApplication onCreate(); pid:"+ android.os.Process.myPid()
                 + "; SDK_INT :" + Build.VERSION.SDK_INT );
 
     }
