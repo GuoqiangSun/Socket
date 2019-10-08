@@ -1495,6 +1495,9 @@ public class SocketScmManager extends AbsSocketScm
         byte minutes = (byte) date.getMinutes();
         byte seconds = (byte) date.getSeconds();
         byte week = (byte) date.getDay();
+        if (week == 0) {
+            week = 7;
+        }
         ResponseData mResponseData = MySocketDataCache.getSetTime(mac, year, month, day, hours, minutes, seconds, week);
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setScmTime data[" + String.valueOf(mResponseData));
