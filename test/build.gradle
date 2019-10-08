@@ -11,8 +11,8 @@ android {
         applicationId "shared.startai.com.cn.myapplication"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 10001
-        versionName "1.0.01"
+        versionCode VERSION_CODE as int
+        versionName VERSION_NAME as String
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true

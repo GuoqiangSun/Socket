@@ -24,8 +24,8 @@ android {
         applicationId "cn.com.startai.aritempnb"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode AIRTEM_APP_VERSION as int
-        versionName AIRTEM_APP_NAME as String
+        versionCode VERSION_CODE as int
+        versionName VERSION_NAME as String
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }

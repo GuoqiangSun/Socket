@@ -26,8 +26,8 @@ android {
         applicationId "cn.com.startai.bluetoothsocket"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode BLE_APP_VERSION as int
-        versionName BLE_APP_NAME as String
+        versionCode VERSION_CODE as int
+        versionName VERSION_NAME as String
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true

@@ -1415,6 +1415,10 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
                     obj.put("endHour", mConstTempTiming.endHour);
                     obj.put("endMinit", mConstTempTiming.endMinute);
                     obj.put("model", mConstTempTiming.model);
+                    if (mConstTempTiming.hasDecimal) {
+                        obj.put("minTempF", mConstTempTiming.minTempF);
+                        obj.put("maxTempF", mConstTempTiming.maxTempF);
+                    }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -1436,12 +1440,24 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onSetConstTempTimingResult(ConstTempTiming mConstTempTiming) {
-        String method = TemperatureAndHumidity.Method.callJsSetConstTempTiming(mConstTempTiming.mac,
-                mConstTempTiming.result,
-                mConstTempTiming.id, mConstTempTiming.model, mConstTempTiming.startup,
-                mConstTempTiming.minTemp, mConstTempTiming.maxTemp, mConstTempTiming.week,
-                mConstTempTiming.startHour, mConstTempTiming.startMinute,
-                mConstTempTiming.endHour, mConstTempTiming.endMinute);
+        String method;
+        if (mConstTempTiming.hasDecimal) {
+            method = TemperatureAndHumidity.Method.callJsSetConstTempTiming(mConstTempTiming.mac,
+                    mConstTempTiming.result,
+                    mConstTempTiming.id, mConstTempTiming.model, mConstTempTiming.startup,
+                    mConstTempTiming.minTemp, mConstTempTiming.minTempF,
+                    mConstTempTiming.maxTemp, mConstTempTiming.maxTempF,
+                    mConstTempTiming.week,
+                    mConstTempTiming.startHour, mConstTempTiming.startMinute,
+                    mConstTempTiming.endHour, mConstTempTiming.endMinute);
+        } else {
+            method = TemperatureAndHumidity.Method.callJsSetConstTempTiming(mConstTempTiming.mac,
+                    mConstTempTiming.result,
+                    mConstTempTiming.id, mConstTempTiming.model, mConstTempTiming.startup,
+                    mConstTempTiming.minTemp, mConstTempTiming.maxTemp, mConstTempTiming.week,
+                    mConstTempTiming.startHour, mConstTempTiming.startMinute,
+                    mConstTempTiming.endHour, mConstTempTiming.endMinute);
+        }
         loadJs(method);
     }
 

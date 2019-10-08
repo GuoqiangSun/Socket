@@ -12,13 +12,17 @@ public class ConstTempTiming {
     public int model;
     public int startup;
     public int minTemp;
+    public int minTempF;
     public int maxTemp;
+    public int maxTempF;
     public int week;
     public int startHour;
     public int startMinute;
     public int endHour;
     public int endMinute;
 
+
+    public boolean hasDecimal;// 是否有小数点
 
     @Override
     public String toString() {

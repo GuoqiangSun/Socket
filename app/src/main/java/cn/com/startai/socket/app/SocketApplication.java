@@ -10,7 +10,6 @@ import com.tencent.smtt.sdk.QbSdk;
 import com.tencent.smtt.sdk.TbsListener;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import cn.com.startai.socket.db.manager.DBManager;
 import cn.com.startai.socket.debuger.Debuger;
@@ -85,8 +84,8 @@ public class SocketApplication extends MultiDexApplication implements Thread.Unc
     private void initx5() {
 
         Tlog.v(TAG, " QbSdk canLoadX5::" + QbSdk.canLoadX5(getApplicationContext()));
-
-        Tlog.v(TAG, " QbSdk isTbsCoreInited::" + QbSdk.isTbsCoreInited());
+        tbsCoreInited =  QbSdk.isTbsCoreInited();
+        Tlog.v(TAG, " QbSdk isTbsCoreInited::" +tbsCoreInited);
         //搜集本地tbs内核信息并上报服务器，服务器返回结果决定使用哪个内核。
         QbSdk.PreInitCallback cb = new QbSdk.PreInitCallback() {
 

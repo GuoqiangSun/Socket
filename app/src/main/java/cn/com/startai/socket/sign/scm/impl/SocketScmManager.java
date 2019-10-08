@@ -985,12 +985,23 @@ public class SocketScmManager extends AbsSocketScm
     @Override
     public void setConstTempTiming(ConstTempTiming mConstTempTiming) {
 
-        ResponseData mResponseData = MySocketDataCache.getSetConstTemperatureTiming(
-                mConstTempTiming.mac, mConstTempTiming.id, mConstTempTiming.model,
-                mConstTempTiming.startup, mConstTempTiming.minTemp, mConstTempTiming.maxTemp,
-                mConstTempTiming.week,
-                mConstTempTiming.startHour, mConstTempTiming.startMinute,
-                mConstTempTiming.endHour, mConstTempTiming.endMinute);
+        ResponseData mResponseData;
+        if (mConstTempTiming.hasDecimal) {
+            mResponseData = MySocketDataCache.getSetConstTemperatureTiming(
+                    mConstTempTiming.mac, mConstTempTiming.id, mConstTempTiming.model,
+                    mConstTempTiming.startup, mConstTempTiming.minTemp, mConstTempTiming.minTempF,
+                    mConstTempTiming.maxTemp, mConstTempTiming.maxTempF,
+                    mConstTempTiming.week,
+                    mConstTempTiming.startHour, mConstTempTiming.startMinute,
+                    mConstTempTiming.endHour, mConstTempTiming.endMinute);
+        } else {
+            mResponseData = MySocketDataCache.getSetConstTemperatureTiming(
+                    mConstTempTiming.mac, mConstTempTiming.id, mConstTempTiming.model,
+                    mConstTempTiming.startup, mConstTempTiming.minTemp, mConstTempTiming.maxTemp,
+                    mConstTempTiming.week,
+                    mConstTempTiming.startHour, mConstTempTiming.startMinute,
+                    mConstTempTiming.endHour, mConstTempTiming.endMinute);
+        }
         if (Debuger.isLogDebug) {
             Tlog.v(TAG, " setConstTempTiming: " + String.valueOf(mResponseData));
         }

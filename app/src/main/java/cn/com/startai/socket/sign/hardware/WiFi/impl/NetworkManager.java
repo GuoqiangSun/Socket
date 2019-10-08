@@ -194,7 +194,7 @@ public class NetworkManager extends AbsWiFi implements IUDPResult {
             }
 
             Tlog.v(TAG, " unknown network ");
-            return null;
+            return connMgr.getActiveNetworkInfo();
 
         }
 
