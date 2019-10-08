@@ -38,18 +38,22 @@ public class CosntTempTimingQueryReceiveTask extends SocketResponseTask {
         int length = protocolParams.length - 2;
 
         int onePkgLength;
-        if (length % 10 == 0) {
-            onePkgLength = 10;
-        } else if (length % 12 == 0) {
+        if (length == 60 || length == 120) {
             onePkgLength = 12;
         } else {
-            onePkgLength = 12;
+            if (length % 12 == 0) {
+                onePkgLength = 12;
+            } else if (length % 10 == 0) {
+                onePkgLength = 10;
+            } else {
+                Tlog.e(TAG, " CosntTempTimingQueryReceiveTask errorLength:" + mSocketDataArray.toString());
+               return;
+            }
         }
 
         int j = length / onePkgLength;
 
         byte[] data = new byte[onePkgLength];
-
 
         ArrayList<ConstTempTiming> mArray = new ArrayList<ConstTempTiming>();
         ConstTempTiming mConstTempTiming;

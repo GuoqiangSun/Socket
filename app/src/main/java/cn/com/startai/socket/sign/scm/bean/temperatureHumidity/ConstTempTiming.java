@@ -33,7 +33,9 @@ public class ConstTempTiming {
                 ", model=" + model +
                 ", startup=" + startup +
                 ", minTemp=" + minTemp +
+                ", minTempF=" + minTempF +
                 ", maxTemp=" + maxTemp +
+                ", maxTempF=" + maxTempF +
                 ", week=" + week +
                 ", startHour=" + startHour +
                 ", startMinute=" + startMinute +

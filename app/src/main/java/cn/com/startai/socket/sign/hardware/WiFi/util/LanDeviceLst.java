@@ -16,7 +16,7 @@ public class LanDeviceLst {
 
     /**
      * key ip
-     * obj mac
+     * obj LanDeviceInfo
      */
     private final Map<String, LanDeviceInfo> mLanDeviceArrayIP = Collections.synchronizedMap(new HashMap<>());
 
