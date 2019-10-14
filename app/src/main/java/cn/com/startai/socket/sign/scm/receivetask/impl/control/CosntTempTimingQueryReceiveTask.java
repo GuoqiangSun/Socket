@@ -3,6 +3,7 @@ package cn.com.startai.socket.sign.scm.receivetask.impl.control;
 import java.util.ArrayList;
 
 import cn.com.startai.socket.debuger.Debuger;
+import cn.com.startai.socket.global.CustomManager;
 import cn.com.startai.socket.sign.scm.bean.temperatureHumidity.ConstTempTiming;
 import cn.com.startai.socket.sign.scm.receivetask.OnTaskCallBack;
 import cn.com.swain.baselib.log.Tlog;
@@ -34,31 +35,53 @@ public class CosntTempTimingQueryReceiveTask extends SocketResponseTask {
             return;
         }
 
+        int model = protocolParams[1];
 
         int length = protocolParams.length - 2;
 
         int onePkgLength;
-        if (length == 60 || length == 120) {
-            onePkgLength = 12;
-        } else {
-            if (length % 12 == 0) {
+        if (CustomManager.getInstance().isTriggerWiFi()) {
+            if (length % 12 == 0) { // 不用管 onePkgLength=10的情况
                 onePkgLength = 12;
             } else if (length % 10 == 0) {
                 onePkgLength = 10;
             } else {
-                Tlog.e(TAG, " CosntTempTimingQueryReceiveTask errorLength:" + mSocketDataArray.toString());
-               return;
+                if(length>12){
+                    onePkgLength = 12;
+                } else  {
+                Tlog.e(TAG, " CosntTempTimingQueryReceiveTask error::" + mSocketDataArray.toString());
+                    if (mTaskCallBack != null){
+                    mTaskCallBack.onQueryConstTempTimingResult(mSocketDataArray.getID(), model, null);
+                    }
+                    return;
+                }
+
             }
+        } else if (CustomManager.getInstance().isTriggerBle()) {
+            if (length % 13 == 0) {
+                onePkgLength = 13;
+            } else if (length % 10 == 0) { // 要管 onePkgLength=10的情况，蓝牙已经出货
+                onePkgLength = 10;
+            } else {
+                Tlog.e(TAG, " CosntTempTimingQueryReceiveTask error:" + mSocketDataArray.toString());
+                if (mTaskCallBack != null) {
+                    mTaskCallBack.onQueryConstTempTimingResult(mSocketDataArray.getID(), model, null);
+                }
+                return;
+            }
+        } else {
+            onePkgLength = 10; // 最开始的协议 一包长度为10
         }
+
 
         int j = length / onePkgLength;
 
         byte[] data = new byte[onePkgLength];
 
-        ArrayList<ConstTempTiming> mArray = new ArrayList<ConstTempTiming>();
+        ArrayList<ConstTempTiming> mArray = new ArrayList<>();
         ConstTempTiming mConstTempTiming;
 
-        int model = protocolParams[1];
+
 
         for (int i = 0; i < j; i++) {
             mConstTempTiming = new ConstTempTiming();

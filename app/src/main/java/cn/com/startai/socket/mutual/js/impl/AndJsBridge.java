@@ -1415,10 +1415,8 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
                     obj.put("endHour", mConstTempTiming.endHour);
                     obj.put("endMinit", mConstTempTiming.endMinute);
                     obj.put("model", mConstTempTiming.model);
-                    if (mConstTempTiming.hasDecimal) {
-                        obj.put("minTempF", mConstTempTiming.minTempF);
-                        obj.put("maxTempF", mConstTempTiming.maxTempF);
-                    }
+                    obj.put("minTempF", mConstTempTiming.minTempF);
+                    obj.put("maxTempF", mConstTempTiming.maxTempF);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
