@@ -7,7 +7,7 @@
         android:name=".MiniWiFiApplication"
         android:icon="@mipmap/logowifi"
         android:label="@string/app_name_wifi"
-        android:roundIcon="@mipmap/logowifi">
+        >
 
 
         <meta-data

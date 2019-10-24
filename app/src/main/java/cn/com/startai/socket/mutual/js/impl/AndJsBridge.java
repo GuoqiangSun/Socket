@@ -1682,7 +1682,7 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
 
     @Override
     public void onResultQueryCountdown(String mac, CountdownData mCountdownData) {
-        Tlog.v(TAG, " onResultQueryCountdown() startup:" + mCountdownData.Switchgear
+        Tlog.v(TAG, " onResultQueryCountdown() Switchgear:" + mCountdownData.Switchgear
                 + " startup:" + mCountdownData.countdownSwitch);
         checkCountdownData(mCountdownData);
         String s = mCountdownData.toJsonStr();
@@ -2279,31 +2279,26 @@ public class AndJsBridge extends AbsAndJsBridge implements IService {
                                                  SpendingElectricityData mElectricityData,
                                                  SpendingElectricityData mSpendingData) {
         Tlog.v(TAG, " onResultQuerySpendingElectricity() result:" + result);
-
-        JSONObject jsonObject = null;
-        if (mElectricityData != null) {
-            jsonObject = mElectricityData.toJsonObj();
-        }
-        JSONObject jsonObject1 = null;
-        if (mSpendingData != null) {
-            jsonObject1 = mSpendingData.toJsonObj();
-        }
-
         JSONObject obj = new JSONObject();
-        if (jsonObject != null) {
+
+        if (mElectricityData != null) {
+            JSONObject jsonObject = mElectricityData.toJsonObj();
             try {
                 obj.put(SpendingElectricityData.MODEL_POWER, jsonObject);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
-        if (jsonObject1 != null) {
+
+        if (mSpendingData != null) {
+            JSONObject jsonObject1 = mSpendingData.toJsonObj();
             try {
                 obj.put(SpendingElectricityData.MODEL_COST, jsonObject1);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
+
         String json = obj.toString();
         String method = SpendingCountdown.Method.callJsSpendingCountdownData(id, result, json);
         loadJs(method);

@@ -23,6 +23,7 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
         signingConfig signingConfigs.wifisocket
+
     }
     lintOptions {
         checkReleaseBuilds false

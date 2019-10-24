@@ -93,9 +93,9 @@ public class JavaTestMain {
 
 //        sanjiao();
 
-        sb();
+//        sb();
 
-        System.err.println("end ");
+       System.err.println("end " + 0b1);
     }
 
     private static void sb() {

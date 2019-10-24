@@ -81,6 +81,8 @@ public class SocketApplication extends MultiDexApplication implements Thread.Unc
 
     public static volatile boolean tbsCoreInited;
 
+//    android第三方webview框架推荐（强烈推荐）
+//    https://blog.csdn.net/qugengting/article/details/85101935
     private void initx5() {
 
         Tlog.v(TAG, " QbSdk canLoadX5::" + QbSdk.canLoadX5(getApplicationContext()));
