@@ -91,6 +91,11 @@ public class TempHumidityAlarmData {
         int alarmInt = getAlarmValue() * 100;
         int originAlarmInt = (int) (alarmValue * 100);
         int deci = Math.abs(originAlarmInt - alarmInt);
+        if (deci >= 100) {
+            deci /= 100;
+        } else if (deci >= 10) {
+            deci /= 10;
+        }
         return deci;
     }
 
