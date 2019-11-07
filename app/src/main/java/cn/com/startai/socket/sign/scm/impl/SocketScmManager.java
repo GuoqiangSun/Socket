@@ -2579,6 +2579,15 @@ public class SocketScmManager extends AbsSocketScm
 
     @Override
     public void onSetTimingTempHumiResult(boolean result, String id, TimingTempHumiData mAdvanceData) {
+//        if (result) {
+//            if (mAdvanceData.isTemp()) {
+//                if (mAdvanceData.startup) {
+//                    TempHumidityData tempHumidityData = mScmDeviceUtils.getScmDevice(id).getTempHumidityData();
+//                    tempHumidityData.mTemperature.codeAlarmSwitch = false;
+//                    tempHumidityData.mTemperature.hotAlarmSwitch = false;
+//                }
+//            }
+//        }
         if (mScmResultCallBack != null) {
             mScmResultCallBack.onResultSetTimingTempHumi(result, id, mAdvanceData);
         }
@@ -2670,6 +2679,13 @@ public class SocketScmManager extends AbsSocketScm
     public void onSetConstTempTimingResult(ConstTempTiming mConstTempTiming) {
         if (mScmResultCallBack != null) {
             mScmResultCallBack.onSetConstTempTimingResult(mConstTempTiming);
+        }
+        if (mConstTempTiming!=null ) {
+            if (SocketSecureKey.Util.startup((byte) mConstTempTiming.startup)) {
+                TempHumidityData tempHumidityData = mScmDeviceUtils.getScmDevice(mConstTempTiming.mac).getTempHumidityData();
+                tempHumidityData.mTemperature.codeAlarmSwitch = false;
+                tempHumidityData.mTemperature.hotAlarmSwitch = false;
+            }
         }
     }
 
